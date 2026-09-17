@@ -428,6 +428,7 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 <script>
 /* ══ CONFIG ════════════════════════════════════════════════════ */
 var SK = 'roc3';
+var SK_SYNC = 'roc3_synced_at'; /* cursor do último sync incremental (maior updated_at já visto) */
 /* Supabase — preencher após criar o projeto */
 /* Projeto Supabase padrão da ROCONTEC — já vem configurado, sem precisar de
    tela de configuração manual. A chave abaixo é a "anon/public": ela é
@@ -634,19 +635,77 @@ function sbSyncDown(forceRender) {
   lastSyncTime = now;
   marcarSyncStatus(true);
 
-  fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,data&order=created_at.desc', { headers: sbHeaders() })
+  var cursor = null;
+  try { cursor = localStorage.getItem(SK_SYNC) || null; } catch(e) {}
+  /* Proteção: se o cursor existe mas não há nenhum relatório local, algo
+     limpou o cache (localStorage.clear(), navegador limpando dados, etc.)
+     sem avisar o sync — ignora o cursor e força um sync completo, senão
+     o delta acharia "nada mudou" e o dispositivo ficaria vazio pra sempre. */
+  if (cursor && reports.length === 0) cursor = null;
+
+  /* ── Sync incremental ──────────────────────────────────────────────
+     Antes, todo sync baixava a tabela inteira (id+data de TODO mundo),
+     sempre. Agora:
+     1) pede só os relatórios alterados desde o último sync bem-sucedido
+        (updated_at > cursor) — na maioria das vezes isso é "nada" ou
+        pouca coisa, então o payload real cai bastante conforme a base
+        cresce;
+     2) pede em paralelo só a lista de ids existentes (bem leve, é só
+        texto curto) para detectar localmente o que foi excluído em
+        outro dispositivo — um delta por updated_at sozinho não
+        percebe exclusões, porque a linha some da tabela.
+     No primeiro sync de um dispositivo (sem cursor salvo ainda) o delta
+     vem sem filtro, ou seja, se comporta como o sync completo de antes. */
+  var pIds = fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id', { headers: sbHeaders() })
     .then(function(r) {
       if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r.status)); });
       return r.json();
-    })
-    .then(function(data) {
-      if (!Array.isArray(data)) return;
-      /* Guarda as fotos como referência "sbfoto:" sem assinar URL aqui — isso
-         antes rodava para TODAS as fotos de TODOS os relatórios a cada sync,
-         mesmo para relatórios que o usuário nunca abre. Agora a assinatura
-         acontece sob demanda em resolverFotosRelatorio(), só para o relatório
-         que for realmente aberto ou impresso. */
-      reports = data.map(function(row) { return row.data; });
+    });
+
+  var deltaUrl = SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,data,updated_at&order=updated_at.asc'
+    + (cursor ? '&updated_at=gt.' + encodeURIComponent(cursor) : '');
+  var pDelta = fetch(deltaUrl, { headers: sbHeaders() })
+    .then(function(r) {
+      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r.status)); });
+      return r.json();
+    });
+
+  Promise.all([pIds, pDelta])
+    .then(function(res) {
+      var idsRemotos = res[0], delta = res[1];
+      if (!Array.isArray(idsRemotos) || !Array.isArray(delta)) return;
+
+      var idsSet = {};
+      for (var i = 0; i < idsRemotos.length; i++) idsSet[String(idsRemotos[i].id)] = true;
+
+      /* aplica os relatórios novos/alterados no que já está local */
+      var indicePorId = {};
+      for (var i = 0; i < reports.length; i++) indicePorId[String(reports[i].id)] = i;
+      for (var i = 0; i < delta.length; i++) {
+        var row = delta[i];
+        var idx = indicePorId[String(row.id)];
+        if (idx !== undefined) reports[idx] = row.data;
+        else { reports.push(row.data); indicePorId[String(row.id)] = reports.length - 1; }
+      }
+
+      /* remove localmente o que não existe mais no servidor — preserva
+         relatórios criados neste dispositivo e ainda não enviados
+         (_pendingSync), senão um relatório novo desapareceria da tela
+         antes mesmo de ser sincronizado pela primeira vez */
+      var restantes = [];
+      for (var i = 0; i < reports.length; i++) {
+        if (idsSet[String(reports[i].id)] || reports[i]._pendingSync) restantes.push(reports[i]);
+      }
+      reports = restantes;
+      reports.sort(function(a, b) { return b.id - a.id; });
+
+      /* avança o cursor até o updated_at mais recente visto neste delta */
+      var maiorUpdated = cursor;
+      for (var i = 0; i < delta.length; i++) {
+        if (!maiorUpdated || delta[i].updated_at > maiorUpdated) maiorUpdated = delta[i].updated_at;
+      }
+      try { localStorage.setItem(SK_SYNC, maiorUpdated || new Date().toISOString()); } catch(e) {}
+
       persistLocal();
       marcarSyncStatus(false);
       atualizarContador();
