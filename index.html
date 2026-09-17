@@ -266,9 +266,9 @@ body.ui-nao-admin .admin-only{display:none !important}
         Backup
       </button>
     </div>
-    <div class="sb-user">
-      <div class="sb-avatar">E</div>
-      <div><div style="font-size:12px;font-weight:700">Engenheiro</div><div style="font-size:10px;color:var(--gray)">Responsável Técnico</div></div>
+    <div class="sb-user" onclick="abrirMeuPerfil()" style="cursor:pointer">
+      <div class="sb-avatar" id="sb-avatar">?</div>
+      <div><div id="sb-user-nome" style="font-size:12px;font-weight:700">—</div><div id="sb-user-sub" style="font-size:10px;color:var(--gray)">—</div></div>
     </div>
   </aside>
 
@@ -474,6 +474,7 @@ var filterC = 'all';
    um único usuário no próprio dispositivo, então tudo é liberado. */
 var userRole = 'visualizador';
 var userPodeUsarIA = false;
+var userNome = '';
 function podeEditar() { return !sbEnabled() || userRole === 'admin' || userRole === 'editor'; }
 function ehAdmin()    { return !sbEnabled() || userRole === 'admin'; }
 function podeUsarIA() { return podeEditar() && (!sbEnabled() || userPodeUsarIA); }
@@ -483,6 +484,34 @@ function aplicarPermissoesUI() {
   document.body.classList.toggle('ui-sem-ia', !podeUsarIA());
   document.body.classList.toggle('ui-nao-admin', !ehAdmin());
   aplicarModoEdicaoEditor();
+}
+
+/* ── Iniciais para o avatar: usa o nome cadastrado (ex.: "Thiago Aoki" → "TA");
+   sem nome cadastrado, cai para as 2 primeiras letras do e-mail. ── */
+function iniciais(nome, email) {
+  var base = (nome || '').trim();
+  if (base) {
+    var partes = base.split(/\s+/);
+    var ini = partes[0].charAt(0) + (partes.length > 1 ? partes[partes.length - 1].charAt(0) : '');
+    return ini.toUpperCase();
+  }
+  return ((email || '?').slice(0, 2)).toUpperCase();
+}
+
+function atualizarCartaoUsuario() {
+  var avatarEl = document.getElementById('sb-avatar');
+  var nomeEl   = document.getElementById('sb-user-nome');
+  var subEl    = document.getElementById('sb-user-sub');
+  if (!avatarEl || !nomeEl || !subEl) return;
+  if (sbEnabled() && SB_SESSION && SB_SESSION.email) {
+    avatarEl.textContent = iniciais(userNome, SB_SESSION.email);
+    nomeEl.textContent = userNome || SB_SESSION.email;
+    subEl.textContent = ROLE_LBL[userRole] || userRole;
+  } else {
+    avatarEl.textContent = '💻';
+    nomeEl.textContent = 'Modo local';
+    subEl.textContent = 'Só neste dispositivo';
+  }
 }
 
 /* Campos estáticos do editor (capa/introdução/considerações) não são
@@ -559,7 +588,7 @@ function sbSessaoOk() {
 }
 
 function sbVerificarAutorizacao() {
-  return fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email,role,pode_usar_ia&email=eq.' + encodeURIComponent(SB_SESSION.email), { headers: sbHeaders() })
+  return fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email,role,pode_usar_ia,nome&email=eq.' + encodeURIComponent(SB_SESSION.email), { headers: sbHeaders() })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var autorizado = Array.isArray(data) && data.length > 0;
@@ -568,7 +597,9 @@ function sbVerificarAutorizacao() {
          já que login exige isso), fica no estado mais restrito. */
       userRole = autorizado ? (data[0].role || 'visualizador') : 'visualizador';
       userPodeUsarIA = autorizado ? !!data[0].pode_usar_ia : false;
+      userNome = autorizado ? (data[0].nome || '') : '';
       aplicarPermissoesUI();
+      atualizarCartaoUsuario();
       return autorizado;
     })
     .catch(function() { return null; /* erro de rede: não bloqueia */ });
@@ -647,6 +678,7 @@ function authUsarSemNuvem() {
   loadData();
   if (!sbEnabled()) { atualizarContador(); renderHome(); }
   aplicarPermissoesUI(); /* sem Supabase = um único usuário no dispositivo = acesso total */
+  atualizarCartaoUsuario();
   toast('Modo local ativado — dados salvos só neste dispositivo.', 'o', true);
 }
 
@@ -1079,7 +1111,10 @@ function carregarAcessos() {
         return '<div style="padding:8px 0;border-bottom:1px solid var(--bdr)">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
           + '<span style="font-size:13px;font-weight:600">' + escH(u.email) + (proprio ? ' (você)' : '') + '</span>'
-          + (proprio ? '' : '<button class="btn-g" style="color:var(--red);font-size:11px;padding:3px 8px" onclick="removerAcesso(\'' + emailAttr + '\')">Remover</button>')
+          + (proprio ? '' : '<div style="display:flex;gap:4px">'
+              + '<button class="btn-g" style="font-size:11px;padding:3px 8px" onclick="resetarSenha(\'' + emailAttr + '\')">Resetar senha</button>'
+              + '<button class="btn-g" style="color:var(--red);font-size:11px;padding:3px 8px" onclick="removerAcesso(\'' + emailAttr + '\')">Remover</button>'
+              + '</div>')
           + '</div>'
           + '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
           + '<select class="sort-sel" style="font-size:12px;padding:6px 8px" onchange="alterarPerfil(\'' + emailAttr + '\',this.value)"' + (proprio ? ' disabled title="Não é possível alterar seu próprio perfil"' : '') + '>' + roleOpts + '</select>'
@@ -1138,6 +1173,107 @@ function removerAcesso(email) {
     if (!r.ok) throw new Error('Falha ao remover');
     toast('Acesso removido', 'o', true);
     carregarAcessos();
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+/* ── Admin: envia e-mail de redefinição de senha para outro usuário.
+   Não existe "definir a senha de outra pessoa" direto pelo app — isso
+   exigiria expor a service role key do Supabase em algum lugar. O fluxo
+   padrão e seguro é mandar o link de redefinição, que a própria pessoa
+   usa para escolher a nova senha. ── */
+function resetarSenha(email) {
+  if (!confirm('Enviar e-mail de redefinição de senha para ' + email + '?')) return;
+  var redirectTo = encodeURIComponent(location.origin + location.pathname);
+  fetch(SB_URL + '/auth/v1/recover?redirect_to=' + redirectTo, {
+    method: 'POST', headers: sbAuthHeaders(), body: JSON.stringify({ email: email })
+  }).then(function(r) {
+    if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j.error_description || j.msg || j.message) || 'Falha ao enviar e-mail'); });
+    toast('E-mail de redefinição enviado para ' + email, 'o', true);
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+/* ══ MEU PERFIL (nome + trocar a própria senha) ═══════════════════ */
+function abrirMeuPerfil() {
+  if (!sbEnabled()) { toast('Perfil disponível só conectado à nuvem', '⚠'); return; }
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Meu Perfil</div>'
+    + '<div class="md-note" style="margin-bottom:14px">' + escH(SB_SESSION.email) + ' · ' + escH(ROLE_LBL[userRole] || userRole) + '</div>'
+    + '<div class="field"><label>Nome (usado nas iniciais do avatar)</label>'
+    + '<input class="md-inp" id="perfil-nome" placeholder="Ex: Thiago Aoki" value="' + escH(userNome) + '"/></div>'
+    + '<button class="btn btn-r" style="width:100%;padding:12px;margin:8px 0 18px" onclick="salvarMeuNome()">Salvar nome</button>'
+    + '<div style="height:1px;background:var(--bdr);margin-bottom:14px"></div>'
+    + '<div class="md-ttl" style="font-size:14px;margin-bottom:8px">Alterar minha senha</div>'
+    + '<input class="md-inp" type="password" id="perfil-senha-nova" placeholder="Nova senha (mín. 6 caracteres)"/>'
+    + '<input class="md-inp" type="password" id="perfil-senha-conf" placeholder="Confirmar nova senha" style="margin-top:8px"/>'
+    + '<button class="btn btn-o" style="width:100%;padding:12px;margin-top:8px" onclick="alterarMinhaSenha()">Alterar senha</button>'
+    + '<div class="md-btns" style="margin-top:18px"><button class="btn btn-o" style="flex:1;padding:12px" onclick="fecharModal()">Fechar</button></div>';
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function salvarMeuNome() {
+  var inp = document.getElementById('perfil-nome');
+  var nome = (inp.value || '').trim();
+  fetch(SB_URL + '/rest/v1/rpc/atualizar_meu_nome', {
+    method: 'POST', headers: sbHeaders(), body: JSON.stringify({ novo_nome: nome })
+  }).then(function(r) {
+    if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j.message || j.msg) || 'Falha ao salvar nome'); });
+    userNome = nome;
+    atualizarCartaoUsuario();
+    toast('Nome salvo!', 'o', true);
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+function alterarMinhaSenha() {
+  var nova = document.getElementById('perfil-senha-nova').value || '';
+  var conf = document.getElementById('perfil-senha-conf').value || '';
+  if (nova.length < 6) { toast('A senha precisa ter ao menos 6 caracteres', '⚠'); return; }
+  if (nova !== conf) { toast('As senhas não coincidem', '⚠'); return; }
+  fetch(SB_URL + '/auth/v1/user', {
+    method: 'PUT', headers: sbHeaders(), body: JSON.stringify({ password: nova })
+  }).then(function(r) {
+    if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j.error_description || j.msg || j.message) || 'Falha ao alterar senha'); });
+    toast('Senha alterada!', 'o', true);
+    document.getElementById('perfil-senha-nova').value = '';
+    document.getElementById('perfil-senha-conf').value = '';
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+/* ── Link de "definir nova senha" recebido por e-mail (Supabase Auth
+   redireciona de volta pro app com o token no #hash da URL). Detectado
+   e tratado antes de qualquer lógica normal de login. ── */
+function verificarRecuperacaoSenha() {
+  var hash = location.hash || '';
+  if (hash.indexOf('type=recovery') < 0) return false;
+  var params = {};
+  hash.replace(/^#/, '').split('&').forEach(function(par) {
+    var kv = par.split('=');
+    params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || '');
+  });
+  var token = params.access_token;
+  if (!token) return false;
+  history.replaceState(null, '', location.pathname + location.search); /* tira o token da URL visível */
+
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Definir Nova Senha</div>'
+    + '<p class="md-txt">Escolha uma nova senha para sua conta.</p>'
+    + '<input class="md-inp" type="password" id="recovery-senha-nova" placeholder="Nova senha (mín. 6 caracteres)"/>'
+    + '<input class="md-inp" type="password" id="recovery-senha-conf" placeholder="Confirmar nova senha" style="margin-top:8px"/>'
+    + '<div class="md-btns" style="margin-top:12px"><button class="btn btn-r" style="flex:1;padding:13px" onclick="confirmarNovaSenha(\'' + token.replace(/'/g, "\\'") + '\')">Salvar nova senha</button></div>';
+  document.getElementById('modal').style.display = 'flex';
+  return true;
+}
+
+function confirmarNovaSenha(token) {
+  var nova = document.getElementById('recovery-senha-nova').value || '';
+  var conf = document.getElementById('recovery-senha-conf').value || '';
+  if (nova.length < 6) { toast('A senha precisa ter ao menos 6 caracteres', '⚠'); return; }
+  if (nova !== conf) { toast('As senhas não coincidem', '⚠'); return; }
+  fetch(SB_URL + '/auth/v1/user', {
+    method: 'PUT',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: nova })
+  }).then(function(r) {
+    if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j.error_description || j.msg || j.message) || 'Falha ao definir senha'); });
+    fecharModal();
+    toast('Senha definida! Faça login com a nova senha.', '✓', true);
   }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
 }
 
@@ -2509,6 +2645,10 @@ window.onload = function() {
   var authLogo = document.getElementById('auth-logo-img');
   if (authLogo) authLogo.src = logoSrc;
 
+  // Link de redefinição de senha (veio de e-mail) tem prioridade sobre
+  // qualquer lógica normal de login/boot.
+  if (verificarRecuperacaoSenha()) return;
+
   // Carregar config Supabase + sessão salvas
   try {
     var savedUrl = localStorage.getItem('sb_url') || '';
@@ -2533,7 +2673,7 @@ window.onload = function() {
        vez, então confirma de novo com o servidor a cada boot — evita ficar
        com um perfil desatualizado depois de alguém mudar sua permissão. */
     if (sbEnabled()) sbVerificarAutorizacao();
-    else aplicarPermissoesUI();
+    else { aplicarPermissoesUI(); atualizarCartaoUsuario(); }
   }
 
   if (SB_URL && SB_KEY) {
