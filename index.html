@@ -175,6 +175,13 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .spinner{width:14px;height:14px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;-webkit-animation:spin .7s linear infinite;animation:spin .7s linear infinite;flex-shrink:0;display:inline-block}
 @-webkit-keyframes spin{to{-webkit-transform:rotate(360deg)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* Perfis de acesso — classes aplicadas/removidas em <body> conforme o perfil
+   do usuário logado (ver aplicarPermissoesUI()). Por padrão (antes de
+   carregar o perfil) o estado é o mais restritivo, para nunca mostrar por
+   um instante um botão de edição para quem não pode editar. */
+body.ui-restrita .edit-only{display:none !important}
+body.ui-sem-ia .ia-only{display:none !important}
+body.ui-nao-admin .admin-only{display:none !important}
 .empty{text-align:center;padding:44px 20px;color:var(--gray)}
 .empty-ico{font-size:36px;margin-bottom:11px}
 .empty-ttl{font-family:var(--ftt);font-size:19px;font-weight:900;color:var(--black);margin-bottom:6px}
@@ -219,13 +226,13 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .auth-switch a{color:var(--red);font-weight:700;cursor:pointer;text-decoration:none}
 </style>
 </head>
-<body>
+<body class="ui-restrita ui-sem-ia ui-nao-admin">
 <div id="app">
   <aside id="sidebar">
     <div class="sb-top">
       <div class="sb-logo"><img id="sb-logo-img" src="" alt="ROCONTEC"/></div>
     </div>
-    <button class="sb-new" onclick="novoRelatorio()">+ Novo Relatório</button>
+    <button class="sb-new edit-only" onclick="novoRelatorio()">+ Novo Relatório</button>
     <div class="sb-sec">
       <span class="sb-lbl">Menu</span>
       <button class="sb-btn on" id="sb-home" onclick="navegar('home')">
@@ -246,9 +253,9 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         <span id="sb-status-lbl">Nuvem: Desconectado</span>
       </button>
-      <button class="sb-btn" onclick="abrirAcessos()">
+      <button class="sb-btn admin-only" onclick="abrirAcessos()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Acessos
+        Acessos e Perfis
       </button>
       <button class="sb-btn" id="sb-sync-btn" onclick="sincronizarManual()">
         <span id="sb-sync-ico"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></span>
@@ -268,17 +275,17 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
   <main id="main">
     <!-- HOME -->
     <div id="pg-home" class="pg on">
-      <div class="hdr"><span id="online-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#16a34a;border:1px solid rgba(22,163,74,.25);flex-shrink:0;letter-spacing:.3px">● Online</span><span class="hdr-ttl" style="margin-left:8px">Painel de Controle</span><div class="hdr-act"><button class="btn btn-r" onclick="novoRelatorio()">+ Novo Relatório</button></div></div>
+      <div class="hdr"><span id="online-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#16a34a;border:1px solid rgba(22,163,74,.25);flex-shrink:0;letter-spacing:.3px">● Online</span><span class="hdr-ttl" style="margin-left:8px">Painel de Controle</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo Relatório</button></div></div>
       <div id="home-body" style="padding:20px"></div>
     </div>
     <!-- OBRAS -->
     <div id="pg-obras" class="pg">
-      <div class="hdr"><span class="hdr-ttl">Diretório de Obras</span><div class="hdr-act"><button class="btn btn-r" onclick="novoRelatorio()">+ Novo</button></div></div>
+      <div class="hdr"><span class="hdr-ttl">Diretório de Obras</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo</button></div></div>
       <div id="obras-body" style="padding:20px"></div>
     </div>
     <!-- LIST -->
     <div id="pg-list" class="pg">
-      <div class="hdr"><span class="hdr-ttl" id="list-ttl">Relatórios</span><div class="hdr-act"><button class="btn btn-r" onclick="novoRelatorio()">+ Novo</button></div></div>
+      <div class="hdr"><span class="hdr-ttl" id="list-ttl">Relatórios</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo</button></div></div>
       <div style="padding:20px">
         <div id="list-filterbar"></div>
         <div id="list-rows"></div>
@@ -291,7 +298,7 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
         <span class="hdr-ttl" id="ed-ttl">Novo Relatório</span>
         <div class="hdr-act">
           <button class="btn btn-o" onclick="gerarPDF()" style="padding:8px 10px"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> PDF</button>
-          <button class="btn btn-r" onclick="salvarRelatorio()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg> Salvar</button>
+          <button class="btn btn-r edit-only" onclick="salvarRelatorio()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg> Salvar</button>
         </div>
       </div>
       <div class="tabs">
@@ -368,7 +375,7 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
               <option value="low">Baixa</option>
               <option value="orient">Orientativa</option>
             </select>
-            <button class="btn btn-r" onclick="addApt()">+ Adicionar</button>
+            <button class="btn btn-r edit-only" onclick="addApt()">+ Adicionar</button>
           </div>
         </div>
         <div id="apts-list"></div>
@@ -378,7 +385,7 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
         <div class="card">
           <div class="card-hdr">
             <span class="card-ttl">Considerações Finais</span>
-            <button class="btn btn-r" id="btn-gerar" onclick="gerarConsideracoes()" style="font-size:12px;padding:7px 12px">✦ Gerar com IA</button>
+            <button class="btn btn-r edit-only ia-only" id="btn-gerar" onclick="gerarConsideracoes()" style="font-size:12px;padding:7px 12px">✦ Gerar com IA</button>
           </div>
           <div class="card-body">
             <div class="field">
@@ -403,7 +410,7 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
     <button class="bn-btn" onclick="abrirConfigSb()"><span class="bn-ico">☁️</span>Nuvem</button>
     <button class="bn-btn" onclick="abrirBackup()"><span class="bn-ico">💾</span>Backup</button>
   </nav>
-  <button class="fab" onclick="novoRelatorio()">＋</button>
+  <button class="fab edit-only" onclick="novoRelatorio()">＋</button>
 </div>
 
 <div id="modal" style="display:none" class="ov" onclick="fecharModal(event)">
@@ -457,6 +464,39 @@ var consid  = '';
 var searchQ = '';
 var sortBy  = 'date';
 var filterC = 'all';
+
+/* ══ PERFIL DE ACESSO ══════════════════════════════════════════════
+   'visualizador' | 'editor' | 'admin'. Começa restrito de propósito —
+   só é liberado depois que sbVerificarAutorizacao() confirma o perfil
+   real vindo do Supabase, para nunca mostrar um botão de edição por um
+   instante antes de saber se o usuário realmente pode editar. Em modo
+   local (sem Supabase configurado) não existe controle de acesso — é
+   um único usuário no próprio dispositivo, então tudo é liberado. */
+var userRole = 'visualizador';
+var userPodeUsarIA = false;
+function podeEditar() { return !sbEnabled() || userRole === 'admin' || userRole === 'editor'; }
+function ehAdmin()    { return !sbEnabled() || userRole === 'admin'; }
+function podeUsarIA() { return podeEditar() && (!sbEnabled() || userPodeUsarIA); }
+
+function aplicarPermissoesUI() {
+  document.body.classList.toggle('ui-restrita', !podeEditar());
+  document.body.classList.toggle('ui-sem-ia', !podeUsarIA());
+  document.body.classList.toggle('ui-nao-admin', !ehAdmin());
+  aplicarModoEdicaoEditor();
+}
+
+/* Campos estáticos do editor (capa/introdução/considerações) não são
+   recriados a cada render, então precisam ser travados via JS, não via
+   CSS — os campos de cada apontamento (dinâmicos) já nascem com
+   readonly/disabled certo em renderApts(). */
+function aplicarModoEdicaoEditor() {
+  var somenteLeitura = !podeEditar();
+  var ids = ['f-obra','f-cliente','f-data','f-num','f-resp','f-cargo','f-emp','f-hist','f-esc','f-sol','f-intro','f-consid'];
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if (el) el.readOnly = somenteLeitura;
+  }
+}
 
 var CRITS = {
   orient:   {l:'Orientativa', cls:'c-orient'},
@@ -519,9 +559,18 @@ function sbSessaoOk() {
 }
 
 function sbVerificarAutorizacao() {
-  return fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email&email=eq.' + encodeURIComponent(SB_SESSION.email), { headers: sbHeaders() })
+  return fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email,role,pode_usar_ia&email=eq.' + encodeURIComponent(SB_SESSION.email), { headers: sbHeaders() })
     .then(function(r) { return r.json(); })
-    .then(function(data) { return Array.isArray(data) && data.length > 0; })
+    .then(function(data) {
+      var autorizado = Array.isArray(data) && data.length > 0;
+      /* Perfil vem sempre do servidor — nunca assume acesso liberado por
+         padrão. Se o e-mail não estiver na lista (não deveria acontecer,
+         já que login exige isso), fica no estado mais restrito. */
+      userRole = autorizado ? (data[0].role || 'visualizador') : 'visualizador';
+      userPodeUsarIA = autorizado ? !!data[0].pode_usar_ia : false;
+      aplicarPermissoesUI();
+      return autorizado;
+    })
     .catch(function() { return null; /* erro de rede: não bloqueia */ });
 }
 
@@ -597,6 +646,7 @@ function authUsarSemNuvem() {
   atualizarStatusSb();
   loadData();
   if (!sbEnabled()) { atualizarContador(); renderHome(); }
+  aplicarPermissoesUI(); /* sem Supabase = um único usuário no dispositivo = acesso total */
   toast('Modo local ativado — dados salvos só neste dispositivo.', 'o', true);
 }
 
@@ -998,10 +1048,13 @@ function desconectarSb() {
 }
 
 /* ── Modal: gerenciar e-mails autorizados a acessar a nuvem ── */
+var ROLE_LBL = { admin: 'Administrador', editor: 'Editor', visualizador: 'Visualizador' };
+
 function abrirAcessos() {
   if (!sbEnabled()) { toast('Conecte-se e faça login na nuvem primeiro', '⚠'); return; }
-  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Acessos autorizados</div>'
-    + '<p class="md-txt">Só os e-mails desta lista conseguem entrar e ver os relatórios da nuvem.</p>'
+  if (!ehAdmin()) { toast('Só administradores gerenciam acessos e perfis', '⚠'); return; }
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Acessos e Perfis</div>'
+    + '<p class="md-txt">Só os e-mails desta lista conseguem entrar. O perfil define o que cada um pode fazer: <strong>Visualizador</strong> só vê e imprime; <strong>Editor</strong> cria, edita e exclui relatórios; <strong>Administrador</strong> faz tudo isso e também gerencia os acessos. "Usar IA" é independente do perfil.</p>'
     + '<div id="acessos-lista" class="md-note" style="margin-bottom:12px">Carregando...</div>'
     + '<input class="md-inp" type="email" id="acesso-novo-email" placeholder="novo@email.com"/>'
     + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="adicionarAcesso()">Adicionar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Fechar</button></div>';
@@ -1010,7 +1063,7 @@ function abrirAcessos() {
 }
 
 function carregarAcessos() {
-  fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email,criado_em&order=criado_em.asc', { headers: sbHeaders() })
+  fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email,role,pode_usar_ia,criado_em&order=criado_em.asc', { headers: sbHeaders() })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var el = document.getElementById('acessos-lista');
@@ -1018,10 +1071,22 @@ function carregarAcessos() {
       if (!Array.isArray(data) || data.length === 0) { el.innerHTML = 'Nenhum e-mail cadastrado ainda.'; return; }
       el.innerHTML = data.map(function(u) {
         var proprio = u.email.toLowerCase() === (SB_SESSION.email || '').toLowerCase();
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">'
-          + '<span>' + escH(u.email) + (proprio ? ' (você)' : '') + '</span>'
-          + (proprio ? '' : '<button class="btn-g" style="color:var(--red);font-size:11px;padding:3px 8px" onclick="removerAcesso(\'' + escH(u.email).replace(/'/g, "\\'") + '\')">Remover</button>')
-          + '</div>';
+        var emailAttr = escH(u.email).replace(/'/g, "\\'");
+        var roleOpts = '';
+        for (var k in ROLE_LBL) {
+          if (ROLE_LBL.hasOwnProperty(k)) roleOpts += '<option value="' + k + '"' + (k === u.role ? ' selected' : '') + '>' + ROLE_LBL[k] + '</option>';
+        }
+        return '<div style="padding:8px 0;border-bottom:1px solid var(--bdr)">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          + '<span style="font-size:13px;font-weight:600">' + escH(u.email) + (proprio ? ' (você)' : '') + '</span>'
+          + (proprio ? '' : '<button class="btn-g" style="color:var(--red);font-size:11px;padding:3px 8px" onclick="removerAcesso(\'' + emailAttr + '\')">Remover</button>')
+          + '</div>'
+          + '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
+          + '<select class="sort-sel" style="font-size:12px;padding:6px 8px" onchange="alterarPerfil(\'' + emailAttr + '\',this.value)"' + (proprio ? ' disabled title="Não é possível alterar seu próprio perfil"' : '') + '>' + roleOpts + '</select>'
+          + '<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--gray);cursor:pointer">'
+          + '<input type="checkbox" ' + (u.pode_usar_ia ? 'checked' : '') + ' onchange="alterarIA(\'' + emailAttr + '\',this.checked)"/> Usar IA'
+          + '</label>'
+          + '</div></div>';
       }).join('');
     })
     .catch(function() { var el = document.getElementById('acessos-lista'); if (el) el.innerHTML = 'Erro ao carregar.'; });
@@ -1038,9 +1103,31 @@ function adicionarAcesso() {
   }).then(function(r) {
     if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.msg)) || 'Falha ao adicionar'); });
     inp.value = '';
-    toast('E-mail liberado!', 'o', true);
+    toast('E-mail liberado como Editor!', 'o', true);
     carregarAcessos();
   }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+function alterarPerfil(email, role) {
+  fetch(SB_URL + '/rest/v1/usuarios_autorizados?email=eq.' + encodeURIComponent(email), {
+    method: 'PATCH',
+    headers: Object.assign({}, sbHeaders(), { 'Prefer': 'return=minimal' }),
+    body: JSON.stringify({ role: role })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Falha ao alterar perfil');
+    toast('Perfil de ' + email + ' agora é ' + (ROLE_LBL[role] || role), 'o', true);
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); carregarAcessos(); });
+}
+
+function alterarIA(email, permitido) {
+  fetch(SB_URL + '/rest/v1/usuarios_autorizados?email=eq.' + encodeURIComponent(email), {
+    method: 'PATCH',
+    headers: Object.assign({}, sbHeaders(), { 'Prefer': 'return=minimal' }),
+    body: JSON.stringify({ pode_usar_ia: permitido })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Falha ao alterar acesso à IA');
+    toast(permitido ? 'IA liberada para ' + email : 'IA bloqueada para ' + email, 'o', true);
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); carregarAcessos(); });
 }
 
 function removerAcesso(email) {
@@ -1200,7 +1287,7 @@ function renderHome() {
   } else if (reports.length === 0) {
     recentesH = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum relatório salvo</div>'
       + '<div class="empty-txt">Crie o primeiro relatório de vistoria técnica ROCONTEC.</div>'
-      + '<button class="btn btn-r" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Primeiro Relatório</button></div>';
+      + '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Primeiro Relatório</button></div>';
   } else {
     var max2 = reports.length > 4 ? 4 : reports.length;
     for (var i = 0; i < max2; i++) recentesH += relRow(reports[i], false);
@@ -1216,7 +1303,7 @@ function renderHome() {
     + '</div>'
     + '<div class="sec"><div class="sec-t">Ações Rápidas</div><div class="sec-l"></div></div>'
     + '<div class="sk-grid">'
-    + '<div class="sk-card" onclick="novoRelatorio()"><div class="sk-ico" style="background:rgba(192,47,52,.08)">📋</div><div><div class="sk-lbl">Novo Relatório</div><div class="sk-sub">Criar vistoria</div></div></div>'
+    + '<div class="sk-card edit-only" onclick="novoRelatorio()"><div class="sk-ico" style="background:rgba(192,47,52,.08)">📋</div><div><div class="sk-lbl">Novo Relatório</div><div class="sk-sub">Criar vistoria</div></div></div>'
     + '<div class="sk-card" onclick="navegar(\'list\')"><div class="sk-ico" style="background:rgba(102,102,102,.08)">📂</div><div><div class="sk-lbl">Todos Relatórios</div><div class="sk-sub">' + totalRels + ' salvos</div></div></div>'
     + '<div class="sk-card" onclick="navegar(\'obras\')"><div class="sk-ico" style="background:rgba(17,39,53,.08)">🏗️</div><div><div class="sk-lbl">Dir. de Obras</div><div class="sk-sub">' + totalObras + ' obra' + (totalObras !== 1 ? 's' : '') + '</div></div></div>'
     + '<div class="sk-card" onclick="' + pdfClick + '"><div class="sk-ico" style="background:rgba(192,47,52,.06)">🖨️</div><div><div class="sk-lbl">Gerar PDF</div><div class="sk-sub">' + (reports.length > 0 ? 'Último relatório' : 'Sem relatórios') + '</div></div></div>'
@@ -1249,7 +1336,7 @@ function renderObras() {
     el.innerHTML = '<div class="card"><div class="empty"><div class="empty-ico">🏗️</div>'
       + '<div class="empty-ttl">Nenhuma obra</div>'
       + '<div class="empty-txt">Crie o primeiro relatório de vistoria para iniciar o diretório de obras.</div>'
-      + '<button class="btn btn-r" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Relatório</button></div></div>';
+      + '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Relatório</button></div></div>';
     return;
   }
   var html = '<div style="font-size:13px;color:var(--gray);margin-bottom:14px;font-weight:600">'
@@ -1277,7 +1364,7 @@ function renderObras() {
         + '<div style="font-size:11px;color:var(--gray)">' + respH + n + ' apontamento' + (n !== 1 ? 's' : '') + critPt + '</div></div>'
         + '<div class="r-act" onclick="event.stopPropagation()">'
         + '<button class="btn btn-o" style="padding:5px 8px;font-size:11px" onclick="gerarPDFById(' + r.id + ')">🖨️</button>'
-        + '<button class="btn btn-d" style="padding:5px 8px;font-size:11px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
+        + '<button class="btn btn-d edit-only" style="padding:5px 8px;font-size:11px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
         + '</div></div>';
     }
 
@@ -1289,7 +1376,7 @@ function renderObras() {
       + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black)">' + tApt + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Apts.</div></div>'
       + critH + '</div></div>'
       + '<div><div style="padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--bdr)">'
-      + '<button class="btn btn-r" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\')">+ Nova Vistoria</button>'
+      + '<button class="btn btn-r edit-only" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\')">+ Nova Vistoria</button>'
       + '</div>' + rowsH + '</div></div>';
   }
   el.innerHTML = html;
@@ -1305,7 +1392,7 @@ function relRow(r, showAct) {
   var actH = showAct
     ? '<div class="r-act" onclick="event.stopPropagation()">'
       + '<button class="btn btn-o" style="padding:6px 9px" onclick="gerarPDFById(' + r.id + ')">🖨️</button>'
-      + '<button class="btn btn-d" style="padding:6px 9px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
+      + '<button class="btn btn-d edit-only" style="padding:6px 9px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
       + '</div>'
     : '';
   return '<div class="r-row" onclick="abrirRelatorio(' + r.id + ')">'
@@ -1382,7 +1469,7 @@ function renderList() {
     rowsH = '<div class="card"><div class="empty"><div class="empty-ico">' + (reports.length === 0 ? '📋' : '🔍') + '</div>'
       + '<div class="empty-ttl">' + (reports.length === 0 ? 'Nenhum relatório' : 'Sem resultados') + '</div>'
       + '<div class="empty-txt">' + (reports.length === 0 ? 'Crie o primeiro relatório ROCONTEC.' : 'Ajuste os filtros.') + '</div>'
-      + (reports.length === 0 ? '<button class="btn btn-r" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar</button>' : '')
+      + (reports.length === 0 ? '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar</button>' : '')
       + '</div></div>';
   } else {
     var rs = '';
@@ -1402,6 +1489,7 @@ function renderListFull() {
 
 /* ══ EDITOR ═══════════════════════════════════════════════════════ */
 function novoRelatorio() {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   editId = null;
   items  = [];
   consid = '';
@@ -1413,6 +1501,7 @@ function novoRelatorio() {
   abrirTab('capa', document.querySelectorAll('.tab-btn')[0]);
   renderApts();
   atualizarSumStats();
+  aplicarModoEdicaoEditor();
 }
 
 function abrirRelatorio(id) {
@@ -1444,6 +1533,7 @@ function abrirRelatorio(id) {
   items = JSON.parse(JSON.stringify(r.items || []));
   renderApts();
   atualizarSumStats();
+  aplicarModoEdicaoEditor();
   if (temFotoNaoResolvida(r)) {
     resolverFotosRelatorio(r).then(function(atualizou) {
       if (atualizou && editId === id) {
@@ -1514,6 +1604,7 @@ function comprimirFotosItems(itemsArr, callback) {
 }
 
 function salvarRelatorio() {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   var obra = G('f-obra');
   if (!obra) { toast('Informe o nome da obra', '⚠'); return; }
   var now   = new Date().toLocaleDateString('pt-BR');
@@ -1570,6 +1661,7 @@ function salvarRelatorio() {
 
 /* ══ APONTAMENTOS ══════════════════════════════════════════════════ */
 function addApt() {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   items.push({ id: Date.now(), titulo: '', descricao: '', local: '', criticidade: 'med', categoria: 'Civil', fotos: [] });
   renderApts();
   abrirTab('vistoria', document.querySelectorAll('.tab-btn')[2]);
@@ -1580,6 +1672,7 @@ function addApt() {
 }
 
 function remApt(id) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   if (!confirm('Remover este apontamento?')) return;
   var tmp = [];
   for (var i = 0; i < items.length; i++) if (items[i].id !== id) tmp.push(items[i]);
@@ -1609,6 +1702,7 @@ function addFotoCamera(id) { criarInputFoto(id, 'environment'); }
 function addFotoGaleria(id) { criarInputFoto(id, null); }
 
 function criarInputFoto(id, cap) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
   if (cap) inp.capture = cap;
@@ -1643,7 +1737,7 @@ function ampliarFoto(aptId, fotoIdx) {
   toolbar.style.cssText = 'position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;z-index:2';
   toolbar.innerHTML = '<span style="color:#fff;font-size:13px;font-weight:700;opacity:.7">Foto ' + (fotoIdx + 1) + ' de ' + apt.fotos.length + '</span>'
     + '<div style="display:flex;gap:10px">'
-    + '<button onclick="confirmarExcluirFoto(' + aptId + ',' + fotoIdx + ')" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--ft);display:flex;align-items:center;gap:6px">🗑 Excluir foto</button>'
+    + '<button class="edit-only" onclick="confirmarExcluirFoto(' + aptId + ',' + fotoIdx + ')" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--ft);display:flex;align-items:center;gap:6px">🗑 Excluir foto</button>'
     + '<button onclick="fecharLightbox()" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:18px;cursor:pointer;font-family:var(--ft);line-height:1">✕</button>'
     + '</div>';
 
@@ -1686,6 +1780,7 @@ function confirmarExcluirFoto(aptId, fotoIdx) {
 }
 
 function remFoto(aptId, fi) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   for (var i = 0; i < items.length; i++) {
     if (items[i].id === aptId) { items[i].fotos.splice(fi, 1); atualizarFotos(aptId); break; }
   }
@@ -1701,7 +1796,7 @@ function atualizarFotos(id) {
   for (var i = 0; i < apt.fotos.length; i++) {
     h += '<img src="' + apt.fotos[i] + '" class="ph" onclick="ampliarFoto(' + id + ',' + i + ')" title="Toque para ampliar"/>';
   }
-  h += '<div style="display:flex;flex-direction:column;gap:5px">'
+  h += '<div class="edit-only" style="display:flex;flex-direction:column;gap:5px">'
     + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
     + '<div class="ph-add ph-sm" onclick="addFotoGaleria(' + id + ')">🖼️<span style="font-size:9px;font-weight:700;text-transform:uppercase">Galeria</span></div>'
     + '</div>';
@@ -1713,6 +1808,7 @@ function renderApts() {
   var fc   = fcEl ? fcEl.value : 'all';
   var vis  = fc === 'all' ? items.slice() : items.filter(function(a) { return a.criticidade === fc; });
   // filter is ES5 safe
+  var somenteLeitura = !podeEditar();
 
   var cntEl = document.getElementById('apts-cnt');
   if (cntEl) cntEl.textContent = items.length + ' apontamento' + (items.length !== 1 ? 's' : '') + (fc !== 'all' ? ' · ' + vis.length + ' visível' + (vis.length !== 1 ? 'is' : '') : '');
@@ -1721,7 +1817,7 @@ function renderApts() {
   if (tb) tb.innerHTML = '🔍 Vistoria' + (items.length > 0 ? ' <span class="tbg">' + items.length + '</span>' : '');
 
   if (items.length === 0) {
-    document.getElementById('apts-list').innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum Apontamento</div><div class="empty-txt">Registre não conformidades e itens de atenção da obra.</div><button class="btn btn-r" style="padding:12px 24px" onclick="addApt()">+ Adicionar</button></div>';
+    document.getElementById('apts-list').innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum Apontamento</div><div class="empty-txt">Registre não conformidades e itens de atenção da obra.</div><button class="btn btn-r edit-only" style="padding:12px 24px" onclick="addApt()">+ Adicionar</button></div>';
     return;
   }
 
@@ -1746,27 +1842,27 @@ function renderApts() {
       + '<div class="apt-num">' + (idx + 1) + '</div>'
       + '<div class="apt-nm" id="apt-nm-' + a.id + '">' + (a.titulo ? escH(a.titulo) : '<span style="color:var(--gray);font-weight:400">Título...</span>') + '</div>'
       + '<div class="cbg ' + cr.cls + '" id="apt-bg-' + a.id + '"><span class="cdot"></span>' + cr.l + '</div>'
-      + '<button class="btn btn-d" style="padding:4px 7px;font-size:12px" onclick="remApt(' + a.id + ')">✕</button>'
+      + '<button class="btn btn-d edit-only" style="padding:4px 7px;font-size:12px" onclick="remApt(' + a.id + ')">✕</button>'
       + '</div>'
       + '<div class="apt-body">'
       + '<div class="field"><label>Não Conformidade / Título <span class="req">*</span></label>'
-      + '<input value="' + escH(a.titulo) + '" placeholder="Ex: Fissuras verticais na alvenaria do 3° pavimento" oninput="updApt(' + a.id + ',\'titulo\',this.value)"/></div>'
+      + '<input value="' + escH(a.titulo) + '" placeholder="Ex: Fissuras verticais na alvenaria do 3° pavimento" oninput="updApt(' + a.id + ',\'titulo\',this.value)"' + (somenteLeitura ? ' readonly' : '') + '/></div>'
       + '<div class="field"><label>Local / Pavimento / Ambiente</label>'
-      + '<input value="' + escH(a.local) + '" placeholder="Ex: Torre A — 5° pavimento" oninput="updApt(' + a.id + ',\'local\',this.value)"/></div>'
+      + '<input value="' + escH(a.local) + '" placeholder="Ex: Torre A — 5° pavimento" oninput="updApt(' + a.id + ',\'local\',this.value)"' + (somenteLeitura ? ' readonly' : '') + '/></div>'
       + '<div class="g2">'
-      + '<div class="field"><label>Grau de Criticidade</label><select onchange="updApt(' + a.id + ',\'criticidade\',this.value)">' + crOptsH + '</select></div>'
-      + '<div class="field"><label>Disciplina</label><select onchange="updApt(' + a.id + ',\'categoria\',this.value)">' + catOptsH + '</select></div>'
+      + '<div class="field"><label>Grau de Criticidade</label><select onchange="updApt(' + a.id + ',\'criticidade\',this.value)"' + (somenteLeitura ? ' disabled' : '') + '>' + crOptsH + '</select></div>'
+      + '<div class="field"><label>Disciplina</label><select onchange="updApt(' + a.id + ',\'categoria\',this.value)"' + (somenteLeitura ? ' disabled' : '') + '>' + catOptsH + '</select></div>'
       + '</div>'
       + '<div class="field">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'
       + '<label>Descrição Técnica <span class="req">*</span></label>'
-      + '<button class="btn btn-g" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="melhorarDescricao(' + a.id + ')" ' + (aiLoad ? 'disabled' : '') + '>✦ Aprimorar com IA</button>'
+      + '<button class="btn btn-g edit-only ia-only" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="melhorarDescricao(' + a.id + ')" ' + (aiLoad ? 'disabled' : '') + '>✦ Aprimorar com IA</button>'
       + '</div>'
-      + '<textarea rows="3" placeholder="Descreva detalhadamente a não conformidade, causas prováveis e impactos observados..." oninput="updApt(' + a.id + ',\'descricao\',this.value)">' + escH(a.descricao) + '</textarea>'
+      + '<textarea rows="3" placeholder="Descreva detalhadamente a não conformidade, causas prováveis e impactos observados..." oninput="updApt(' + a.id + ',\'descricao\',this.value)"' + (somenteLeitura ? ' readonly' : '') + '>' + escH(a.descricao) + '</textarea>'
       + '</div>'
       + '<div class="photos" id="fotos-' + a.id + '">'
       + fotosH
-      + '<div style="display:flex;flex-direction:column;gap:5px">'
+      + '<div class="edit-only" style="display:flex;flex-direction:column;gap:5px">'
       + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + a.id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
       + '<div class="ph-add ph-sm" onclick="addFotoGaleria(' + a.id + ')">🖼️<span style="font-size:9px;font-weight:700;text-transform:uppercase">Galeria</span></div>'
       + '</div>'
@@ -1774,7 +1870,7 @@ function renderApts() {
       + '</div></div>';
   }
   // REV1: Botão adicionar após cada apontamento e ao final
-  html += '<div style="padding:8px 0">'
+  html += '<div class="edit-only" style="padding:8px 0">'
     + '<button class="btn btn-r" onclick="addApt()" style="width:100%;padding:14px;font-size:14px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.3px">'
     + '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
     + '+ Adicionar Apontamento'
@@ -1879,6 +1975,7 @@ function aiRequest(prompt, maxTokens, onDelta, onDone, onError) {
 }
 
 function gerarConsideracoes() {
+  if (!podeUsarIA()) { toast(podeEditar() ? 'Seu perfil não tem acesso à IA' : 'Seu perfil tem acesso só de visualização', '⚠'); return; }
   if (items.length === 0) { toast('Adicione apontamentos primeiro', '⚠'); return; }
   if (aiLoad) return;
   aiLoad = true;
@@ -1914,6 +2011,7 @@ function gerarConsideracoes() {
 }
 
 function melhorarDescricao(id) {
+  if (!podeUsarIA()) { toast(podeEditar() ? 'Seu perfil não tem acesso à IA' : 'Seu perfil tem acesso só de visualização', '⚠'); return; }
   var apt = null;
   for (var i = 0; i < items.length; i++) if (items[i].id === id) { apt = items[i]; break; }
   if (!apt || !apt.descricao) { toast('Escreva uma descricao primeiro', '⚠'); return; }
@@ -2206,6 +2304,7 @@ function imprimirRelatorio(report) {
 
 /* ══ EXCLUIR ═══════════════════════════════════════════════════════ */
 function excluirRelatorio(id) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   if (!confirm('Excluir este relatório? Esta ação não pode ser desfeita.')) return;
   var tmp = [];
   for (var i = 0; i < reports.length; i++) if (reports[i].id !== id) tmp.push(reports[i]);
@@ -2314,6 +2413,7 @@ function exportarBackup() {
 }
 
 function importarBackup() {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   var inp = document.createElement('input');
   inp.type = 'file';
   inp.accept = '.json,application/json';
@@ -2360,7 +2460,7 @@ function abrirBackup() {
     + '<p class="md-txt">Proteja seus dados exportando um backup ou restaure de um arquivo anterior.</p>'
     + '<div style="display:flex;flex-direction:column;gap:10px">'
     + '<button class="btn btn-r" style="padding:14px;font-size:14px;justify-content:center" onclick="exportarBackup();fecharModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar Backup (' + reports.length + ' relatorios)</button>'
-    + '<button class="btn btn-o" style="padding:14px;font-size:14px;justify-content:center" onclick="importarBackup();fecharModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar de Arquivo</button>'
+    + '<button class="btn btn-o edit-only" style="padding:14px;font-size:14px;justify-content:center" onclick="importarBackup();fecharModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar de Arquivo</button>'
     + '<button class="btn btn-o" style="padding:12px;font-size:13px;justify-content:center" onclick="fecharModal()">Cancelar</button>'
     + '</div>'
     + '<div class="md-note" style="margin-top:12px">A importacao faz merge — nao sobrescreve relatorios existentes.</div>';
@@ -2428,6 +2528,12 @@ window.onload = function() {
        novo assim que a resposta da rede chegar. */
     atualizarContador();
     renderHome();
+    /* Perfil (visualizador/editor/admin + uso de IA): a sessão pode ter
+       sido restaurada do localStorage sem passar pela tela de login desta
+       vez, então confirma de novo com o servidor a cada boot — evita ficar
+       com um perfil desatualizado depois de alguém mudar sua permissão. */
+    if (sbEnabled()) sbVerificarAutorizacao();
+    else aplicarPermissoesUI();
   }
 
   if (SB_URL && SB_KEY) {
