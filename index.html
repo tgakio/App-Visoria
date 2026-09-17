@@ -1,0 +1,2331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="ROCONTEC"/>
+<meta name="theme-color" content="#C02F34"/>
+<link rel="manifest" href="manifest.json"/>
+<title>ROCONTEC — Vistoria Técnica</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#C02F34;--red2:#a52028;--black:#000;--gray:#666;--gray2:#888;--gray3:#aaa;--gray4:#ccc;
+  --bg:#f5f5f5;--card:#fff;--bdr:#e0e0e0;--bdr2:#d0d0d0;--white:#fff;
+  --cl:#16a34a;--clb:#dcfce7;--cm:#d97706;--cmb:#fef3c7;
+  --ch:#dc2626;--chb:#fee2e2;--cc:#7c3aed;--ccb:#ede9fe;--co:#0891b2;--cob:#cffafe;
+  --r:8px;--sh:0 1px 4px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.06);
+  --shl:0 4px 20px rgba(0,0,0,.15);
+  --sbot:env(safe-area-inset-bottom,0px);--stop:env(safe-area-inset-top,0px);
+  --ft:'Barlow',system-ui,sans-serif;--ftt:'Barlow Condensed','Arial Narrow',sans-serif;
+}
+html,body{height:100%;-webkit-text-size-adjust:100%;overflow:hidden}
+body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-smoothing:antialiased}
+#app{display:flex;height:100vh;height:100dvh;overflow:hidden}
+#sidebar{width:258px;min-width:258px;background:var(--white);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto}
+#main{flex:1;overflow-y:auto;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.sb-top{padding:calc(18px + var(--stop)) 18px 14px;border-bottom:4px solid var(--red)}
+.sb-logo img{height:36px;width:auto;display:block}
+.sb-new{margin:12px 16px;background:var(--red);color:var(--white);border:none;border-radius:var(--r);padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:var(--ft);-webkit-tap-highlight-color:transparent}
+.sb-new:active{background:var(--red2)}
+.sb-sec{padding:12px 10px 4px}
+.sb-lbl{font-size:9px;color:var(--gray3);text-transform:uppercase;letter-spacing:1.5px;padding:0 8px 8px;display:block;font-weight:700}
+.sb-btn{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:600;color:var(--gray);border:none;background:none;width:100%;text-align:left;-webkit-tap-highlight-color:transparent;font-family:var(--ft)}
+.sb-btn:active{background:var(--bg);color:var(--black)}
+.sb-btn.on{background:rgba(192,47,52,.07);color:var(--red);border-left:3px solid var(--red);padding-left:7px}
+.sb-badge{margin-left:auto;background:#eee;border-radius:99px;font-size:10px;padding:1px 8px;color:var(--gray2)}
+.sb-btn.on .sb-badge{background:rgba(192,47,52,.12);color:var(--red)}
+.sb-div{height:1px;background:var(--bdr);margin:6px 16px}
+.sb-user{margin-top:auto;padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;background:var(--bg)}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:var(--white);font-weight:800;font-size:13px;flex-shrink:0}
+.hdr{background:var(--white);border-bottom:1px solid var(--bdr);padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.hdr-ttl{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-act{display:flex;gap:6px;flex-shrink:0}
+.btn{border:none;cursor:pointer;border-radius:var(--r);font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:5px;padding:8px 14px;font-family:var(--ft);white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn:active{opacity:.75}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn-r{background:var(--red);color:var(--white)}
+.btn-r:active{background:var(--red2)}
+.btn-o{background:transparent;border:1.5px solid var(--bdr2);color:var(--black)}
+.btn-o:active{border-color:var(--red);color:var(--red)}
+.btn-g{background:transparent;color:var(--gray);padding:8px 10px}
+.btn-g:active{color:var(--black)}
+.btn-d{background:#fee2e2;color:#dc2626;border:1px solid rgba(220,38,38,.2)}
+.btn-d:active{background:#dc2626;color:white}
+.pg{padding:20px;flex:1;display:none}
+.pg.on{display:block}
+.tabs{display:flex;background:var(--white);border-bottom:1px solid var(--bdr);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{padding:11px 16px;font-size:11px;font-weight:700;color:var(--gray);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;margin-bottom:-1px;font-family:var(--ft);white-space:nowrap;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:5px;flex-shrink:0;letter-spacing:.6px;text-transform:uppercase}
+.tab-btn.on{color:var(--red);border-color:var(--red)}
+.tbg{background:var(--red);color:var(--white);font-size:9px;font-weight:800;border-radius:99px;padding:1px 5px}
+.tab-pnl{display:none}.tab-pnl.on{display:block}
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--bdr);margin-bottom:14px;box-shadow:var(--sh)}
+.card-hdr{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:var(--r) var(--r) 0 0}
+.card-ttl{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1.2px}
+.card-body{padding:16px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px}
+.field input,.field textarea,.field select{border:1.5px solid var(--bdr);border-radius:var(--r);padding:10px 12px;font-size:16px;color:var(--black);background:var(--white);font-family:var(--ft);outline:none;-webkit-appearance:none;width:100%}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--red)}
+.field textarea{min-height:80px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.req{color:var(--red)}
+/* Cover preview */
+.cvr{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.cvr-stripe{height:5px;background:var(--red)}
+.cvr-head{padding:18px 22px 16px;border-bottom:1px solid var(--bdr)}
+.cvr-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.cvr-logo img{height:26px;width:auto}
+.cvr-num-l{font-size:8px;color:var(--gray3);text-transform:uppercase;letter-spacing:1px;text-align:right}
+.cvr-num-v{font-family:var(--ftt);font-size:14px;font-weight:900;color:var(--red);text-align:right;margin-top:2px}
+.cvr-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(192,47,52,.07);border:1px solid rgba(192,47,52,.2);border-radius:4px;padding:3px 9px;margin-bottom:10px}
+.cvr-bdot{width:5px;height:5px;border-radius:50%;background:var(--red)}
+.cvr-btxt{font-size:8px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:2px}
+.cvr-obra{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);line-height:1.2}
+.cvr-unid{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:4px}
+.cvr-meta{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--bdr)}
+.cvr-mf{background:var(--white);padding:9px 14px}
+.cvr-mfl{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--gray3);margin-bottom:3px;font-weight:700}
+.cvr-mfv{font-size:11px;font-weight:700;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Stats */
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.sc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 12px;display:flex;align-items:center;gap:11px;box-shadow:var(--sh);border-top:3px solid var(--bdr)}
+.sc.r{border-top-color:var(--red)}.sc.g{border-top-color:var(--gray)}
+.sc-ico{font-size:24px}
+.sc-num{font-family:var(--ftt);font-size:26px;font-weight:900;color:var(--black);line-height:1}
+.sc-lbl{font-size:11px;color:var(--gray);margin-top:2px}
+/* Shortcuts */
+.sk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
+.sk-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:11px;-webkit-tap-highlight-color:transparent;box-shadow:var(--sh)}
+.sk-card:active{border-color:var(--red)}
+.sk-ico{width:36px;height:36px;border-radius:6px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.sk-lbl{font-size:12px;font-weight:700;color:var(--black)}
+.sk-sub{font-size:10px;color:var(--gray);margin-top:2px}
+/* Obra cards */
+.og{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:16px}
+.oc{background:var(--card);border:1px solid var(--bdr);border-top:3px solid var(--bdr);border-radius:var(--r);padding:14px;cursor:pointer;box-shadow:var(--sh)}
+.oc:active,.oc:hover{border-top-color:var(--red)}
+.oc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:11px}
+.oc-nome{font-size:13px;font-weight:700;color:var(--black);line-height:1.3}
+.oc-cli{font-size:11px;color:var(--gray);margin-top:3px}
+.oc-stats{display:flex;border:1px solid var(--bdr);border-radius:6px;overflow:hidden}
+.os{flex:1;text-align:center;padding:7px 4px;border-right:1px solid var(--bdr)}
+.os:last-child{border-right:none}
+.os-n{display:block;font-family:var(--ftt);font-size:18px;font-weight:900;color:var(--black);line-height:1}
+.os-l{display:block;font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.os.red .os-n{color:#dc2626}
+.os.ok .os-n{color:#16a34a;font-size:13px}
+.oc-date{font-size:10px;color:var(--gray3);margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr)}
+/* Report rows */
+.r-row{display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1px solid var(--bdr);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.r-row:active{background:var(--bg)}
+.r-row:last-child{border-bottom:none}
+.r-ico{width:38px;height:38px;background:rgba(192,47,52,.07);border:1px solid rgba(192,47,52,.15);border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+.r-nm{font-size:13px;font-weight:700;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-mt{font-size:11px;color:var(--gray);margin-top:2px}
+.r-dt{color:var(--red);font-weight:600}
+.r-act{display:flex;gap:4px;flex-shrink:0}
+/* Criticidade */
+.cbg{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;flex-shrink:0;text-transform:uppercase;letter-spacing:.5px;border:1px solid transparent}
+.cdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.c-low{background:var(--clb);color:var(--cl);border-color:rgba(22,163,74,.2)}
+.c-med{background:var(--cmb);color:var(--cm);border-color:rgba(217,119,6,.2)}
+.c-high{background:var(--chb);color:var(--ch);border-color:rgba(220,38,38,.2)}
+.c-critical{background:var(--ccb);color:var(--cc);border-color:rgba(124,58,237,.2)}
+.c-orient{background:var(--cob);color:var(--co);border-color:rgba(6,120,140,.2)}
+/* Apontamentos */
+.apt{border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;background:var(--card);margin-bottom:12px;box-shadow:var(--sh)}
+.apt-hdr{padding:10px 13px;display:flex;align-items:center;gap:8px;background:var(--bg);border-bottom:1px solid var(--bdr)}
+.apt-num{width:24px;height:24px;border-radius:4px;background:var(--red);color:var(--white);font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;font-family:var(--ftt)}
+.apt-nm{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.apt-body{padding:14px}
+.photos{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.ph{width:76px;height:76px;object-fit:cover;border-radius:6px;border:1px solid var(--bdr);cursor:pointer}
+.ph-add{width:76px;height:76px;border:2px dashed var(--bdr2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--gray);-webkit-tap-highlight-color:transparent;font-size:20px;gap:2px}
+.ph-add:active{border-color:var(--red);color:var(--red)}
+.ph-sm{width:76px;height:36px;font-size:16px}
+/* Resumo / Considerações */
+.sum-box{background:var(--white);border:1px solid var(--bdr);border-top:4px solid var(--red);border-radius:var(--r);padding:20px;margin-bottom:14px;box-shadow:var(--sh)}
+.sum-ttl{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);margin-bottom:14px}
+.sum-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.sum-stat{background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:10px 6px;text-align:center}
+.sum-stat-n{font-family:var(--ftt);font-size:22px;font-weight:900;color:var(--red);line-height:1}
+.sum-stat-l{font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
+.sum-txt{font-size:13px;line-height:1.8;color:var(--black);background:var(--bg);border-radius:6px;padding:14px;border-left:4px solid var(--red);white-space:pre-wrap}
+.sum-ph{text-align:center;padding:20px 0;color:var(--gray);font-size:13px}
+/* Section label */
+.sec{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sec-t{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;flex-shrink:0}
+.sec-l{flex:1;height:1px;background:var(--bdr)}
+/* Filters */
+.fbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.fchips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.fchip{padding:5px 11px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--bdr);color:var(--gray);background:var(--white);-webkit-tap-highlight-color:transparent;text-transform:uppercase;letter-spacing:.5px;font-family:var(--ft)}
+.fchip.on{background:var(--red);color:var(--white);border-color:var(--red)}
+.srch-wrap{position:relative;flex:1;min-width:150px}
+.srch-ico{position:absolute;left:9px;top:50%;-webkit-transform:translateY(-50%);transform:translateY(-50%);color:var(--gray);pointer-events:none;display:flex}
+.srch-inp{border:1.5px solid var(--bdr);border-radius:var(--r);padding:10px 11px 10px 32px;font-size:16px;font-family:var(--ft);outline:none;background:var(--white);color:var(--black);width:100%;-webkit-appearance:none}
+.srch-inp:focus{border-color:var(--red)}
+.sort-sel{border:1.5px solid var(--bdr);border-radius:var(--r);padding:10px 11px;font-size:13px;font-family:var(--ft);outline:none;background:var(--white);color:var(--black);-webkit-appearance:none;font-weight:600}
+/* Misc */
+.spinner{width:14px;height:14px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;-webkit-animation:spin .7s linear infinite;animation:spin .7s linear infinite;flex-shrink:0;display:inline-block}
+@-webkit-keyframes spin{to{-webkit-transform:rotate(360deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:44px 20px;color:var(--gray)}
+.empty-ico{font-size:36px;margin-bottom:11px}
+.empty-ttl{font-family:var(--ftt);font-size:19px;font-weight:900;color:var(--black);margin-bottom:6px}
+.empty-txt{font-size:13px;margin-bottom:16px}
+.toast{position:fixed;bottom:calc(16px + var(--sbot));left:50%;-webkit-transform:translateX(-50%);transform:translateX(-50%);background:var(--black);color:var(--white);padding:10px 18px;border-radius:6px;font-size:13px;font-weight:600;box-shadow:var(--shl);z-index:9999;white-space:nowrap;max-width:90vw;-webkit-animation:tup .2s ease;animation:tup .2s ease;display:flex;align-items:center;gap:7px;font-family:var(--ft)}
+@-webkit-keyframes tup{from{opacity:0;-webkit-transform:translateX(-50%) translateY(8px)}to{opacity:1;-webkit-transform:translateX(-50%) translateY(0)}}
+@keyframes tup{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:1000}
+.md{background:var(--white);border-radius:14px 14px 0 0;padding:22px 20px calc(22px + var(--sbot));width:100%;max-width:500px;border-top:4px solid var(--red)}
+.md-drag{width:36px;height:4px;background:var(--bdr);border-radius:2px;margin:0 auto 16px}
+.md-ttl{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);margin-bottom:6px}
+.md-txt{font-size:13px;color:var(--gray);margin-bottom:14px;line-height:1.6}
+.md-note{font-size:11px;color:var(--gray);background:var(--bg);border:1px solid var(--bdr);padding:9px 12px;border-radius:6px;margin-bottom:12px}
+.md-inp{width:100%;border:1.5px solid var(--bdr);border-radius:var(--r);padding:12px;font-size:16px;font-family:var(--ft);outline:none;background:var(--white);color:var(--black);margin-bottom:12px}
+.md-inp:focus{border-color:var(--red)}
+.md-btns{display:flex;gap:8px}
+/* Bottom nav */
+.bnav{display:none;background:var(--white);border-top:1px solid var(--bdr);padding:6px 0 calc(6px + var(--sbot));position:fixed;bottom:0;left:0;right:0;z-index:20;justify-content:space-around}
+.bn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;cursor:pointer;border:none;background:none;color:var(--gray);font-size:9px;font-weight:700;font-family:var(--ft);-webkit-tap-highlight-color:transparent;min-width:56px;text-transform:uppercase;letter-spacing:.5px}
+.bn-btn.on{color:var(--red)}
+.bn-ico{font-size:22px;line-height:1}
+.fab{position:fixed;bottom:calc(66px + var(--sbot));right:16px;width:52px;height:52px;border-radius:26px;background:var(--red);color:var(--white);border:none;font-size:28px;line-height:1;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(192,47,52,.4);z-index:19;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.fab:active{background:var(--red2)}
+@media(max-width:700px){
+  #sidebar{display:none}.bnav{display:flex}.fab{display:flex}
+  #main{padding-bottom:calc(60px + var(--sbot))}
+  .hdr{padding-top:calc(11px + var(--stop))}
+  .sg{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}
+  .sum-stats{grid-template-columns:1fr 1fr}.pg{padding:14px}
+  .og{grid-template-columns:1fr}
+}
+@media(min-width:701px){
+  .sg{grid-template-columns:repeat(4,1fr)}.sk-grid{grid-template-columns:repeat(4,1fr)}.pg{padding:24px}
+}
+.sb-btn.sb-connected{color:#16a34a}
+.sb-btn.sb-connected .sb-badge{background:rgba(22,163,74,.15);color:#16a34a}
+.auth-ov{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:3000;padding:20px}
+.auth-card{background:var(--white);border-radius:14px;padding:28px 24px;width:100%;max-width:380px;border-top:4px solid var(--red);box-shadow:var(--shl)}
+.auth-logo{height:40px;width:auto;display:block;margin:0 auto 18px}
+.auth-err{font-size:12px;color:var(--red);margin:-4px 0 12px;display:none;line-height:1.5}
+.auth-switch{text-align:center;font-size:12px;color:var(--gray);margin-top:14px}
+.auth-switch a{color:var(--red);font-weight:700;cursor:pointer;text-decoration:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sb-top">
+      <div class="sb-logo"><img id="sb-logo-img" src="" alt="ROCONTEC"/></div>
+    </div>
+    <button class="sb-new" onclick="novoRelatorio()">+ Novo Relatório</button>
+    <div class="sb-sec">
+      <span class="sb-lbl">Menu</span>
+      <button class="sb-btn on" id="sb-home" onclick="navegar('home')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Painel
+      </button>
+      <button class="sb-btn" id="sb-obras" onclick="navegar('obras')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Obras
+      </button>
+      <button class="sb-btn" id="sb-list" onclick="navegar('list')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Relatórios
+        <span class="sb-badge" id="sb-cnt">0</span>
+      </button>
+      <div class="sb-div"></div>
+      <button class="sb-btn" onclick="abrirChave()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Config. IA
+      </button>
+      <button class="sb-btn" id="sb-cloud-btn" onclick="abrirConfigSb()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <span id="sb-status-lbl">Nuvem: Desconectado</span>
+      </button>
+      <button class="sb-btn" onclick="abrirAcessos()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Acessos
+      </button>
+      <button class="sb-btn" onclick="sincronizarManual()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Sincronizar
+      </button>
+      <button class="sb-btn" onclick="abrirBackup()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Backup
+      </button>
+    </div>
+    <div class="sb-user">
+      <div class="sb-avatar">E</div>
+      <div><div style="font-size:12px;font-weight:700">Engenheiro</div><div style="font-size:10px;color:var(--gray)">Responsável Técnico</div></div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <!-- HOME -->
+    <div id="pg-home" class="pg on">
+      <div class="hdr"><span id="online-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#16a34a;border:1px solid rgba(22,163,74,.25);flex-shrink:0;letter-spacing:.3px">● Online</span><span class="hdr-ttl" style="margin-left:8px">Painel de Controle</span><div class="hdr-act"><button class="btn btn-r" onclick="novoRelatorio()">+ Novo Relatório</button></div></div>
+      <div id="home-body" style="padding:20px"></div>
+    </div>
+    <!-- OBRAS -->
+    <div id="pg-obras" class="pg">
+      <div class="hdr"><span class="hdr-ttl">Diretório de Obras</span><div class="hdr-act"><button class="btn btn-r" onclick="novoRelatorio()">+ Novo</button></div></div>
+      <div id="obras-body" style="padding:20px"></div>
+    </div>
+    <!-- LIST -->
+    <div id="pg-list" class="pg">
+      <div class="hdr"><span class="hdr-ttl" id="list-ttl">Relatórios</span><div class="hdr-act"><button class="btn btn-r" onclick="novoRelatorio()">+ Novo</button></div></div>
+      <div style="padding:20px">
+        <div id="list-filterbar"></div>
+        <div id="list-rows"></div>
+      </div>
+    </div>
+    <!-- EDITOR -->
+    <div id="pg-editor" class="pg">
+      <div class="hdr">
+        <button class="btn btn-g" onclick="voltarLista()" style="padding:7px 10px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg></button>
+        <span class="hdr-ttl" id="ed-ttl">Novo Relatório</span>
+        <div class="hdr-act">
+          <button class="btn btn-o" onclick="gerarPDF()" style="padding:8px 10px"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> PDF</button>
+          <button class="btn btn-r" onclick="salvarRelatorio()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg> Salvar</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn on" onclick="abrirTab('capa',this)">📄 Capa</button>
+        <button class="tab-btn" onclick="abrirTab('intro',this)">📝 Introdução</button>
+        <button class="tab-btn" onclick="abrirTab('vistoria',this)" id="tab-vist">🔍 Vistoria</button>
+        <button class="tab-btn" onclick="abrirTab('consid',this)">📝 Considerações</button>
+      </div>
+      <!-- CAPA -->
+      <div id="pnl-capa" class="tab-pnl on" style="padding:16px">
+        <div class="card">
+          <div class="card-hdr"><span class="card-ttl">Identificação da Obra</span></div>
+          <div class="card-body">
+            <div class="field"><label>Nome da Obra / Empreendimento <span class="req">*</span></label><input id="f-obra" placeholder="Ex: Torre Empresarial Alpha — São Paulo" oninput="atualizarPreview()"/></div>
+            <div class="field"><label>Incorporadora</label><input id="f-cliente" placeholder="Ex: Incorporadora Beta S.A." oninput="atualizarPreview()"/></div>
+            <div class="g2">
+              <div class="field"><label>Data da Vistoria</label><input id="f-data" type="date" oninput="atualizarPreview()"/></div>
+              <div class="field"><label>Nº do Relatório</label><input id="f-num" placeholder="ROC-2026-001" oninput="atualizarPreview()"/></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-ttl">Responsável pela Vistoria</span></div>
+          <div class="card-body">
+            <div class="g2">
+              <div class="field"><label>Nome Completo</label><input id="f-resp" placeholder="Eng. João da Silva" oninput="atualizarPreview()"/></div>
+              <div class="field"><label>Cargo</label><input id="f-cargo" placeholder="Engenheiro Civil Sênior" oninput="atualizarPreview()"/></div>
+            </div>
+            <div class="field"><label>Unidade / Divisão</label><input id="f-emp" placeholder="ROCONTEC — Gestão de Obras" oninput="atualizarPreview()"/></div>
+          </div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Pré-visualização</div>
+        <div class="cvr">
+          <div class="cvr-stripe"></div>
+          <div class="cvr-head">
+            <div class="cvr-top">
+              <div class="cvr-logo"><img id="cvr-logo-img" src="" alt="ROCONTEC" style="height:24px;width:auto"/></div>
+              <div><div class="cvr-num-l">Relatório Nº</div><div class="cvr-num-v" id="pv-num">ROC-2026-001</div></div>
+            </div>
+            <div class="cvr-badge"><div class="cvr-bdot"></div><div class="cvr-btxt">Relatório de Vistoria Técnica</div></div>
+            <div class="cvr-obra" id="pv-obra">Nome da Obra</div>
+            <div class="cvr-unid" id="pv-unid">ROCONTEC — Gestão de Obras</div>
+          </div>
+          <div class="cvr-meta">
+            <div class="cvr-mf" style="border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr)"><div class="cvr-mfl">Incorporadora</div><div class="cvr-mfv" id="pv-cli">—</div></div>
+            <div class="cvr-mf" style="border-bottom:1px solid var(--bdr)"><div class="cvr-mfl">Data da Vistoria</div><div class="cvr-mfv" id="pv-data">—</div></div>
+            <div class="cvr-mf" style="border-right:1px solid var(--bdr)"><div class="cvr-mfl">Responsável pela Vistoria</div><div class="cvr-mfv" id="pv-resp">—</div></div>
+            <div class="cvr-mf"><div class="cvr-mfl">Cargo</div><div class="cvr-mfv" id="pv-cargo">—</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- INTRO -->
+      <div id="pnl-intro" class="tab-pnl" style="padding:16px">
+        <div class="card">
+          <div class="card-hdr"><span class="card-ttl">Introdução e Contextualização</span></div>
+          <div class="card-body">
+            <div class="field"><label>Histórico / Contexto</label><textarea id="f-hist" rows="3" placeholder="Histórico do empreendimento e vistorias anteriores..."></textarea></div>
+            <div class="field"><label>Escopo da Vistoria</label><textarea id="f-esc" rows="3" placeholder="Descreva o que foi inspecionado nesta visita técnica..."></textarea></div>
+            <div class="field"><label>Solicitações do Cliente</label><textarea id="f-sol" rows="2" placeholder="Demandas e solicitações específicas da incorporadora..."></textarea></div>
+            <div class="field"><label>Observações Preliminares</label><textarea id="f-intro" rows="3" placeholder="Informações relevantes identificadas antes do início da vistoria..."></textarea></div>
+          </div>
+        </div>
+      </div>
+      <!-- VISTORIA -->
+      <div id="pnl-vistoria" class="tab-pnl" style="padding:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap">
+          <div id="apts-cnt" style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.5px">0 apontamentos</div>
+          <div style="display:flex;gap:6px">
+            <select id="fc-crit" class="sort-sel" style="font-size:12px;padding:7px 10px" onchange="renderApts()">
+              <option value="all">Todos</option>
+              <option value="critical">Crítica</option>
+              <option value="high">Alta</option>
+              <option value="med">Média</option>
+              <option value="low">Baixa</option>
+              <option value="orient">Orientativa</option>
+            </select>
+            <button class="btn btn-r" onclick="addApt()">+ Adicionar</button>
+          </div>
+        </div>
+        <div id="apts-list"></div>
+      </div>
+      <!-- CONSIDERAÇÕES FINAIS -->
+      <div id="pnl-consid" class="tab-pnl" style="padding:16px">
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-ttl">Considerações Finais</span>
+            <button class="btn btn-r" id="btn-gerar" onclick="gerarConsideracoes()" style="font-size:12px;padding:7px 12px">✦ Gerar com IA</button>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <label>Texto livre — conclusões, recomendações e observações técnicas</label>
+              <textarea id="f-consid" rows="12" placeholder="Digite as considerações finais do relatório ou use o botão &quot;Gerar com IA&quot; para elaborar automaticamente com base nos apontamentos registrados..." style="font-size:15px;line-height:1.75;min-height:220px" oninput="onConsidInput()"></textarea>
+            </div>
+            <div id="ai-status" style="display:none;align-items:center;gap:8px;padding:10px 12px;background:rgba(192,47,52,.05);border:1px solid rgba(192,47,52,.15);border-radius:var(--r);font-size:13px;color:var(--red);font-weight:600;margin-top:8px">
+              <span class="spinner" style="border-top-color:var(--red)"></span>
+              Elaborando considerações finais com IA...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /pg-editor -->
+  </main>
+
+  <nav class="bnav">
+    <button class="bn-btn on" id="bn-home" onclick="navegar('home')"><span class="bn-ico">🏠</span>Painel</button>
+    <button class="bn-btn" id="bn-obras" onclick="navegar('obras')"><span class="bn-ico">🏗️</span>Obras</button>
+    <button class="bn-btn" id="bn-list" onclick="navegar('list')"><span class="bn-ico">📂</span>Relatórios</button>
+    <button class="bn-btn" id="bn-config" onclick="abrirChave()"><span class="bn-ico">⚙️</span>Config</button>
+    <button class="bn-btn" onclick="abrirConfigSb()"><span class="bn-ico">☁️</span>Nuvem</button>
+    <button class="bn-btn" onclick="abrirBackup()"><span class="bn-ico">💾</span>Backup</button>
+  </nav>
+  <button class="fab" onclick="novoRelatorio()">＋</button>
+</div>
+
+<div id="modal" style="display:none" class="ov" onclick="fecharModal(event)">
+  <div class="md" onclick="event.stopPropagation()"><div class="md-drag"></div><div id="modal-body"></div></div>
+</div>
+<div id="toast" class="toast" style="display:none"></div>
+
+<div id="auth-gate" class="auth-ov" style="display:none">
+  <div class="auth-card">
+    <img class="auth-logo" id="auth-logo-img" src="" alt="ROCONTEC"/>
+    <div class="md-ttl" id="auth-ttl">Entrar</div>
+    <p class="md-txt" id="auth-txt">Acesse com seu e-mail e senha para sincronizar os relatórios com a nuvem.</p>
+    <div class="auth-err" id="auth-err"></div>
+    <input class="md-inp" type="email" id="auth-email" placeholder="seu@email.com" autocomplete="username"/>
+    <input class="md-inp" type="password" id="auth-senha" placeholder="Senha" autocomplete="current-password"/>
+    <button class="btn btn-r" id="auth-btn" style="width:100%;padding:13px;font-size:14px;justify-content:center" onclick="authSubmit()">Entrar</button>
+    <div class="auth-switch" id="auth-switch">Não tem conta? <a onclick="authAlternarModo()">Criar conta</a></div>
+    <div class="auth-switch"><a onclick="authUsarSemNuvem()">Usar sem nuvem (só neste dispositivo)</a></div>
+  </div>
+</div>
+
+<script>
+/* ══ CONFIG ════════════════════════════════════════════════════ */
+var SK = 'roc3';
+/* Supabase — preencher após criar o projeto */
+var SB_URL = '';   /* ex: https://xyzxyz.supabase.co */
+var SB_KEY = '';   /* anon/public key */
+var SB_TABLE = 'relatorios';
+var SB_BUCKET = 'fotos-relatorios';
+var FOTO_PREFIXO = 'sbfoto:';
+var sbReady = false; /* true após login concluído */
+var SB_SESSION = null; /* {access_token, refresh_token, expires_at, email} */
+var authModo = 'login'; /* 'login' | 'signup' */
+var LOGO_URI = 'data:image/png;base64,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';
+
+/* ══ ESTADO ════════════════════════════════════════════════════ */
+var reports = [];
+var editId  = null;
+var items   = [];
+var apiKey  = '';
+var aiLoad  = false;
+var consid  = '';
+var searchQ = '';
+var sortBy  = 'date';
+var filterC = 'all';
+
+var CRITS = {
+  orient:   {l:'Orientativa', cls:'c-orient'},
+  low:      {l:'Baixa',    cls:'c-low'},
+  med:      {l:'Média',    cls:'c-med'},
+  high:     {l:'Alta',     cls:'c-high'},
+  critical: {l:'Crítica',  cls:'c-critical'}
+};
+var CATS = ['Civil','Estrutura','Fundações','Elétrica','Hidráulica','Impermeabilização','Acabamentos','Fachada','Segurança','Climatização','Outros'];
+
+/* ══ STORAGE — Local + Supabase ════════════════════════════════ */
+
+/* ── Helpers Supabase ── */
+function sbHeaders() {
+  var token = (SB_SESSION && SB_SESSION.access_token) || SB_KEY;
+  return { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+}
+function sbEnabled() {
+  return SB_URL !== '' && SB_KEY !== '' && !!(SB_SESSION && SB_SESSION.access_token);
+}
+
+/* ══ AUTENTICAÇÃO (Supabase Auth) ═══════════════════════════════ */
+function sbAuthHeaders() {
+  return { 'apikey': SB_KEY, 'Content-Type': 'application/json' };
+}
+
+function sbSalvarSessao(body) {
+  SB_SESSION = {
+    access_token: body.access_token,
+    refresh_token: body.refresh_token,
+    expires_at: Date.now() + ((body.expires_in || 3600) * 1000),
+    email: (body.user && body.user.email) || ''
+  };
+  try { localStorage.setItem('sb_session', JSON.stringify(SB_SESSION)); } catch(e) {}
+}
+
+function sbLimparSessao() {
+  SB_SESSION = null;
+  try { localStorage.removeItem('sb_session'); } catch(e) {}
+}
+
+function sbRefreshSessao() {
+  if (!SB_SESSION || !SB_SESSION.refresh_token) return Promise.resolve(false);
+  return fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+    method: 'POST', headers: sbAuthHeaders(), body: JSON.stringify({ refresh_token: SB_SESSION.refresh_token })
+  }).then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+    .then(function(res) {
+      if (res.ok && res.body.access_token) { sbSalvarSessao(res.body); return true; }
+      sbLimparSessao();
+      return false;
+    }).catch(function() { return false; });
+}
+
+/* Resolve se a sessão atual pode ser usada agora (renova se preciso; tolera ficar offline) */
+function sbSessaoOk() {
+  if (!SB_SESSION || !SB_SESSION.access_token) return Promise.resolve(false);
+  if (SB_SESSION.expires_at - Date.now() > 120000) return Promise.resolve(true);
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve(true);
+  return sbRefreshSessao().then(function(ok) { return ok || (navigator.onLine === false); });
+}
+
+function sbVerificarAutorizacao() {
+  return fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email&email=eq.' + encodeURIComponent(SB_SESSION.email), { headers: sbHeaders() })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { return Array.isArray(data) && data.length > 0; })
+    .catch(function() { return null; /* erro de rede: não bloqueia */ });
+}
+
+function authSetModo(modo) {
+  authModo = modo;
+  document.getElementById('auth-ttl').textContent = modo === 'login' ? 'Entrar' : 'Criar conta';
+  document.getElementById('auth-txt').textContent = modo === 'login'
+    ? 'Acesse com seu e-mail e senha para sincronizar os relatórios com a nuvem.'
+    : 'Crie sua conta. Seu e-mail precisa estar liberado pelo administrador para ver os relatórios.';
+  document.getElementById('auth-btn').textContent = modo === 'login' ? 'Entrar' : 'Criar conta';
+  document.getElementById('auth-switch').innerHTML = modo === 'login'
+    ? 'Não tem conta? <a onclick="authAlternarModo()">Criar conta</a>'
+    : 'Já tem conta? <a onclick="authAlternarModo()">Entrar</a>';
+  document.getElementById('auth-err').style.display = 'none';
+}
+function authAlternarModo() { authSetModo(authModo === 'login' ? 'signup' : 'login'); }
+
+function authErro(msg) {
+  var el = document.getElementById('auth-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function authSubmit() {
+  var email = (document.getElementById('auth-email').value || '').trim();
+  var senha = document.getElementById('auth-senha').value || '';
+  if (!email || !senha) { authErro('Preencha e-mail e senha.'); return; }
+  var btn = document.getElementById('auth-btn');
+  btn.disabled = true;
+  var textoOriginal = btn.textContent;
+  btn.textContent = 'Aguarde...';
+  var endpoint = authModo === 'login' ? '/auth/v1/token?grant_type=password' : '/auth/v1/signup';
+  fetch(SB_URL + endpoint, { method: 'POST', headers: sbAuthHeaders(), body: JSON.stringify({ email: email, password: senha }) })
+    .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+    .then(function(res) {
+      btn.disabled = false; btn.textContent = textoOriginal;
+      if (!res.ok) {
+        var msg = (res.body && (res.body.error_description || res.body.msg || res.body.message)) || 'Falha ao autenticar.';
+        if (/already registered|already exists|user_repeated_signup/i.test(msg)) msg = 'Este e-mail já tem conta — clique em "Entrar".';
+        authErro(msg);
+        return;
+      }
+      if (authModo === 'signup' && !res.body.access_token) {
+        authErro('Conta criada! Confirme seu e-mail (se necessário) e depois faça login.');
+        authSetModo('login');
+        return;
+      }
+      sbSalvarSessao(res.body);
+      sbVerificarAutorizacao().then(function(autorizado) {
+        if (autorizado === false) {
+          authErro('Login feito, mas o e-mail "' + SB_SESSION.email + '" ainda não tem acesso liberado. Peça para um administrador liberar em "Acessos".');
+          sbLimparSessao();
+          return;
+        }
+        document.getElementById('auth-gate').style.display = 'none';
+        atualizarStatusSb();
+        toast('Conectado como ' + SB_SESSION.email, 'o', true);
+        lastSyncTime = 0;
+        loadData();
+      });
+    })
+    .catch(function(e) {
+      btn.disabled = false; btn.textContent = textoOriginal;
+      authErro('Erro de conexão: ' + e.message);
+    });
+}
+
+function authUsarSemNuvem() {
+  SB_URL = ''; SB_KEY = '';
+  try { localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key'); } catch(e) {}
+  sbLimparSessao();
+  document.getElementById('auth-gate').style.display = 'none';
+  atualizarStatusSb();
+  loadData();
+  if (!sbEnabled()) { atualizarContador(); renderHome(); }
+  toast('Modo local ativado — dados salvos só neste dispositivo.', 'o', true);
+}
+
+function authLogout() {
+  if (SB_URL && SB_SESSION) {
+    fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: sbHeaders() }).catch(function() {});
+  }
+  sbLimparSessao();
+  location.reload();
+}
+
+/* ── Carregar: sempre mostra o que já está salvo localmente primeiro (cache),
+   depois busca a nuvem em segundo plano — evita tela em branco no boot
+   enquanto a rede responde, já que os dados da última sessão já estão em
+   localStorage. ── */
+function loadData() {
+  try { apiKey = localStorage.getItem('roc_k') || ''; } catch(e) {}
+  try { reports = JSON.parse(localStorage.getItem(SK)) || []; } catch(e) { reports = []; }
+  if (sbEnabled()) sbSyncDown(true);
+}
+
+/* ── Baixar relatórios do Supabase ── */
+var lastSyncTime = 0;
+var SYNC_INTERVAL = 60000; /* Sincronizar no máximo 1x por minuto */
+
+function sbSyncDown(forceRender) {
+  var now = Date.now();
+  /* Evita sincronizações excessivas — máx 1x por minuto */
+  if (now - lastSyncTime < SYNC_INTERVAL && lastSyncTime > 0) {
+    if (forceRender) {
+      atualizarContador();
+      renderHome();
+    }
+    return;
+  }
+  lastSyncTime = now;
+
+  fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,data&order=created_at.desc', { headers: sbHeaders() })
+    .then(function(r) {
+      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r.status)); });
+      return r.json();
+    })
+    .then(function(data) {
+      if (!Array.isArray(data)) return;
+      /* Guarda as fotos como referência "sbfoto:" sem assinar URL aqui — isso
+         antes rodava para TODAS as fotos de TODOS os relatórios a cada sync,
+         mesmo para relatórios que o usuário nunca abre. Agora a assinatura
+         acontece sob demanda em resolverFotosRelatorio(), só para o relatório
+         que for realmente aberto ou impresso. */
+      reports = data.map(function(row) { return row.data; });
+      persistLocal();
+      atualizarContador();
+      var pg = document.querySelector('.pg.on');
+      if (pg && pg.id === 'pg-home')  renderHome();
+      if (pg && pg.id === 'pg-list')  renderList();
+      if (pg && pg.id === 'pg-obras') renderObras();
+    })
+    .catch(function(e) {
+      toast('Falha ao sincronizar com a nuvem: ' + e.message, '✗');
+      try { reports = JSON.parse(localStorage.getItem(SK)) || []; } catch(err) { reports = []; }
+      atualizarContador();
+      renderHome();
+    });
+}
+
+/* ── Grava localStorage e avisa se falhar (ex.: quota estourada) em vez de
+   falhar em silêncio — sem isso o usuário acredita que salvou e perde o dado
+   assim que fecha a aba, principalmente em "modo local" sem nuvem. ── */
+function persistLocal() {
+  try {
+    localStorage.setItem(SK, JSON.stringify(reports));
+    return true;
+  } catch (e) {
+    toast('Não foi possível salvar neste dispositivo (armazenamento cheio). ' + (sbEnabled() ? 'Os dados continuam seguros na nuvem.' : 'Faça backup (Exportar) para não perder os dados.'), '⚠');
+    return false;
+  }
+}
+
+/* ── Salvar: localStorage + Supabase ── */
+function saveData(changedId) {
+  persistLocal();
+  if (sbEnabled() && changedId) { sbUpsertOne(changedId); }
+  return true;
+}
+
+/* ── Storage: envia uma foto (data:URL) e devolve o caminho salvo ── */
+function sbUploadFoto(dataUrl, path) {
+  var m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl);
+  if (!m) return Promise.reject(new Error('Formato de imagem inválido'));
+  var mime = m[1], b64 = m[2];
+  var bin = atob(b64);
+  var bytes = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  var blob = new Blob([bytes], { type: mime });
+  var token = (SB_SESSION && SB_SESSION.access_token) || SB_KEY;
+  return fetch(SB_URL + '/storage/v1/object/' + SB_BUCKET + '/' + path, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': mime, 'x-upsert': 'true' },
+    body: blob
+  }).then(function(r) {
+    if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.error)) || ('Erro ' + r.status)); });
+    return path;
+  });
+}
+
+/* ── Storage: pede URLs assinadas (temporárias) em lote ── */
+function sbSignedUrlsEmLote(paths, expiraSeg) {
+  if (paths.length === 0) return Promise.resolve({});
+  return fetch(SB_URL + '/storage/v1/object/sign/' + SB_BUCKET, {
+    method: 'POST', headers: sbHeaders(),
+    body: JSON.stringify({ expiresIn: expiraSeg || 604800, paths: paths })
+  }).then(function(r) { return r.json(); })
+    .then(function(arr) {
+      var map = {};
+      if (Array.isArray(arr)) {
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i].signedURL) map[arr[i].path] = SB_URL + '/storage/v1' + arr[i].signedURL;
+        }
+      }
+      return map;
+    }).catch(function() { return {}; });
+}
+
+/* ── Antes de enviar um relatório: troca fotos base64 por upload no Storage ── */
+function sbPrepararFotosParaEnvio(report) {
+  var clone = JSON.parse(JSON.stringify(report));
+  delete clone._pendingSync; /* controle só local — não precisa ir para o banco */
+  var uploads = [];
+  for (var i = 0; i < clone.items.length; i++) {
+    var fotos = clone.items[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      var val = fotos[j];
+      if (typeof val === 'string' && val.indexOf('data:image') === 0) {
+        var path = 'relatorios/' + report.id + '/' + clone.items[i].id + '-' + j + '-' + Date.now() + '.jpg';
+        uploads.push({ ii: i, fi: j, path: path, dataUrl: val });
+      } else if (typeof val === 'string' && val.indexOf('http') === 0) {
+        /* URL assinada de uma sessão anterior: guarda só a referência ao caminho original */
+        var match = /\/object\/(?:sign|public)\/[^/]+\/([^?]+)/.exec(val);
+        if (match) clone.items[i].fotos[j] = FOTO_PREFIXO + decodeURIComponent(match[1]);
+      }
+    }
+  }
+  if (uploads.length === 0) return Promise.resolve(clone);
+  var idx = 0;
+  function proximo() {
+    if (idx >= uploads.length) return clone;
+    var u = uploads[idx];
+    return sbUploadFoto(u.dataUrl, u.path).then(function(path) {
+      clone.items[u.ii].fotos[u.fi] = FOTO_PREFIXO + path;
+      idx++;
+      return proximo();
+    });
+  }
+  return proximo();
+}
+
+/* ── Ao baixar: troca referências sbfoto: por URLs assinadas para exibir ── */
+function sbResolverFotos(reportsArr) {
+  var refs = [];
+  for (var i = 0; i < reportsArr.length; i++) {
+    var itens = reportsArr[i].items || [];
+    for (var j = 0; j < itens.length; j++) {
+      var fotos = itens[j].fotos || [];
+      for (var k = 0; k < fotos.length; k++) {
+        if (typeof fotos[k] === 'string' && fotos[k].indexOf(FOTO_PREFIXO) === 0) {
+          refs.push({ ri: i, ii: j, fi: k, path: fotos[k].slice(FOTO_PREFIXO.length) });
+        }
+      }
+    }
+  }
+  if (refs.length === 0) return Promise.resolve(reportsArr);
+  var paths = refs.map(function(r) { return r.path; });
+  return sbSignedUrlsEmLote(paths, 604800).then(function(map) {
+    for (var i = 0; i < refs.length; i++) {
+      var ref = refs[i];
+      if (map[ref.path]) reportsArr[ref.ri].items[ref.ii].fotos[ref.fi] = map[ref.path];
+    }
+    return reportsArr;
+  });
+}
+
+/* ── Verifica se um relatório ainda tem referências "sbfoto:" (foto no Storage
+   que nunca foi assinada nesta sessão) ── */
+function temFotoNaoResolvida(r) {
+  var itens = (r && r.items) || [];
+  for (var i = 0; i < itens.length; i++) {
+    var fotos = itens[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      if (typeof fotos[j] === 'string' && fotos[j].indexOf(FOTO_PREFIXO) === 0) return true;
+    }
+  }
+  return false;
+}
+
+/* ── Resolve as fotos de UM relatório sob demanda (ao abrir/gerar PDF), em vez
+   de assinar as fotos de TODOS os relatórios a cada sincronização — antes
+   sbSyncDown chamava sbResolverFotos sobre a base inteira sempre. ── */
+function resolverFotosRelatorio(r) {
+  if (!sbEnabled() || !temFotoNaoResolvida(r)) return Promise.resolve(false);
+  return sbResolverFotos([r]).then(function() {
+    persistLocal();
+    return true;
+  });
+}
+
+/* ── Upsert de UM relatório no Supabase (fotos vão para o Storage antes) ──
+   onDone(ok) é chamado ao final (sucesso ou falha) para permitir uma fila. */
+function sbUpsertOne(reportId, onDone) {
+  var r = null;
+  for (var i = 0; i < reports.length; i++) {
+    if (reports[i].id === reportId) { r = reports[i]; break; }
+  }
+  if (!r) { if (onDone) onDone(false); return; }
+  sbPrepararFotosParaEnvio(r).then(function(slim) {
+    return fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+      method: 'POST',
+      headers: Object.assign({}, sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      body: JSON.stringify([{ id: String(slim.id), data: slim }])
+    });
+  }).then(function(r2) {
+    if (!r2.ok) return r2.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r2.status)); });
+    r._pendingSync = false;
+    persistLocal();
+    if (onDone) onDone(true);
+  }).catch(function(e) {
+    toast('Relatório salvo neste dispositivo, mas falhou ao enviar para a nuvem: ' + e.message, '⚠');
+    if (onDone) onDone(false);
+  });
+}
+
+/* ── Apaga as fotos de um relatório no Storage (melhor esforço) ── */
+function sbApagarFotosDoRelatorio(id) {
+  return fetch(SB_URL + '/storage/v1/object/list/' + SB_BUCKET, {
+    method: 'POST', headers: sbHeaders(),
+    body: JSON.stringify({ prefix: 'relatorios/' + id + '/' })
+  }).then(function(r) { return r.json(); })
+    .then(function(lista) {
+      if (!Array.isArray(lista) || lista.length === 0) return;
+      var nomes = lista.map(function(f) { return 'relatorios/' + id + '/' + f.name; });
+      return fetch(SB_URL + '/storage/v1/object/' + SB_BUCKET, {
+        method: 'DELETE', headers: sbHeaders(), body: JSON.stringify({ prefixes: nomes })
+      });
+    }).catch(function() {});
+}
+
+/* ── Excluir do Supabase ── */
+function sbDelete(id) {
+  if (!sbEnabled()) return;
+  sbApagarFotosDoRelatorio(id);
+  fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?id=eq.' + String(id), {
+    method: 'DELETE',
+    headers: sbHeaders()
+  }).then(function(r) { if (!r.ok) throw new Error('Erro ' + r.status); })
+    .catch(function(e) { toast('Falha ao excluir da nuvem: ' + e.message, '⚠'); });
+}
+
+/* ── Reenvia relatórios antigos (fotos ainda em base64) usando o Storage ── */
+function migrarFotosAntigas() {
+  if (!sbEnabled()) { toast('Conecte-se e faça login na nuvem primeiro', '⚠'); return; }
+  if (!confirm('Isso vai reenviar os relatórios que ainda têm fotos no formato antigo (mais lento). Pode levar alguns minutos. Continuar?')) return;
+  var total = reports.length, idx = 0;
+  function proximo() {
+    if (idx >= total) { toast('Migração concluída! Atualizando...', 'o', true); lastSyncTime = 0; sbSyncDown(true); return; }
+    var rep = reports[idx];
+    var temAntiga = (rep.items || []).some(function(it) { return (it.fotos || []).some(function(f) { return typeof f === 'string' && f.indexOf('data:image') === 0; }); });
+    idx++;
+    if (!temAntiga) { proximo(); return; }
+    toast('Migrando relatório ' + idx + ' de ' + total + '...', 'o', true);
+    sbPrepararFotosParaEnvio(rep).then(function(slim) {
+      return fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+        method: 'POST',
+        headers: Object.assign({}, sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify([{ id: String(slim.id), data: slim }])
+      });
+    }).then(function() { proximo(); })
+      .catch(function(e) { toast('Erro ao migrar um relatório: ' + e.message, '✗'); proximo(); });
+  }
+  proximo();
+}
+
+/* ── Modal: conectar à nuvem (Supabase) ── */
+function abrirConfigSb() {
+  var logado = SB_SESSION && SB_SESSION.access_token;
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Conectar à Nuvem (Supabase)</div>'
+    + '<p class="md-txt">Sincronize seus relatórios entre dispositivos usando um projeto Supabase.</p>'
+    + '<div class="md-note">ℹ️ Crie um projeto em <strong style="color:var(--red)">supabase.com</strong> e copie a URL e a chave <strong>anon/public</strong> em Project Settings → API.</div>'
+    + '<input class="md-inp" type="text" id="sb-url-inp" placeholder="https://xxxxx.supabase.co" value="' + escH(SB_URL) + '" style="margin-top:10px"/>'
+    + '<input class="md-inp" type="password" id="sb-key-inp" placeholder="Chave anon/public" value="' + escH(SB_KEY) + '" style="margin-top:10px"/>'
+    + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="salvarConfigSb()">Salvar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Cancelar</button></div>'
+    + (SB_URL && SB_KEY ? (logado
+        ? '<div class="md-note" style="margin-top:10px">Conectado como <strong>' + escH(SB_SESSION.email) + '</strong></div>'
+          + '<button class="btn btn-o" style="width:100%;margin-top:8px;justify-content:center" onclick="fecharModal();authLogout()">Sair da conta</button>'
+          + '<button class="btn btn-o" style="width:100%;margin-top:8px;justify-content:center" onclick="fecharModal();migrarFotosAntigas()">Migrar fotos antigas para o Storage</button>'
+        : '<button class="btn btn-r" style="width:100%;margin-top:8px;justify-content:center" onclick="fecharModal();document.getElementById(\'auth-gate\').style.display=\'flex\'">Fazer login</button>'
+      ) : '')
+    + (SB_URL && SB_KEY ? '<button class="btn btn-o" style="width:100%;margin-top:8px;justify-content:center;color:var(--red)" onclick="desconectarSb()">Desconectar</button>' : '');
+  document.getElementById('modal').style.display = 'flex';
+  setTimeout(function() { var u = document.getElementById('sb-url-inp'); if (u) u.focus(); }, 100);
+}
+
+/* ── Atualiza o rótulo "Nuvem: Conectado/Desconectado" na barra lateral ── */
+function atualizarStatusSb() {
+  var lbl = document.getElementById('sb-status-lbl');
+  var btn = document.getElementById('sb-cloud-btn');
+  if (!lbl) return;
+  sbReady = sbEnabled();
+  lbl.textContent = sbReady ? 'Nuvem: Conectado' : 'Nuvem: Desconectado';
+  if (btn) btn.classList.toggle('sb-connected', sbReady);
+}
+
+/* ── Configurar endereço do Supabase (salvo no localStorage) ── */
+function salvarConfigSb() {
+  var u = document.getElementById('sb-url-inp');
+  var k = document.getElementById('sb-key-inp');
+  if (!u || !k) return;
+  var url = u.value.trim().replace(/\/$/, '');
+  var key = k.value.trim();
+  if (!url || !key) { toast('Preencha URL e chave', '⚠'); return; }
+  SB_URL = url;
+  SB_KEY = key;
+  try { localStorage.setItem('sb_url', SB_URL); localStorage.setItem('sb_key', SB_KEY); } catch(e) {}
+  sbLimparSessao();
+  atualizarStatusSb();
+  fecharModal();
+  toast('Supabase configurado! Faça login para sincronizar.', 'o', true);
+  document.getElementById('auth-gate').style.display = 'flex';
+}
+
+/* ── Desconectar da nuvem (mantém dados locais) ── */
+function desconectarSb() {
+  SB_URL = '';
+  SB_KEY = '';
+  try { localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key'); } catch(e) {}
+  sbLimparSessao();
+  atualizarStatusSb();
+  fecharModal();
+  toast('Nuvem desconectada. Seus dados continuam salvos neste dispositivo.', 'o', true);
+}
+
+/* ── Modal: gerenciar e-mails autorizados a acessar a nuvem ── */
+function abrirAcessos() {
+  if (!sbEnabled()) { toast('Conecte-se e faça login na nuvem primeiro', '⚠'); return; }
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Acessos autorizados</div>'
+    + '<p class="md-txt">Só os e-mails desta lista conseguem entrar e ver os relatórios da nuvem.</p>'
+    + '<div id="acessos-lista" class="md-note" style="margin-bottom:12px">Carregando...</div>'
+    + '<input class="md-inp" type="email" id="acesso-novo-email" placeholder="novo@email.com"/>'
+    + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="adicionarAcesso()">Adicionar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Fechar</button></div>';
+  document.getElementById('modal').style.display = 'flex';
+  carregarAcessos();
+}
+
+function carregarAcessos() {
+  fetch(SB_URL + '/rest/v1/usuarios_autorizados?select=email,criado_em&order=criado_em.asc', { headers: sbHeaders() })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var el = document.getElementById('acessos-lista');
+      if (!el) return;
+      if (!Array.isArray(data) || data.length === 0) { el.innerHTML = 'Nenhum e-mail cadastrado ainda.'; return; }
+      el.innerHTML = data.map(function(u) {
+        var proprio = u.email.toLowerCase() === (SB_SESSION.email || '').toLowerCase();
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">'
+          + '<span>' + escH(u.email) + (proprio ? ' (você)' : '') + '</span>'
+          + (proprio ? '' : '<button class="btn-g" style="color:var(--red);font-size:11px;padding:3px 8px" onclick="removerAcesso(\'' + escH(u.email).replace(/'/g, "\\'") + '\')">Remover</button>')
+          + '</div>';
+      }).join('');
+    })
+    .catch(function() { var el = document.getElementById('acessos-lista'); if (el) el.innerHTML = 'Erro ao carregar.'; });
+}
+
+function adicionarAcesso() {
+  var inp = document.getElementById('acesso-novo-email');
+  var email = (inp.value || '').trim().toLowerCase();
+  if (!email || email.indexOf('@') < 0) { toast('Informe um e-mail válido', '⚠'); return; }
+  fetch(SB_URL + '/rest/v1/usuarios_autorizados', {
+    method: 'POST',
+    headers: Object.assign({}, sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify([{ email: email, criado_por: SB_SESSION.email }])
+  }).then(function(r) {
+    if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.msg)) || 'Falha ao adicionar'); });
+    inp.value = '';
+    toast('E-mail liberado!', 'o', true);
+    carregarAcessos();
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+function removerAcesso(email) {
+  if (!confirm('Remover acesso de ' + email + '?')) return;
+  fetch(SB_URL + '/rest/v1/usuarios_autorizados?email=eq.' + encodeURIComponent(email), {
+    method: 'DELETE', headers: sbHeaders()
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Falha ao remover');
+    toast('Acesso removido', 'o', true);
+    carregarAcessos();
+  }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+/* ══ UTILS ══════════════════════════════════════════════════════ */
+var toastTimer = null;
+function toast(msg, icon, red) {
+  var el = document.getElementById('toast');
+  el.innerHTML = '<span style="color:' + (red ? 'var(--red)' : '#22c55e') + '">' + (icon || '✓') + '</span> ' + msg;
+  el.style.display = 'flex';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.style.display = 'none'; }, 3200);
+}
+
+function escH(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function G(id) {
+  var el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+function V(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.value = val || '';
+}
+
+function atualizarContador() {
+  var el = document.getElementById('sb-cnt');
+  if (el) el.textContent = reports.length;
+  var lt = document.getElementById('list-ttl');
+  if (lt) lt.textContent = 'Relatórios (' + reports.length + ')';
+}
+
+/* ══ NAVEGAÇÃO ═══════════════════════════════════════════════════ */
+function navegar(v) {
+  var pages = document.querySelectorAll('.pg');
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('on');
+  var pg = document.getElementById('pg-' + v);
+  if (pg) pg.classList.add('on');
+
+  var sbBtns = document.querySelectorAll('.sb-btn');
+  for (var i = 0; i < sbBtns.length; i++) sbBtns[i].classList.remove('on');
+  var sbBtn = document.getElementById('sb-' + v);
+  if (sbBtn) sbBtn.classList.add('on');
+
+  var bnBtns = document.querySelectorAll('.bn-btn');
+  for (var i = 0; i < bnBtns.length; i++) bnBtns[i].classList.remove('on');
+  var bnBtn = document.getElementById('bn-' + v);
+  if (bnBtn) bnBtn.classList.add('on');
+
+  var fab = document.querySelector('.fab');
+  if (fab) fab.style.display = (v === 'editor') ? 'none' : '';
+
+  if (v === 'home')  renderHome();
+  if (v === 'obras') renderObras();
+  if (v === 'list')  renderListFull();
+  atualizarContador();
+}
+
+/* ══ AGRUPAMENTO POR OBRA ════════════════════════════════════════ */
+function agruparPorObra() {
+  var obras = {};
+  for (var i = 0; i < reports.length; i++) {
+    var r = reports[i];
+    var key = (r.cover && r.cover.obra) ? r.cover.obra.trim() : 'Sem título';
+    if (!obras[key]) obras[key] = { nome: key, cliente: (r.cover && r.cover.cliente) ? r.cover.cliente : '', relatorios: [] };
+    obras[key].relatorios.push(r);
+  }
+  var arr = [];
+  for (var k in obras) { if (obras.hasOwnProperty(k)) arr.push(obras[k]); }
+  arr.sort(function(a, b) {
+    var la = 0, lb = 0;
+    for (var i = 0; i < a.relatorios.length; i++) if (a.relatorios[i].id > la) la = a.relatorios[i].id;
+    for (var i = 0; i < b.relatorios.length; i++) if (b.relatorios[i].id > lb) lb = b.relatorios[i].id;
+    return lb - la;
+  });
+  return arr;
+}
+
+function filtrarObra(nome) { searchQ = nome; navegar('list'); }
+
+function contarCrit(relatorios) {
+  var c = 0;
+  for (var i = 0; i < relatorios.length; i++) {
+    var apts = relatorios[i].items || [];
+    for (var j = 0; j < apts.length; j++) {
+      if (apts[j].criticidade === 'high' || apts[j].criticidade === 'critical') c++;
+    }
+  }
+  return c;
+}
+
+function contarApts(relatorios) {
+  var c = 0;
+  for (var i = 0; i < relatorios.length; i++) c += (relatorios[i].items || []).length;
+  return c;
+}
+
+/* ══ HOME ════════════════════════════════════════════════════════ */
+function renderHome() {
+  var obras      = agruparPorObra();
+  var totalObras = obras.length;
+  var totalRels  = reports.length;
+  var totalCrit  = contarCrit(reports);
+  var now        = new Date();
+  var totalMes   = 0;
+  for (var i = 0; i < reports.length; i++) {
+    var d = reports[i].created;
+    if (d) { var p = d.split('/'); if (p.length === 3 && parseInt(p[1]) === now.getMonth() + 1 && parseInt(p[2]) === now.getFullYear()) totalMes++; }
+  }
+
+  var obrasCards = '';
+  var max = obras.length > 6 ? 6 : obras.length;
+  for (var i = 0; i < max; i++) {
+    var ob   = obras[i];
+    var rels = ob.relatorios.slice().sort(function(a, b) { return b.id - a.id; });
+    var crit = contarCrit(rels);
+    var tApt = contarApts(rels);
+    var ult  = rels[0] && rels[0].updated ? rels[0].updated : '—';
+    var critH = crit > 0
+      ? '<div class="os red"><span class="os-n">' + crit + '</span><span class="os-l">Crít.</span></div>'
+      : '<div class="os ok"><span class="os-n">✓</span><span class="os-l">Ok</span></div>';
+    var cliH = ob.cliente ? '<div class="oc-cli">' + escH(ob.cliente) + '</div>' : '';
+    obrasCards += '<div class="oc" onclick="filtrarObra(\'' + escH(ob.nome) + '\')">'
+      + '<div class="oc-top"><div style="font-size:22px;flex-shrink:0">🏗️</div>'
+      + '<div><div class="oc-nome">' + escH(ob.nome) + '</div>' + cliH + '</div></div>'
+      + '<div class="oc-stats">'
+      + '<div class="os"><span class="os-n">' + rels.length + '</span><span class="os-l">Rel.</span></div>'
+      + '<div class="os"><span class="os-n">' + tApt + '</span><span class="os-l">Apts.</span></div>'
+      + critH + '</div>'
+      + '<div class="oc-date">Última vistoria: <strong style="color:var(--red)">' + ult + '</strong></div>'
+      + '</div>';
+  }
+  var maisObras = obras.length > 6
+    ? '<div style="text-align:center;margin-bottom:16px"><button class="btn btn-o" onclick="navegar(\'obras\')">Ver todas as obras (' + obras.length + ')</button></div>'
+    : '';
+
+  var recentesH = '';
+  if (reports.length === 0) {
+    recentesH = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum relatório salvo</div>'
+      + '<div class="empty-txt">Crie o primeiro relatório de vistoria técnica ROCONTEC.</div>'
+      + '<button class="btn btn-r" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Primeiro Relatório</button></div>';
+  } else {
+    var max2 = reports.length > 4 ? 4 : reports.length;
+    for (var i = 0; i < max2; i++) recentesH += relRow(reports[i], false);
+  }
+
+  var pdfClick = reports.length > 0 ? 'gerarPDFById(' + reports[0].id + ')' : 'toast(\'Nenhum relatório salvo\',\'⚠\')';
+
+  var html = '<div class="sg">'
+    + '<div class="sc r"><span class="sc-ico">🏗️</span><div><div class="sc-num">' + totalObras + '</div><div class="sc-lbl">Obras</div></div></div>'
+    + '<div class="sc g"><span class="sc-ico">📋</span><div><div class="sc-num">' + totalRels + '</div><div class="sc-lbl">Relatórios</div></div></div>'
+    + '<div class="sc" style="border-top-color:#dc2626"><span class="sc-ico">🔴</span><div><div class="sc-num" style="color:#dc2626">' + totalCrit + '</div><div class="sc-lbl">Críticos</div></div></div>'
+    + '<div class="sc" style="border-top-color:var(--gray)"><span class="sc-ico">🗓️</span><div><div class="sc-num">' + totalMes + '</div><div class="sc-lbl">Este Mês</div></div></div>'
+    + '</div>'
+    + '<div class="sec"><div class="sec-t">Ações Rápidas</div><div class="sec-l"></div></div>'
+    + '<div class="sk-grid">'
+    + '<div class="sk-card" onclick="novoRelatorio()"><div class="sk-ico" style="background:rgba(192,47,52,.08)">📋</div><div><div class="sk-lbl">Novo Relatório</div><div class="sk-sub">Criar vistoria</div></div></div>'
+    + '<div class="sk-card" onclick="navegar(\'list\')"><div class="sk-ico" style="background:rgba(102,102,102,.08)">📂</div><div><div class="sk-lbl">Todos Relatórios</div><div class="sk-sub">' + totalRels + ' salvos</div></div></div>'
+    + '<div class="sk-card" onclick="navegar(\'obras\')"><div class="sk-ico" style="background:rgba(17,39,53,.08)">🏗️</div><div><div class="sk-lbl">Dir. de Obras</div><div class="sk-sub">' + totalObras + ' obra' + (totalObras !== 1 ? 's' : '') + '</div></div></div>'
+    + '<div class="sk-card" onclick="' + pdfClick + '"><div class="sk-ico" style="background:rgba(192,47,52,.06)">🖨️</div><div><div class="sk-lbl">Gerar PDF</div><div class="sk-sub">' + (reports.length > 0 ? 'Último relatório' : 'Sem relatórios') + '</div></div></div>'
+    + '</div>';
+
+  if (obras.length > 0) {
+    html += '<div class="sec"><div class="sec-t">Diretório de Obras</div><div class="sec-l"></div></div>'
+      + '<div class="og">' + obrasCards + '</div>' + maisObras;
+  }
+
+  html += '<div class="sec"><div class="sec-t">Vistorias Recentes</div><div class="sec-l"></div></div>'
+    + '<div class="card"><div class="card-hdr"><span class="card-ttl">Últimas Vistorias</span>'
+    + '<button class="btn btn-g" style="font-size:12px" onclick="navegar(\'list\')">Ver todas →</button></div>'
+    + recentesH + '</div>';
+
+  document.getElementById('home-body').innerHTML = html;
+}
+
+/* ══ OBRAS ════════════════════════════════════════════════════════ */
+function novoRelatorioObra(obra, cli) {
+  novoRelatorio();
+  setTimeout(function() { V('f-obra', obra); V('f-cliente', cli); atualizarPreview(); }, 150);
+}
+
+function renderObras() {
+  var obras = agruparPorObra();
+  var el = document.getElementById('obras-body');
+  if (!el) return;
+  if (obras.length === 0) {
+    el.innerHTML = '<div class="card"><div class="empty"><div class="empty-ico">🏗️</div>'
+      + '<div class="empty-ttl">Nenhuma obra</div>'
+      + '<div class="empty-txt">Crie o primeiro relatório de vistoria para iniciar o diretório de obras.</div>'
+      + '<button class="btn btn-r" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Relatório</button></div></div>';
+    return;
+  }
+  var html = '<div style="font-size:13px;color:var(--gray);margin-bottom:14px;font-weight:600">'
+    + obras.length + ' obra' + (obras.length !== 1 ? 's' : '') + ' · ' + reports.length + ' relatório' + (reports.length !== 1 ? 's' : '') + '</div>';
+
+  for (var i = 0; i < obras.length; i++) {
+    var ob   = obras[i];
+    var rels = ob.relatorios.slice().sort(function(a, b) { return b.id - a.id; });
+    var crit = contarCrit(rels);
+    var tApt = contarApts(rels);
+    var cliH = ob.cliente ? '<div style="font-size:11px;color:var(--gray);font-weight:400">' + escH(ob.cliente) + '</div>' : '';
+    var critH = crit > 0 ? '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:#dc2626">' + crit + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Críticos</div></div>' : '';
+
+    var rowsH = '';
+    for (var j = 0; j < rels.length; j++) {
+      var r  = rels[j];
+      var n  = r.items ? r.items.length : 0;
+      var h  = 0;
+      if (r.items) { for (var k = 0; k < r.items.length; k++) if (r.items[k].criticidade === 'high' || r.items[k].criticidade === 'critical') h++; }
+      var respH = (r.cover && r.cover.responsavel) ? r.cover.responsavel + ' · ' : '';
+      var critPt = h > 0 ? ' · <span style="color:#dc2626;font-weight:700">' + h + ' 🔴</span>' : '';
+      rowsH += '<div class="r-row" onclick="abrirRelatorio(' + r.id + ')" style="padding:10px 14px">'
+        + '<div class="r-ico" style="width:32px;height:32px"><svg width="14" height="14" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>'
+        + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">' + escH((r.cover && r.cover.num) ? r.cover.num : '—') + ' <span style="color:var(--gray);font-weight:400">· ' + (r.updated || '—') + '</span></div>'
+        + '<div style="font-size:11px;color:var(--gray)">' + respH + n + ' apontamento' + (n !== 1 ? 's' : '') + critPt + '</div></div>'
+        + '<div class="r-act" onclick="event.stopPropagation()">'
+        + '<button class="btn btn-o" style="padding:5px 8px;font-size:11px" onclick="gerarPDFById(' + r.id + ')">🖨️</button>'
+        + '<button class="btn btn-d" style="padding:5px 8px;font-size:11px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
+        + '</div></div>';
+    }
+
+    html += '<div class="card" style="margin-bottom:16px">'
+      + '<div class="card-hdr">'
+      + '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px">🏗️</span><div><div class="card-ttl" style="font-size:13px;color:var(--black)">' + escH(ob.nome) + '</div>' + cliH + '</div></div>'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--red)">' + rels.length + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Rel.</div></div>'
+      + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black)">' + tApt + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Apts.</div></div>'
+      + critH + '</div></div>'
+      + '<div><div style="padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--bdr)">'
+      + '<button class="btn btn-r" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\')">+ Nova Vistoria</button>'
+      + '</div>' + rowsH + '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ══ LIST ═════════════════════════════════════════════════════════ */
+function relRow(r, showAct) {
+  var n = r.items ? r.items.length : 0;
+  var h = 0;
+  if (r.items) { for (var k = 0; k < r.items.length; k++) if (r.items[k].criticidade === 'high' || r.items[k].criticidade === 'critical') h++; }
+  var cliP = (r.cover && r.cover.cliente) ? escH(r.cover.cliente) + ' · ' : '';
+  var critP = h > 0 ? ' · <span style="color:#dc2626;font-weight:700">' + h + ' 🔴</span>' : '';
+  var actH = showAct
+    ? '<div class="r-act" onclick="event.stopPropagation()">'
+      + '<button class="btn btn-o" style="padding:6px 9px" onclick="gerarPDFById(' + r.id + ')">🖨️</button>'
+      + '<button class="btn btn-d" style="padding:6px 9px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
+      + '</div>'
+    : '';
+  return '<div class="r-row" onclick="abrirRelatorio(' + r.id + ')">'
+    + '<div class="r-ico"><svg width="17" height="17" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>'
+    + '<div style="flex:1;min-width:0">'
+    + '<div class="r-nm">' + escH((r.cover && r.cover.obra) ? r.cover.obra : 'Sem título') + '</div>'
+    + '<div class="r-mt">' + cliP + '<span class="r-dt">' + (r.updated || '—') + '</span> · ' + n + ' apt' + (n !== 1 ? 's' : '') + critP + '</div>'
+    + '</div>' + actH + '</div>';
+}
+
+/* ── Barra de filtro/busca: renderizada separada da lista de resultados.
+   Só é reconstruída em ações discretas (clique em chip/ordenação/limpar) —
+   nunca a cada tecla digitada, senão o próprio campo de busca seria
+   destruído e recriado, derrubando o foco a cada letra. ── */
+function renderListFiltros() {
+  var el = document.getElementById('list-filterbar');
+  if (!el) return;
+  var chips = [['all','Todos'],['critical','Crítica'],['high','Alta'],['med','Média'],['low','Baixa'],['orient','Orient.']];
+  var chipsH = '';
+  for (var i = 0; i < chips.length; i++) {
+    chipsH += '<button class="fchip' + (filterC === chips[i][0] ? ' on' : '') + '" onclick="filterC=\'' + chips[i][0] + '\';renderListFull()">' + chips[i][1] + '</button>';
+  }
+  var clearH = (searchQ || filterC !== 'all') ? '<button class="btn btn-g" style="font-size:11px;padding:4px 8px;margin-left:auto" onclick="searchQ=\'\';filterC=\'all\';renderListFull()">✕ Limpar</button>' : '';
+
+  el.innerHTML = '<div class="card" style="padding:14px;margin-bottom:14px">'
+    + '<div class="fbar">'
+    + '<div class="srch-wrap"><span class="srch-ico"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>'
+    + '<input class="srch-inp" placeholder="Buscar obra, incorporadora..." value="' + escH(searchQ) + '" oninput="searchQ=this.value;renderList()"/></div>'
+    + '<select class="sort-sel" onchange="sortBy=this.value;renderListFull()">'
+    + '<option value="date"' + (sortBy === 'date' ? ' selected' : '') + '>Recentes</option>'
+    + '<option value="name"' + (sortBy === 'name' ? ' selected' : '') + '>Nome A–Z</option>'
+    + '<option value="apts"' + (sortBy === 'apts' ? ' selected' : '') + '>Mais apontamentos</option>'
+    + '</select></div>'
+    + '<div class="fchips">' + chipsH + clearH + '</div></div>';
+}
+
+/* ── Lista de resultados: única parte re-renderizada a cada tecla da busca ── */
+function renderList() {
+  var lista = reports.slice();
+  if (searchQ.trim()) {
+    var q = searchQ.toLowerCase();
+    var tmp = [];
+    for (var i = 0; i < lista.length; i++) {
+      var r = lista[i];
+      var obra = (r.cover && r.cover.obra) ? r.cover.obra.toLowerCase() : '';
+      var cli  = (r.cover && r.cover.cliente) ? r.cover.cliente.toLowerCase() : '';
+      var resp = (r.cover && r.cover.responsavel) ? r.cover.responsavel.toLowerCase() : '';
+      if (obra.indexOf(q) >= 0 || cli.indexOf(q) >= 0 || resp.indexOf(q) >= 0) tmp.push(r);
+    }
+    lista = tmp;
+  }
+  if (filterC !== 'all') {
+    var tmp2 = [];
+    for (var i = 0; i < lista.length; i++) {
+      var apts = lista[i].items || [];
+      var found = false;
+      for (var j = 0; j < apts.length; j++) if (apts[j].criticidade === filterC) { found = true; break; }
+      if (found) tmp2.push(lista[i]);
+    }
+    lista = tmp2;
+  }
+  if (sortBy === 'date') lista.sort(function(a, b) { return b.id - a.id; });
+  else if (sortBy === 'name') lista.sort(function(a, b) { return ((a.cover && a.cover.obra) ? a.cover.obra : '').localeCompare((b.cover && b.cover.obra) ? b.cover.obra : ''); });
+  else lista.sort(function(a, b) { return (b.items ? b.items.length : 0) - (a.items ? a.items.length : 0); });
+
+  var lt = document.getElementById('list-ttl');
+  if (lt) lt.textContent = 'Relatórios (' + lista.length + '/' + reports.length + ')';
+
+  var rowsH = '';
+  if (lista.length === 0) {
+    rowsH = '<div class="card"><div class="empty"><div class="empty-ico">' + (reports.length === 0 ? '📋' : '🔍') + '</div>'
+      + '<div class="empty-ttl">' + (reports.length === 0 ? 'Nenhum relatório' : 'Sem resultados') + '</div>'
+      + '<div class="empty-txt">' + (reports.length === 0 ? 'Crie o primeiro relatório ROCONTEC.' : 'Ajuste os filtros.') + '</div>'
+      + (reports.length === 0 ? '<button class="btn btn-r" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar</button>' : '')
+      + '</div></div>';
+  } else {
+    var rs = '';
+    for (var i = 0; i < lista.length; i++) rs += relRow(lista[i], true);
+    rowsH = '<div class="card">' + rs + '</div>';
+  }
+
+  var rowsEl = document.getElementById('list-rows');
+  if (rowsEl) rowsEl.innerHTML = rowsH;
+}
+
+/* ── Usar ao entrar na tela ou após ação discreta (chip/ordenação/exclusão) ── */
+function renderListFull() {
+  renderListFiltros();
+  renderList();
+}
+
+/* ══ EDITOR ═══════════════════════════════════════════════════════ */
+function novoRelatorio() {
+  editId = null;
+  items  = [];
+  consid = '';
+  var fields = ['f-obra','f-cliente','f-data','f-num','f-resp','f-cargo','f-emp','f-hist','f-esc','f-sol','f-intro'];
+  for (var i = 0; i < fields.length; i++) V(fields[i], '');
+  renderConsid();
+  atualizarPreview();
+  navegar('editor');
+  abrirTab('capa', document.querySelectorAll('.tab-btn')[0]);
+  renderApts();
+  atualizarSumStats();
+}
+
+function abrirRelatorio(id) {
+  var r = null;
+  for (var i = 0; i < reports.length; i++) if (reports[i].id === id) { r = reports[i]; break; }
+  if (!r) return;
+  editId = id;
+  consid = r.consid || '';
+  V('f-obra',   r.cover && r.cover.obra      ? r.cover.obra      : '');
+  V('f-cliente',r.cover && r.cover.cliente   ? r.cover.cliente   : '');
+  V('f-data',   r.cover && r.cover.dataVistoria ? r.cover.dataVistoria : '');
+  V('f-num',    r.cover && r.cover.num       ? r.cover.num       : '');
+  V('f-resp',   r.cover && r.cover.responsavel ? r.cover.responsavel : '');
+  V('f-cargo',  r.cover && r.cover.cargo     ? r.cover.cargo     : '');
+  V('f-emp',    r.cover && r.cover.empresa   ? r.cover.empresa   : '');
+  V('f-hist',   r.intro && r.intro.historico  ? r.intro.historico  : '');
+  V('f-esc',    r.intro && r.intro.escopo     ? r.intro.escopo     : '');
+  V('f-sol',    r.intro && r.intro.solicitacoes ? r.intro.solicitacoes : '');
+  V('f-intro',  r.intro && r.intro.livre      ? r.intro.livre      : '');
+  renderConsid();
+  atualizarPreview();
+  navegar('editor');
+  abrirTab('capa', document.querySelectorAll('.tab-btn')[0]);
+
+  /* Fotos: mostra os apontamentos na hora (com placeholder se a foto ainda
+     não tiver URL assinada) e troca pelas imagens reais assim que a
+     assinatura chegar — resolvendo só as fotos DESTE relatório, não das
+     de todos os outros como acontecia antes a cada sincronização. */
+  items = JSON.parse(JSON.stringify(r.items || []));
+  renderApts();
+  atualizarSumStats();
+  if (temFotoNaoResolvida(r)) {
+    resolverFotosRelatorio(r).then(function(atualizou) {
+      if (atualizou && editId === id) {
+        items = JSON.parse(JSON.stringify(r.items || []));
+        renderApts();
+      }
+    });
+  }
+}
+
+function voltarLista() { navegar(reports.length ? 'list' : 'home'); }
+
+function atualizarPreview() {
+  var obra  = G('f-obra')   || 'Nome da Obra';
+  var num   = G('f-num')    || 'ROC-2026-001';
+  var unid  = G('f-emp')    || 'ROCONTEC — Gestão de Obras';
+  var cli   = G('f-cliente')|| '—';
+  var resp  = G('f-resp')   || '—';
+  var cargo = G('f-cargo')  || '—';
+  var dt    = G('f-data');
+  var dtStr = dt ? new Date(dt + 'T12:00').toLocaleDateString('pt-BR') : '—';
+  var pvObra = document.getElementById('pv-obra'); if (pvObra) pvObra.textContent = obra;
+  var pvNum  = document.getElementById('pv-num');  if (pvNum)  pvNum.textContent  = num;
+  var pvUnid = document.getElementById('pv-unid'); if (pvUnid) pvUnid.textContent = unid;
+  var pvCli  = document.getElementById('pv-cli');  if (pvCli)  pvCli.textContent  = cli;
+  var pvData = document.getElementById('pv-data'); if (pvData) pvData.textContent = dtStr;
+  var pvResp = document.getElementById('pv-resp'); if (pvResp) pvResp.textContent = resp;
+  var pvCarg = document.getElementById('pv-cargo');if (pvCarg) pvCarg.textContent = cargo;
+  var edTtl  = document.getElementById('ed-ttl'); if (edTtl) edTtl.textContent = G('f-obra') || 'Novo Relatório';
+}
+
+function abrirTab(nome, btn) {
+  var btns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
+  var pnls = document.querySelectorAll('.tab-pnl');
+  for (var i = 0; i < pnls.length; i++) pnls[i].classList.remove('on');
+  if (btn) btn.classList.add('on');
+  var pnl = document.getElementById('pnl-' + nome);
+  if (pnl) pnl.classList.add('on');
+  // consid tab opened
+}
+
+/* ══ SALVAR ════════════════════════════════════════════════════════ */
+/* ── Comprime fotos de um array de items (usado ao salvar) ── */
+function comprimirFotosItems(itemsArr, callback) {
+  var MAX_BYTES = 409600; /* 300KB raw ≈ 400KB em base64 */
+  var queue = [];
+  for (var i = 0; i < itemsArr.length; i++) {
+    var fotos = itemsArr[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      queue.push({ ii: i, fi: j });
+    }
+  }
+  if (queue.length === 0) { callback(itemsArr); return; }
+  var idx = 0;
+  function next() {
+    if (idx >= queue.length) { callback(itemsArr); return; }
+    var ref = queue[idx];
+    var url = itemsArr[ref.ii].fotos[ref.fi];
+    if (!url || url.length <= MAX_BYTES) { idx++; next(); return; }
+    comprimirImagem(url, MAX_BYTES, function(compressed) {
+      itemsArr[ref.ii].fotos[ref.fi] = compressed;
+      idx++;
+      next();
+    });
+  }
+  next();
+}
+
+function salvarRelatorio() {
+  var obra = G('f-obra');
+  if (!obra) { toast('Informe o nome da obra', '⚠'); return; }
+  var now   = new Date().toLocaleDateString('pt-BR');
+  var cover = { obra: obra, cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') };
+  var intro = { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') };
+  var snapItems = JSON.parse(JSON.stringify(items));
+
+  /* Salvar btn feedback */
+  var savBtn = document.querySelector('.btn-r[onclick="salvarRelatorio()"]');
+  if (savBtn) { savBtn.disabled = true; savBtn.innerHTML = '<span class="spinner" style="border-top-color:#fff"></span> Salvando...'; }
+
+  toast('Comprimindo e salvando...', 'o', true);
+
+  comprimirFotosItems(snapItems, function(comprimidos) {
+    /* Atualizar items originais com versão comprimida */
+    for (var ii = 0; ii < items.length; ii++) {
+      if (comprimidos[ii] && comprimidos[ii].fotos) {
+        items[ii].fotos = comprimidos[ii].fotos;
+      }
+    }
+
+    if (editId) {
+      for (var i = 0; i < reports.length; i++) {
+        if (reports[i].id === editId) {
+          reports[i].cover   = cover;
+          reports[i].intro   = intro;
+          reports[i].items   = JSON.parse(JSON.stringify(comprimidos));
+          reports[i].consid  = consid;
+          reports[i].updated = now;
+          reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
+          break;
+        }
+      }
+    } else {
+      var nr = { id: Date.now(), cover: cover, intro: intro, items: JSON.parse(JSON.stringify(comprimidos)), consid: consid, created: now, updated: now, _pendingSync: true };
+      reports.unshift(nr);
+      editId = nr.id;
+    }
+
+    saveData(editId);
+    toast('Relatório salvo com imagens comprimidas!', 'o', true);
+    atualizarContador();
+
+    /* Restaurar botão salvar */
+    if (savBtn) {
+      savBtn.disabled = false;
+      savBtn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg> Salvar';
+    }
+
+    /* Atualizar miniaturas na tela após compressão */
+    renderApts();
+  });
+}
+
+/* ══ APONTAMENTOS ══════════════════════════════════════════════════ */
+function addApt() {
+  items.push({ id: Date.now(), titulo: '', descricao: '', local: '', criticidade: 'med', categoria: 'Civil', fotos: [] });
+  renderApts();
+  abrirTab('vistoria', document.querySelectorAll('.tab-btn')[2]);
+  setTimeout(function() {
+    var list = document.getElementById('apts-list');
+    if (list && list.lastElementChild) list.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function remApt(id) {
+  if (!confirm('Remover este apontamento?')) return;
+  var tmp = [];
+  for (var i = 0; i < items.length; i++) if (items[i].id !== id) tmp.push(items[i]);
+  items = tmp;
+  renderApts();
+  atualizarSumStats();
+}
+
+function updApt(id, campo, val) {
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      items[i][campo] = val;
+      if (campo === 'titulo') {
+        var el = document.getElementById('apt-nm-' + id);
+        if (el) el.textContent = val || 'Título...';
+      }
+      if (campo === 'criticidade') {
+        var b = document.getElementById('apt-bg-' + id);
+        if (b) { b.className = 'cbg ' + (CRITS[val] ? CRITS[val].cls : 'c-med'); b.innerHTML = '<span class="cdot"></span>' + (CRITS[val] ? CRITS[val].l : val); }
+      }
+      break;
+    }
+  }
+}
+
+function addFotoCamera(id) { criarInputFoto(id, 'environment'); }
+function addFotoGaleria(id) { criarInputFoto(id, null); }
+
+function criarInputFoto(id, cap) {
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+  if (cap) inp.capture = cap;
+  inp.onchange = function(e) {
+    var files = e.target.files || [];
+    for (var i = 0; i < files.length; i++) {
+      (function(file) {
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          for (var j = 0; j < items.length; j++) {
+            if (items[j].id === id) { items[j].fotos.push(ev.target.result); atualizarFotos(id); break; }
+          }
+        };
+        reader.readAsDataURL(file);
+      })(files[i]);
+    }
+  };
+  inp.click();
+}
+
+/* ══ VISUALIZAR FOTO AMPLIADA ═══════════════════════════════════ */
+function ampliarFoto(aptId, fotoIdx) {
+  var apt = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === aptId) { apt = items[i]; break; }
+  if (!apt || !apt.fotos[fotoIdx]) return;
+
+  var overlay = document.createElement('div');
+  overlay.id = 'foto-lightbox';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;-webkit-tap-highlight-color:transparent';
+
+  var toolbar = document.createElement('div');
+  toolbar.style.cssText = 'position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;z-index:2';
+  toolbar.innerHTML = '<span style="color:#fff;font-size:13px;font-weight:700;opacity:.7">Foto ' + (fotoIdx + 1) + ' de ' + apt.fotos.length + '</span>'
+    + '<div style="display:flex;gap:10px">'
+    + '<button onclick="confirmarExcluirFoto(' + aptId + ',' + fotoIdx + ')" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--ft);display:flex;align-items:center;gap:6px">🗑 Excluir foto</button>'
+    + '<button onclick="fecharLightbox()" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:18px;cursor:pointer;font-family:var(--ft);line-height:1">✕</button>'
+    + '</div>';
+
+  var img = document.createElement('img');
+  img.src = apt.fotos[fotoIdx];
+  img.style.cssText = 'max-width:90vw;max-height:75vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:1';
+
+  /* Navegação entre fotos */
+  var nav = document.createElement('div');
+  nav.style.cssText = 'display:flex;gap:12px;margin-top:16px;z-index:2';
+  if (fotoIdx > 0) {
+    nav.innerHTML += '<button onclick="fecharLightbox();ampliarFoto(' + aptId + ',' + (fotoIdx - 1) + ')" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--ft)">← Anterior</button>';
+  }
+  if (fotoIdx < apt.fotos.length - 1) {
+    nav.innerHTML += '<button onclick="fecharLightbox();ampliarFoto(' + aptId + ',' + (fotoIdx + 1) + ')" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--ft)">Próxima →</button>';
+  }
+
+  overlay.appendChild(toolbar);
+  overlay.appendChild(img);
+  overlay.appendChild(nav);
+
+  /* Fechar ao clicar no fundo */
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) fecharLightbox();
+  });
+
+  document.body.appendChild(overlay);
+}
+
+function fecharLightbox() {
+  var lb = document.getElementById('foto-lightbox');
+  if (lb) lb.remove();
+}
+
+function confirmarExcluirFoto(aptId, fotoIdx) {
+  if (confirm('Excluir esta foto?')) {
+    fecharLightbox();
+    remFoto(aptId, fotoIdx);
+  }
+}
+
+function remFoto(aptId, fi) {
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === aptId) { items[i].fotos.splice(fi, 1); atualizarFotos(aptId); break; }
+  }
+}
+
+function atualizarFotos(id) {
+  var apt = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === id) { apt = items[i]; break; }
+  if (!apt) return;
+  var c = document.getElementById('fotos-' + id);
+  if (!c) return;
+  var h = '';
+  for (var i = 0; i < apt.fotos.length; i++) {
+    h += '<img src="' + apt.fotos[i] + '" class="ph" onclick="ampliarFoto(' + id + ',' + i + ')" title="Toque para ampliar"/>';
+  }
+  h += '<div style="display:flex;flex-direction:column;gap:5px">'
+    + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
+    + '<div class="ph-add ph-sm" onclick="addFotoGaleria(' + id + ')">🖼️<span style="font-size:9px;font-weight:700;text-transform:uppercase">Galeria</span></div>'
+    + '</div>';
+  c.innerHTML = h;
+}
+
+function renderApts() {
+  var fcEl = document.getElementById('fc-crit');
+  var fc   = fcEl ? fcEl.value : 'all';
+  var vis  = fc === 'all' ? items.slice() : items.filter(function(a) { return a.criticidade === fc; });
+  // filter is ES5 safe
+
+  var cntEl = document.getElementById('apts-cnt');
+  if (cntEl) cntEl.textContent = items.length + ' apontamento' + (items.length !== 1 ? 's' : '') + (fc !== 'all' ? ' · ' + vis.length + ' visível' + (vis.length !== 1 ? 'is' : '') : '');
+
+  var tb = document.getElementById('tab-vist');
+  if (tb) tb.innerHTML = '🔍 Vistoria' + (items.length > 0 ? ' <span class="tbg">' + items.length + '</span>' : '');
+
+  if (items.length === 0) {
+    document.getElementById('apts-list').innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum Apontamento</div><div class="empty-txt">Registre não conformidades e itens de atenção da obra.</div><button class="btn btn-r" style="padding:12px 24px" onclick="addApt()">+ Adicionar</button></div>';
+    return;
+  }
+
+  var html = '';
+  for (var vi = 0; vi < vis.length; vi++) {
+    var a   = vis[vi];
+    var idx = items.indexOf(a);
+    var cr  = CRITS[a.criticidade] || CRITS.med;
+
+    var crOptsH = '';
+    for (var k in CRITS) {
+      if (CRITS.hasOwnProperty(k)) crOptsH += '<option value="' + k + '"' + (k === a.criticidade ? ' selected' : '') + '>' + CRITS[k].l + '</option>';
+    }
+    var catOptsH = '';
+    for (var ci = 0; ci < CATS.length; ci++) catOptsH += '<option value="' + CATS[ci] + '"' + (CATS[ci] === a.categoria ? ' selected' : '') + '>' + CATS[ci] + '</option>';
+
+    var fotosH = '';
+    for (var fi = 0; fi < a.fotos.length; fi++) fotosH += '<img src="' + a.fotos[fi] + '" class="ph" onclick="ampliarFoto(' + a.id + ',' + fi + ')" title="Toque para ampliar"/>';
+
+    html += '<div class="apt" id="apt-' + a.id + '">'
+      + '<div class="apt-hdr">'
+      + '<div class="apt-num">' + (idx + 1) + '</div>'
+      + '<div class="apt-nm" id="apt-nm-' + a.id + '">' + (a.titulo ? escH(a.titulo) : '<span style="color:var(--gray);font-weight:400">Título...</span>') + '</div>'
+      + '<div class="cbg ' + cr.cls + '" id="apt-bg-' + a.id + '"><span class="cdot"></span>' + cr.l + '</div>'
+      + '<button class="btn btn-d" style="padding:4px 7px;font-size:12px" onclick="remApt(' + a.id + ')">✕</button>'
+      + '</div>'
+      + '<div class="apt-body">'
+      + '<div class="field"><label>Não Conformidade / Título <span class="req">*</span></label>'
+      + '<input value="' + escH(a.titulo) + '" placeholder="Ex: Fissuras verticais na alvenaria do 3° pavimento" oninput="updApt(' + a.id + ',\'titulo\',this.value)"/></div>'
+      + '<div class="field"><label>Local / Pavimento / Ambiente</label>'
+      + '<input value="' + escH(a.local) + '" placeholder="Ex: Torre A — 5° pavimento" oninput="updApt(' + a.id + ',\'local\',this.value)"/></div>'
+      + '<div class="g2">'
+      + '<div class="field"><label>Grau de Criticidade</label><select onchange="updApt(' + a.id + ',\'criticidade\',this.value)">' + crOptsH + '</select></div>'
+      + '<div class="field"><label>Disciplina</label><select onchange="updApt(' + a.id + ',\'categoria\',this.value)">' + catOptsH + '</select></div>'
+      + '</div>'
+      + '<div class="field">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'
+      + '<label>Descrição Técnica <span class="req">*</span></label>'
+      + '<button class="btn btn-g" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="melhorarDescricao(' + a.id + ')" ' + (aiLoad ? 'disabled' : '') + '>✦ Aprimorar com IA</button>'
+      + '</div>'
+      + '<textarea rows="3" placeholder="Descreva detalhadamente a não conformidade, causas prováveis e impactos observados..." oninput="updApt(' + a.id + ',\'descricao\',this.value)">' + escH(a.descricao) + '</textarea>'
+      + '</div>'
+      + '<div class="photos" id="fotos-' + a.id + '">'
+      + fotosH
+      + '<div style="display:flex;flex-direction:column;gap:5px">'
+      + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + a.id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
+      + '<div class="ph-add ph-sm" onclick="addFotoGaleria(' + a.id + ')">🖼️<span style="font-size:9px;font-weight:700;text-transform:uppercase">Galeria</span></div>'
+      + '</div>'
+      + '</div>'
+      + '</div></div>';
+  }
+  // REV1: Botão adicionar após cada apontamento e ao final
+  html += '<div style="padding:8px 0">'
+    + '<button class="btn btn-r" onclick="addApt()" style="width:100%;padding:14px;font-size:14px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.3px">'
+    + '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+    + '+ Adicionar Apontamento'
+    + '</button></div>';
+  document.getElementById('apts-list').innerHTML = html;
+}
+
+/* ══ CONSIDERAÇÕES / IA ════════════════════════════════════════════ */
+function atualizarSumStats() {
+  var cnt = { low: 0, med: 0, high: 0, critical: 0, orient: 0 };
+  for (var i = 0; i < items.length; i++) { var c = items[i].criticidade; if (cnt.hasOwnProperty(c)) cnt[c]++; }
+  var el = document.getElementById('sum-stats');
+  if (!el) return;
+  el.className = 'sum-stats';
+  el.style.gridTemplateColumns = 'repeat(5,1fr)';
+  el.innerHTML = '<div class="sum-stat"><div class="sum-stat-n">' + items.length + '</div><div style="font-size:14px">📋</div><div class="sum-stat-l">Total</div></div>'
+    + '<div class="sum-stat" style="border-color:rgba(220,38,38,.2)"><div class="sum-stat-n" style="color:#dc2626">' + (cnt.high + cnt.critical) + '</div><div style="font-size:14px">🔴</div><div class="sum-stat-l">Alta/Crítica</div></div>'
+    + '<div class="sum-stat" style="border-color:rgba(217,119,6,.2)"><div class="sum-stat-n" style="color:#d97706">' + cnt.med + '</div><div style="font-size:14px">🟡</div><div class="sum-stat-l">Média</div></div>'
+    + '<div class="sum-stat" style="border-color:rgba(22,163,74,.2)"><div class="sum-stat-n" style="color:#16a34a">' + cnt.low + '</div><div style="font-size:14px">🟢</div><div class="sum-stat-l">Baixa</div></div>'
+    + '<div class="sum-stat" style="border-color:rgba(8,145,178,.2)"><div class="sum-stat-n" style="color:#0891b2">' + cnt.orient + '</div><div style="font-size:14px">🔵</div><div class="sum-stat-l">Orient.</div></div>';
+}
+
+function renderConsid() {
+  var fConsid = document.getElementById('f-consid');
+  if (fConsid) fConsid.value = consid || '';
+}
+
+function limparConsid() { consid = ''; renderConsid(); }
+
+function onConsidInput() {
+  var el = document.getElementById('f-consid');
+  if (!el) return;
+  consid = el.value;
+}
+
+function resetGerarBtn() {
+  aiLoad = false;
+  var btn = document.getElementById('btn-gerar');
+  if (btn) { btn.disabled = false; btn.innerHTML = '✦ Gerar com IA'; }
+  var aiSt = document.getElementById('ai-status');
+  if (aiSt) aiSt.style.display = 'none';
+}
+
+/* ── Chamada de IA via /api/ai (proxy server-side, com streaming) ──
+   Formato de streaming da Anthropic: eventos SSE "content_block_delta"
+   trazem pedaços de texto em evt.delta.text; vamos entregando cada
+   pedaço via onDelta() para o texto aparecer sendo escrito aos poucos. */
+function aiRequest(prompt, maxTokens, onDelta, onDone, onError) {
+  var reqBody = JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: maxTokens, stream: true, messages: [{ role: 'user', content: prompt }] });
+  var headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['x-app-token'] = apiKey;
+
+  fetch('/api/ai', { method: 'POST', headers: headers, body: reqBody })
+    .then(function(res) {
+      if (!res.ok) {
+        return res.json().catch(function() { return {}; }).then(function(j) {
+          var err = new Error((j.error && j.error.message) || ('Erro HTTP ' + res.status));
+          err.status = res.status;
+          throw err;
+        });
+      }
+      if (!res.body || !res.body.getReader) {
+        /* Sem suporte a streaming no navegador: cai para resposta completa */
+        return res.json().then(function(data) {
+          var txt = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+          if (txt) onDelta(txt);
+          onDone();
+        });
+      }
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = '';
+      function pump() {
+        return reader.read().then(function(chunk) {
+          if (chunk.done) { onDone(); return; }
+          buf += decoder.decode(chunk.value, { stream: true });
+          var parts = buf.split('\n\n');
+          buf = parts.pop(); /* guarda pedaço incompleto para o próximo chunk */
+          for (var i = 0; i < parts.length; i++) {
+            var lines = parts[i].split('\n');
+            var dataLine = '';
+            for (var j = 0; j < lines.length; j++) {
+              if (lines[j].indexOf('data:') === 0) dataLine += lines[j].slice(5).trim();
+            }
+            if (!dataLine) continue;
+            try {
+              var evt = JSON.parse(dataLine);
+              if (evt.type === 'content_block_delta' && evt.delta && evt.delta.text) onDelta(evt.delta.text);
+              else if (evt.type === 'error') { onError((evt.error && evt.error.message) || 'Erro na IA'); return; }
+            } catch (e) { /* chunk parcial — ignora, o resto chega no próximo pump */ }
+          }
+          return pump();
+        });
+      }
+      return pump();
+    })
+    .catch(function(err) {
+      var msg = (err && err.message) || 'Erro de conexão com a IA.';
+      if (err && err.status === 401) msg = 'Código de acesso inválido — configure em "Config. IA".';
+      onError(msg);
+    });
+}
+
+function gerarConsideracoes() {
+  if (items.length === 0) { toast('Adicione apontamentos primeiro', '⚠'); return; }
+  if (aiLoad) return;
+  aiLoad = true;
+  var btn = document.getElementById('btn-gerar');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="border-top-color:#fff"></span> Gerando...'; }
+  var aiSt = document.getElementById('ai-status');
+  if (aiSt) aiSt.style.display = 'flex';
+
+  var cnt = { low: 0, med: 0, high: 0, critical: 0, orient: 0 };
+  var lst = '';
+  for (var i = 0; i < items.length; i++) {
+    var a = items[i];
+    if (cnt.hasOwnProperty(a.criticidade)) cnt[a.criticidade]++;
+    lst += (i + 1) + '. [' + a.criticidade + '] ' + (a.titulo || 'sem titulo') + ': ' + (a.descricao || 'sem descricao') + ' - Local: ' + (a.local || 'nao informado') + ' - Disciplina: ' + (a.categoria || '') + '\n';
+  }
+  var prompt = 'Voce e um engenheiro civil senior da ROCONTEC - Rocha Construcao e Tecnologia. Elabore consideracoes finais tecnicas e executivas para um relatorio de vistoria de obra.\n\nApontamentos:\n' + lst + '\nQuantitativos: Baixa:' + cnt.low + ' Media:' + cnt.med + ' Alta:' + cnt.high + ' Critica:' + cnt.critical + '\nObra: ' + (G('f-obra') || 'nao informada') + '\nIncorporadora: ' + (G('f-cliente') || 'nao informada') + '\n\nElabore 4 paragrafos em portugues com linguagem tecnica de alto nivel e tom executivo corporativo. Aborde: situacao geral da obra, principais riscos, distribuicao de criticidades e recomendacoes prioritarias. Sem markdown, sem titulos, somente texto corrido.';
+
+  consid = '';
+  renderConsid();
+
+  aiRequest(prompt, 1200, function(delta) {
+    consid += delta;
+    renderConsid();
+  }, function() {
+    resetGerarBtn();
+    if (consid) { consid = consid.trim(); renderConsid(); toast('Considerações geradas!', '✦', true); }
+    else toast('IA retornou resposta vazia', '⚠');
+  }, function(msg) {
+    resetGerarBtn();
+    toast('Erro IA: ' + msg, '✗');
+    if (/código de acesso/i.test(msg)) abrirChave();
+  });
+}
+
+function melhorarDescricao(id) {
+  var apt = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === id) { apt = items[i]; break; }
+  if (!apt || !apt.descricao) { toast('Escreva uma descricao primeiro', '⚠'); return; }
+  if (aiLoad) return;
+  aiLoad = true;
+  toast('Aprimorando com IA...', '⏳');
+
+  var prompt = 'Voce e engenheiro senior da ROCONTEC. Melhore esta descricao tecnica de vistoria com linguagem de engenharia civil precisa e profissional. Retorne apenas o texto aprimorado:\n\n"' + apt.descricao + '"';
+  var acumulado = '';
+  var card = document.getElementById('apt-' + id);
+  var ta = card ? card.querySelector('textarea') : null;
+
+  aiRequest(prompt, 600, function(delta) {
+    acumulado += delta;
+    for (var i = 0; i < items.length; i++) if (items[i].id === id) { items[i].descricao = acumulado; break; }
+    if (ta) ta.value = acumulado;
+  }, function() {
+    aiLoad = false;
+    if (acumulado) toast('Descrição aprimorada!', '✦', true);
+    else toast('IA retornou resposta vazia', '⚠');
+  }, function(msg) {
+    aiLoad = false;
+    toast('Erro IA: ' + msg, '✗');
+    if (/código de acesso/i.test(msg)) abrirChave();
+  });
+}
+
+/* ══ PDF ═══════════════════════════════════════════════════════════ */
+function gerarPDF() { salvarRelatorio(); gerarPDFById(editId); }
+
+/* ── Comprime imagem base64 para no máximo maxBytes bytes ── */
+function comprimirImagem(dataUrl, maxBytes, callback) {
+  /* Não é imagem? devolve sem modificar */
+  if (!dataUrl || dataUrl.indexOf('data:image') !== 0) { callback(dataUrl); return; }
+  var img = new Image();
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    var MAX_DIM = 1920;
+    var w = img.width, h = img.height;
+    if (w > MAX_DIM || h > MAX_DIM) {
+      if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+      else       { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+    }
+    canvas.width = w; canvas.height = h;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    /* Tenta reduzir qualidade até caber em maxBytes */
+    var quality = 0.85;
+    var result = canvas.toDataURL('image/jpeg', quality);
+    var attempts = 0;
+    while (result.length > maxBytes && quality > 0.15 && attempts < 10) {
+      quality -= 0.1;
+      result = canvas.toDataURL('image/jpeg', quality);
+      attempts++;
+    }
+    callback(result);
+  };
+  img.onerror = function() { callback(dataUrl); };
+  img.src = dataUrl;
+}
+
+/* ── Comprime todas as fotos de um relatório e chama callback ── */
+function comprimirFotosRelatorio(report, callback) {
+  var MAX_BYTES = 409600; /* ~300KB em base64 (base64 ≈ 1.33x raw, 300KB raw = ~400KB base64) */
+  var allFotos = [];
+  /* Mapear cada foto para {itemIdx, fotoIdx} */
+  for (var i = 0; i < report.items.length; i++) {
+    var fotos = report.items[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      allFotos.push({ ii: i, fi: j });
+    }
+  }
+  if (allFotos.length === 0) { callback(report); return; }
+  var idx = 0;
+  function processNext() {
+    if (idx >= allFotos.length) { callback(report); return; }
+    var ref = allFotos[idx];
+    var originalUrl = report.items[ref.ii].fotos[ref.fi];
+    /* Já dentro do limite? pula */
+    if (originalUrl && originalUrl.length <= MAX_BYTES) { idx++; processNext(); return; }
+    comprimirImagem(originalUrl, MAX_BYTES, function(compressed) {
+      report.items[ref.ii].fotos[ref.fi] = compressed;
+      idx++;
+      processNext();
+    });
+  }
+  processNext();
+}
+
+function gerarPDFById(id) {
+  var r = null;
+  if (id === editId && id !== null) {
+    r = { cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') }, intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }, items: JSON.parse(JSON.stringify(items)), consid: consid };
+  } else {
+    for (var i = 0; i < reports.length; i++) if (reports[i].id === id) { r = reports[i]; break; }
+  }
+  if (!r) return;
+
+  function continuarComPdf() {
+    /* Deep copy para não alterar os dados originais */
+    var rCopy = JSON.parse(JSON.stringify(r));
+    toast('Gerando PDF...', 'o', true);
+    comprimirFotosRelatorio(rCopy, function(rComprimido) {
+      imprimirRelatorio(rComprimido);
+    });
+  }
+
+  /* Garante que as fotos deste relatório têm URL assinada antes de
+     comprimir/imprimir — senão a foto sai quebrada no PDF. */
+  if (temFotoNaoResolvida(r)) {
+    toast('Carregando fotos...', 'o');
+    resolverFotosRelatorio(r).then(continuarComPdf);
+  } else {
+    continuarComPdf();
+  }
+}
+
+function imprimirRelatorio(report) {
+  var cover  = report.cover  || {};
+  var intro  = report.intro  || {};
+  var mitems = report.items  || [];
+  var mc     = report.consid || '';
+  var dt     = cover.dataVistoria ? new Date(cover.dataVistoria + 'T12:00').toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
+
+  var introTxt = '';
+  if (intro.historico)    introTxt += intro.historico + '\n\n';
+  if (intro.escopo)       introTxt += intro.escopo + '\n\n';
+  if (intro.solicitacoes) introTxt += intro.solicitacoes + '\n\n';
+  if (intro.livre)        introTxt += intro.livre;
+  introTxt = introTxt.trim();
+
+  var cL = { low: 'Baixa', med: 'Media', high: 'Alta', critical: 'Critica', orient: 'Orientativa' };
+  var cC = { low: '#16a34a', med: '#d97706', high: '#dc2626', critical: '#7c3aed', orient: '#0891b2' };
+  var cB = { low: '#dcfce7', med: '#fef3c7', high: '#fee2e2', critical: '#ede9fe', orient: '#cffafe' };
+  var cnt = { low: 0, med: 0, high: 0, critical: 0, orient: 0 };
+  for (var i = 0; i < mitems.length; i++) {
+    var c = mitems[i].criticidade;
+    if (cnt.hasOwnProperty(c)) cnt[c]++;
+  }
+
+  // ── Logo pequeno para cabeçalho e rodapé (tamanho fixo, sem regras de imagem)
+  var logoSmall = '<img src="' + LOGO_URI + '" alt="ROCONTEC" style="height:32px;width:auto;display:block;max-width:150px;object-fit:contain"/>';
+  var logoTiny  = '<img src="' + LOGO_URI + '" alt="ROCONTEC" style="height:24px;width:auto;display:block;max-width:110px;object-fit:contain"/>';
+
+  // ── Apontamentos: máx 2 por página, fotos máx 3 por bloco com proporção preservada
+  var aptsH = '';
+  if (mitems.length === 0) {
+    aptsH = '<p style="color:#888;font-size:12px;font-style:italic">Nenhum apontamento registrado.</p>';
+  } else {
+    for (var i = 0; i < mitems.length; i++) {
+      var a = mitems[i];
+      var localH = a.local ? '<p style="font-size:10px;color:#888;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;font-weight:600">&#128205; ' + escH(a.local) + '</p>' : '';
+      var catH   = a.categoria ? '<span style="background:#E5E5E5;color:#555;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:600">' + escH(a.categoria) + '</span>' : '';
+
+      // Fotos: grupos de 3 por bloco, cada bloco em nova página
+      var fotosH = '';
+      if (a.fotos && a.fotos.length) {
+        var totalF = a.fotos.length > 9 ? 9 : a.fotos.length;
+        for (var fi = 0; fi < totalF; fi++) {
+          var blockPos  = fi % 3;
+          var isFirst   = blockPos === 0;
+          var isLast    = blockPos === 2 || fi === totalF - 1;
+          // Quantas fotos neste bloco
+          var blockStart = fi - blockPos;
+          var blockEnd   = blockStart + 3 > totalF ? totalF : blockStart + 3;
+          var inBlock    = blockEnd - blockStart;
+          // Tamanho conforme quantidade no bloco
+          var fw = inBlock === 1 ? '98%' : (inBlock === 2 ? 'calc(49% - 4px)' : 'calc(32% - 6px)');
+          var fh = inBlock === 1 ? '260px' : (inBlock === 2 ? '220px' : '180px');
+          if (isFirst) {
+            fotosH += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center;page-break-inside:avoid;break-inside:avoid">';
+          }
+          fotosH += '<img src="' + a.fotos[fi] + '" style="width:' + fw + ';height:' + fh + ';object-fit:contain;object-position:center;background:#f5f5f5;border-radius:6px;border:1px solid #E0E0E0;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact"/>';
+          if (isLast) {
+            fotosH += '</div>';
+            if (fi < totalF - 1) {
+              fotosH += '<div style="page-break-after:always;break-after:page;height:0;margin:0;padding:0"></div>';
+            }
+          }
+        }
+      }
+
+      // Cada par de apontamentos fica na mesma página
+      if (i % 2 === 0) {
+        aptsH += '<div style="page-break-inside:avoid;break-inside:avoid">';
+      }
+      aptsH += '<div style="margin-bottom:14px;border:1px solid #E0E0E0;border-radius:6px;overflow:hidden">'
+        + '<div style="padding:10px 14px;background:#F5F5F5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #E0E0E0">'
+        + '<span style="width:22px;height:22px;border-radius:4px;background:#C02F34;color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">' + (i + 1) + '</span>'
+        + '<span style="font-weight:700;font-size:12px;flex:1;color:#000">' + escH(a.titulo || 'Sem titulo') + '</span>'
+        + '<span style="background:' + (cB[a.criticidade] || '#eee') + ';color:' + (cC[a.criticidade] || '#666') + ';padding:2px 9px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase">' + (cL[a.criticidade] || '') + '</span>'
+        + catH + '</div>'
+        + '<div style="padding:12px 14px;background:#fff">'
+        + localH
+        + '<p style="font-size:12px;line-height:1.85;color:#333">' + escH(a.descricao || 'Sem descricao registrada.').replace(/\n/g, '<br>') + '</p>'
+        + fotosH
+        + '</div></div>';
+      if (i % 2 === 1 || i === mitems.length - 1) {
+        aptsH += '</div>';
+        if (i < mitems.length - 1) {
+          aptsH += '<div style="page-break-after:always;break-after:page;height:0;margin:0;padding:0"></div>';
+        }
+      }
+    }
+  }
+
+  var statsH = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px">'
+    + '<div style="background:#F5F5F5;border:1px solid #E0E0E0;border-top:3px solid #C02F34;border-radius:4px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#C02F34">' + mitems.length + '</div><div style="font-size:8px;color:#888;text-transform:uppercase;margin-top:3px">Total</div></div>'
+    + '<div style="background:#fee2e2;border:1px solid rgba(220,38,38,.2);border-top:3px solid #dc2626;border-radius:4px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#dc2626">' + (cnt.high + cnt.critical) + '</div><div style="font-size:8px;color:#888;text-transform:uppercase;margin-top:3px">Alta/Critica</div></div>'
+    + '<div style="background:#fef3c7;border:1px solid rgba(217,119,6,.2);border-top:3px solid #d97706;border-radius:4px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#d97706">' + cnt.med + '</div><div style="font-size:8px;color:#888;text-transform:uppercase;margin-top:3px">Media</div></div>'
+    + '<div style="background:#dcfce7;border:1px solid rgba(22,163,74,.2);border-top:3px solid #16a34a;border-radius:4px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#16a34a">' + cnt.low + '</div><div style="font-size:8px;color:#888;text-transform:uppercase;margin-top:3px">Baixa</div></div>'
+    + '<div style="background:#cffafe;border:1px solid rgba(8,145,178,.2);border-top:3px solid #0891b2;border-radius:4px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#0891b2">' + cnt.orient + '</div><div style="font-size:8px;color:#888;text-transform:uppercase;margin-top:3px">Orientativa</div></div>'
+    + '</div>';
+
+  var introH = introTxt
+    ? '<h2>Introducao</h2><div style="background:#F5F5F5;border:1px solid #E0E0E0;border-left:4px solid #C02F34;border-radius:0 6px 6px 0;padding:15px 18px;margin-bottom:20px"><p style="font-size:12px;line-height:1.9;color:#333">' + escH(introTxt).replace(/\n/g, '<br>') + '</p></div>'
+    : '';
+
+  var considH = mc
+    ? '<h2>Consideracoes Finais</h2><div style="background:#F5F5F5;border:1px solid #E0E0E0;border-left:4px solid #C02F34;border-radius:0 6px 6px 0;padding:15px 18px;margin-bottom:20px"><p style="font-size:12px;line-height:1.9;color:#333">' + escH(mc).replace(/\n/g, '<br>') + '</p></div>'
+    : '';
+
+  // ── HTML do PDF — tudo em strings concatenadas, sem quebras de linha dentro das strings
+  var styleStr = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;color:#333;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:12px}@page{size:A4;margin:12mm 14mm}@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}h2{font-size:13px;font-weight:700;color:#C02F34;text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid #E0E0E0;padding-bottom:7px;margin:22px 0 14px}img{max-width:100%}';
+
+  var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>'
+    + '<title>ROCONTEC</title>'
+    + '<style>' + styleStr + '</style>'
+    + '</head><body>';
+
+  // ── CAPA: logo pequeno no canto superior esquerdo como cabeçalho
+  html += '<div style="border:1px solid #E0E0E0;border-radius:8px;overflow:hidden;margin-bottom:22px;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact">';
+  html += '<div style="height:5px;background:#C02F34"></div>';
+  html += '<div style="padding:22px 28px 20px;border-bottom:1px solid #E0E0E0">';
+  // Cabeçalho: logo pequeno à esquerda + número do relatório à direita
+  html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">';
+  html += logoSmall;
+  html += '<div style="text-align:right"><div style="font-size:8px;color:#999;text-transform:uppercase;letter-spacing:1px">Relatorio N</div><div style="font-size:16px;font-weight:900;color:#C02F34;margin-top:2px">' + escH(cover.num || 'ROC-2026-001') + '</div></div>';
+  html += '</div>';
+  // Badge + título da obra
+  html += '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(192,47,52,.06);border:1px solid rgba(192,47,52,.2);border-radius:4px;padding:3px 10px;margin-bottom:12px"><div style="width:5px;height:5px;border-radius:50%;background:#C02F34;flex-shrink:0"></div><div style="font-size:8px;font-weight:700;color:#C02F34;text-transform:uppercase;letter-spacing:2px">Relatorio de Vistoria Tecnica</div></div>';
+  html += '<div style="font-size:24px;font-weight:900;color:#000;line-height:1.15;margin-bottom:5px">' + escH(cover.obra || 'Nome da Obra') + '</div>';
+  html += '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.8px">' + escH(cover.empresa || 'ROCONTEC - Gestao de Obras') + '</div>';
+  html += '</div>';
+  // Grid de metadados
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;background:#E0E0E0;gap:1px">';
+  html += '<div style="background:#F5F5F5;padding:11px 18px;border-bottom:1px solid #E0E0E0"><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:4px;font-weight:700">Incorporadora</div><div style="font-size:12px;font-weight:700;color:#000">' + escH(cover.cliente || '-') + '</div></div>';
+  html += '<div style="background:#F5F5F5;padding:11px 18px;border-bottom:1px solid #E0E0E0"><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:4px;font-weight:700">Data da Vistoria</div><div style="font-size:12px;font-weight:700;color:#C02F34">' + dt + '</div></div>';
+  html += '<div style="background:#F5F5F5;padding:11px 18px"><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:4px;font-weight:700">Responsavel pela Vistoria</div><div style="font-size:12px;font-weight:700;color:#000">' + escH(cover.responsavel || '-') + '</div></div>';
+  html += '<div style="background:#F5F5F5;padding:11px 18px"><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:4px;font-weight:700">Cargo</div><div style="font-size:12px;font-weight:700;color:#000">' + escH(cover.cargo || '-') + '</div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  // ── Conteúdo
+  html += introH;
+  html += '<h2>Quantitativos da Vistoria</h2>' + statsH;
+  html += '<h2>Desenvolvimento da Vistoria <span style="font-size:11px;font-weight:600;color:#888;text-transform:none;letter-spacing:0">' + mitems.length + ' apontamento' + (mitems.length !== 1 ? 's' : '') + '</span></h2>';
+  html += aptsH;
+  html += considH;
+
+  // ── RODAPÉ: logo pequeno à esquerda + data/nome à direita
+  html += '<div style="border-top:1px solid #E0E0E0;padding-top:12px;margin-top:22px;display:flex;align-items:center;justify-content:space-between">';
+  html += logoTiny;
+  html += '<div style="text-align:right;font-size:10px;color:#888"><div>Gerado em ' + new Date().toLocaleDateString('pt-BR') + ' as ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</div><div style="margin-top:2px;color:#C02F34;font-weight:600">' + escH(cover.num || '') + (cover.num && cover.obra ? ' - ' : '') + escH(cover.obra || '') + '</div></div>';
+  html += '</div>';
+
+  // Espera o load (imagens embutidas já decodificadas) + 2 frames de pintura
+  // antes de imprimir, em vez de um tempo fixo (700ms) que falha em
+  // relatórios com muitas fotos e desperdiça tempo em relatórios pequenos.
+  html += '<script>window.addEventListener(\'load\',function(){requestAnimationFrame(function(){requestAnimationFrame(function(){window.print();});});});<\/script>';
+  html += '</body></html>';
+
+  var w = window.open('', '_blank');
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+    toast('Janela de impressao aberta', 'o', true);
+  } else {
+    var area = document.createElement('div');
+    area.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:99999;overflow:auto;padding:16px';
+    area.innerHTML = '<div style="max-width:700px;margin:0 auto">'
+      + '<div style="display:flex;gap:8px;margin-bottom:14px;position:sticky;top:0;background:#fff;padding:10px 0;border-bottom:1px solid #E0E0E0;z-index:1">'
+      + '<button onclick="window.print()" style="background:#C02F34;color:#fff;border:none;border-radius:6px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;flex:1;font-family:inherit">Imprimir / Salvar PDF</button>'
+      + '<button onclick="this.parentElement.parentElement.parentElement.remove()" style="background:#F5F5F5;color:#000;border:1px solid #E0E0E0;border-radius:6px;padding:10px 14px;font-size:14px;cursor:pointer;font-family:inherit">X</button>'
+      + '</div>' + html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<head[\s\S]*?<\/head>/i, '').replace(/<\/?html[^>]*>/gi, '').replace(/<\/?body[^>]*>/gi, '') + '</div>';
+    document.body.appendChild(area);
+    toast('Toque em Imprimir para salvar como PDF', 'o', true);
+  }
+}
+
+/* ══ EXCLUIR ═══════════════════════════════════════════════════════ */
+function excluirRelatorio(id) {
+  if (!confirm('Excluir este relatório? Esta ação não pode ser desfeita.')) return;
+  var tmp = [];
+  for (var i = 0; i < reports.length; i++) if (reports[i].id !== id) tmp.push(reports[i]);
+  reports = tmp;
+  sbDelete(id);
+  persistLocal();
+  atualizarContador();
+  if (document.getElementById('pg-obras').classList.contains('on')) renderObras();
+  else renderList();
+  toast('Relatório excluído', '🗑');
+}
+
+/* ══ ONLINE/OFFLINE INDICATOR + SYNC MANUAL ═══════════════════════ */
+var isOnline = navigator.onLine !== false;
+
+function atualizarStatusOnline() {
+  isOnline = navigator.onLine !== false;
+  var badge = document.getElementById('online-badge');
+  if (badge) {
+    badge.style.background = isOnline ? '#dcfce7' : '#fee2e2';
+    badge.style.color = isOnline ? '#16a34a' : '#dc2626';
+    badge.style.borderColor = isOnline ? 'rgba(22,163,74,.25)' : 'rgba(220,38,38,.25)';
+    badge.textContent = isOnline ? '● Online' : '● Offline';
+  }
+}
+
+function sincronizarManual() {
+  if (!sbEnabled()) { toast('Configure o Supabase primeiro', '⚠'); abrirConfigSb(); return; }
+  if (!isOnline) { toast('Sem conexao com internet', '⚠'); return; }
+  toast('Sincronizando...', 'o', true);
+  lastSyncTime = 0;
+  sbSyncDown(true);
+
+  /* Reenvia só os relatórios com alterações locais ainda não confirmadas na
+     nuvem, um de cada vez. Antes isso reenviava TODOS os relatórios locais
+     em paralelo e sem limite a cada clique — mesmo os que não mudaram — o
+     que podia disparar dezenas/centenas de requisições simultâneas. */
+  var pendentes = [];
+  for (var i = 0; i < reports.length; i++) if (reports[i]._pendingSync) pendentes.push(reports[i].id);
+  if (pendentes.length === 0) return;
+  var idx = 0;
+  function proximo() {
+    if (idx >= pendentes.length) { toast('Sincronização concluída!', 'o', true); return; }
+    var id = pendentes[idx++];
+    sbUpsertOne(id, proximo);
+  }
+  toast('Enviando ' + pendentes.length + ' relatório' + (pendentes.length !== 1 ? 's' : '') + ' pendente' + (pendentes.length !== 1 ? 's' : '') + '...', 'o', true);
+  proximo();
+}
+
+/* ══ BACKUP — EXPORTAR / IMPORTAR JSON ══════════════════════════ */
+function exportarBackup() {
+  if (reports.length === 0) { toast('Nenhum relatório para exportar', '⚠'); return; }
+  var data = { versao: 'rocontec-v1', exportado: new Date().toISOString(), total: reports.length, relatorios: reports };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'rocontec-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  toast('Backup exportado! ' + reports.length + ' relatorios', 'o', true);
+}
+
+function importarBackup() {
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.json,application/json';
+  inp.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var data = JSON.parse(ev.target.result);
+        var importados = null;
+        /* Aceita formato {relatorios:[...]} ou array direto */
+        if (data.relatorios && Array.isArray(data.relatorios)) {
+          importados = data.relatorios;
+        } else if (Array.isArray(data)) {
+          importados = data;
+        }
+        if (!importados || importados.length === 0) { toast('Arquivo vazio ou formato invalido', '⚠'); return; }
+        /* Merge: adiciona apenas IDs que não existem */
+        var existentes = {};
+        for (var i = 0; i < reports.length; i++) existentes[reports[i].id] = true;
+        var novos = 0;
+        for (var j = 0; j < importados.length; j++) {
+          if (!existentes[importados[j].id]) { importados[j]._pendingSync = true; reports.push(importados[j]); novos++; }
+        }
+        reports.sort(function(a, b) { return b.id - a.id; });
+        saveData(null);
+        atualizarContador();
+        var pg = document.querySelector('.pg.on');
+        if (pg && pg.id === 'pg-home')  renderHome();
+        if (pg && pg.id === 'pg-list')  renderList();
+        if (pg && pg.id === 'pg-obras') renderObras();
+        toast(novos + ' relatorio' + (novos !== 1 ? 's' : '') + ' importado' + (novos !== 1 ? 's' : '') + ' (de ' + importados.length + ')', 'o', true);
+      } catch(err) { toast('Erro ao ler arquivo: ' + err.message, '✗'); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+function abrirBackup() {
+  document.getElementById('modal-body').innerHTML =
+    '<div class="md-ttl">Backup e Restauracao</div>'
+    + '<p class="md-txt">Proteja seus dados exportando um backup ou restaure de um arquivo anterior.</p>'
+    + '<div style="display:flex;flex-direction:column;gap:10px">'
+    + '<button class="btn btn-r" style="padding:14px;font-size:14px;justify-content:center" onclick="exportarBackup();fecharModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar Backup (' + reports.length + ' relatorios)</button>'
+    + '<button class="btn btn-o" style="padding:14px;font-size:14px;justify-content:center" onclick="importarBackup();fecharModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar de Arquivo</button>'
+    + '<button class="btn btn-o" style="padding:12px;font-size:13px;justify-content:center" onclick="fecharModal()">Cancelar</button>'
+    + '</div>'
+    + '<div class="md-note" style="margin-top:12px">A importacao faz merge — nao sobrescreve relatorios existentes.</div>';
+  document.getElementById('modal').style.display = 'flex';
+}
+
+/* ══ MODAL CHAVE ════════════════════════════════════════════════════ */
+function abrirChave() {
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Acesso à IA</div>'
+    + '<p class="md-txt">A geração de considerações finais e o aprimoramento de descrições técnicas usam Inteligência Artificial processada pelo servidor do app — você não precisa ter uma chave da Anthropic.</p>'
+    + '<div class="md-note">ℹ️ Se o administrador configurou um código de acesso, informe-o abaixo. Se não souber, deixe em branco e tente gerar — o app avisa se for necessário.</div>'
+    + '<input class="md-inp" type="password" id="modal-key" placeholder="Código de acesso (opcional)" value="' + escH(apiKey) + '"/>'
+    + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="salvarChave()">Salvar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Fechar</button></div>';
+  document.getElementById('modal').style.display = 'flex';
+  setTimeout(function() { var k = document.getElementById('modal-key'); if (k) k.focus(); }, 100);
+}
+
+function salvarChave() {
+  var k = document.getElementById('modal-key');
+  if (k) {
+    apiKey = k.value.trim();
+    try { localStorage.setItem('roc_k', apiKey); } catch(e) {}
+    toast(apiKey ? 'Código salvo!' : 'Código removido', '✓', true);
+  }
+  fecharModal();
+}
+
+function fecharModal(e) {
+  if (!e || e.target === document.getElementById('modal')) document.getElementById('modal').style.display = 'none';
+}
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fecharModal(); });
+
+/* ══ INIT ═══════════════════════════════════════════════════════════ */
+window.onload = function() {
+  // Registrar Service Worker (PWA offline)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function(e) {});
+  }
+  // Set logo
+  var logoSrc = LOGO_URI;
+  var sbLogo = document.getElementById('sb-logo-img');
+  if (sbLogo) sbLogo.src = logoSrc;
+  var cvrLogo = document.getElementById('cvr-logo-img');
+  if (cvrLogo) cvrLogo.src = logoSrc;
+  var authLogo = document.getElementById('auth-logo-img');
+  if (authLogo) authLogo.src = logoSrc;
+
+  // Carregar config Supabase + sessão salvas
+  try {
+    var savedUrl = localStorage.getItem('sb_url') || '';
+    var savedKey = localStorage.getItem('sb_key') || '';
+    if (savedUrl) SB_URL = savedUrl;
+    if (savedKey) SB_KEY = savedKey;
+    var savedSession = localStorage.getItem('sb_session');
+    if (savedSession) SB_SESSION = JSON.parse(savedSession);
+  } catch(e) {}
+
+  function continuarSemLogin() {
+    atualizarStatusSb();
+    loadData();
+    /* Renderiza imediatamente com o que já está em cache local — não espera
+       a nuvem responder para mostrar algo na tela. Se Supabase estiver
+       ativo, sbSyncDown() (chamado dentro de loadData) atualiza a tela de
+       novo assim que a resposta da rede chegar. */
+    atualizarContador();
+    renderHome();
+  }
+
+  if (SB_URL && SB_KEY) {
+    sbSessaoOk().then(function(ok) {
+      if (ok) {
+        continuarSemLogin();
+      } else {
+        atualizarContador();
+        document.getElementById('auth-gate').style.display = 'flex';
+      }
+    });
+  } else {
+    continuarSemLogin();
+  }
+
+  // Detectar online/offline
+  atualizarStatusOnline();
+  window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); } });
+  window.addEventListener('offline', function() { atualizarStatusOnline(); toast('Sem internet — modo offline', '⚠'); });
+};
+</script>
+</body>
+</html>
