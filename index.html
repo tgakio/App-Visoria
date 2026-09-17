@@ -429,8 +429,15 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 /* ══ CONFIG ════════════════════════════════════════════════════ */
 var SK = 'roc3';
 /* Supabase — preencher após criar o projeto */
-var SB_URL = '';   /* ex: https://xyzxyz.supabase.co */
-var SB_KEY = '';   /* anon/public key */
+/* Projeto Supabase padrão da ROCONTEC — já vem configurado, sem precisar de
+   tela de configuração manual. A chave abaixo é a "anon/public": ela é
+   pública por design (o Supabase espera que fique no cliente); quem protege
+   os dados de verdade são as políticas de RLS + a tabela usuarios_autorizados,
+   não o sigilo desta chave. Pode ser sobrescrita em runtime via
+   localStorage (tela "Conectar à Nuvem") se um dia precisar apontar para
+   outro projeto. */
+var SB_URL = 'https://nfkzbwzlclsayhlfgbku.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ma3pid3psY2xzYXlobGZnYmt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNzI3NTksImV4cCI6MjA5OTY0ODc1OX0.M2wRQiYz4bh8g4rAwiJOu-uhdKj5GnEF64HaI0jyeJE';
 var SB_TABLE = 'relatorios';
 var SB_BUCKET = 'fotos-relatorios';
 var FOTO_PREFIXO = 'sbfoto:';
