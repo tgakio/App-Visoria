@@ -250,9 +250,9 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Acessos
       </button>
-      <button class="sb-btn" onclick="sincronizarManual()">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-        Sincronizar
+      <button class="sb-btn" id="sb-sync-btn" onclick="sincronizarManual()">
+        <span id="sb-sync-ico"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></span>
+        <span id="sb-sync-lbl">Sincronizar</span>
       </button>
       <button class="sb-btn" onclick="abrirBackup()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -632,6 +632,7 @@ function sbSyncDown(forceRender) {
     return;
   }
   lastSyncTime = now;
+  marcarSyncStatus(true);
 
   fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,data&order=created_at.desc', { headers: sbHeaders() })
     .then(function(r) {
@@ -647,6 +648,7 @@ function sbSyncDown(forceRender) {
          que for realmente aberto ou impresso. */
       reports = data.map(function(row) { return row.data; });
       persistLocal();
+      marcarSyncStatus(false);
       atualizarContador();
       var pg = document.querySelector('.pg.on');
       if (pg && pg.id === 'pg-home')  renderHome();
@@ -654,6 +656,7 @@ function sbSyncDown(forceRender) {
       if (pg && pg.id === 'pg-obras') renderObras();
     })
     .catch(function(e) {
+      marcarSyncStatus(false);
       toast('Falha ao sincronizar com a nuvem: ' + e.message, '✗');
       try { reports = JSON.parse(localStorage.getItem(SK)) || []; } catch(err) { reports = []; }
       atualizarContador();
@@ -999,7 +1002,9 @@ function toast(msg, icon, red) {
   el.innerHTML = '<span style="color:' + (red ? 'var(--red)' : '#22c55e') + '">' + (icon || '✓') + '</span> ' + msg;
   el.style.display = 'flex';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { el.style.display = 'none'; }, 3200);
+  /* Mensagens de erro (vermelhas) ficam mais tempo na tela — costumam ter
+     mais texto para ler e o usuário precisa de mais tempo para reagir. */
+  toastTimer = setTimeout(function() { el.style.display = 'none'; }, red ? 5000 : 3600);
 }
 
 function escH(s) {
@@ -1127,7 +1132,13 @@ function renderHome() {
     : '';
 
   var recentesH = '';
-  if (reports.length === 0) {
+  if (reports.length === 0 && syncEmAndamento && sbEnabled()) {
+    /* Ainda não é "vazio" de verdade — só ainda não chegou da nuvem. Sem
+       isso, o primeiro acesso mostrava "Nenhum relatório" e convidava a
+       criar um novo, mesmo quando os relatórios reais estavam a caminho. */
+    recentesH = '<div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div><div class="empty-ttl">Carregando seus relatórios…</div>'
+      + '<div class="empty-txt">Buscando os dados salvos na nuvem.</div></div>';
+  } else if (reports.length === 0) {
     recentesH = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum relatório salvo</div>'
       + '<div class="empty-txt">Crie o primeiro relatório de vistoria técnica ROCONTEC.</div>'
       + '<button class="btn btn-r" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Primeiro Relatório</button></div>';
@@ -1305,7 +1316,10 @@ function renderList() {
   if (lt) lt.textContent = 'Relatórios (' + lista.length + '/' + reports.length + ')';
 
   var rowsH = '';
-  if (lista.length === 0) {
+  if (lista.length === 0 && reports.length === 0 && syncEmAndamento && sbEnabled()) {
+    rowsH = '<div class="card"><div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div>'
+      + '<div class="empty-ttl">Carregando seus relatórios…</div><div class="empty-txt">Buscando os dados salvos na nuvem.</div></div></div>';
+  } else if (lista.length === 0) {
     rowsH = '<div class="card"><div class="empty"><div class="empty-ico">' + (reports.length === 0 ? '📋' : '🔍') + '</div>'
       + '<div class="empty-ttl">' + (reports.length === 0 ? 'Nenhum relatório' : 'Sem resultados') + '</div>'
       + '<div class="empty-txt">' + (reports.length === 0 ? 'Crie o primeiro relatório ROCONTEC.' : 'Ajuste os filtros.') + '</div>'
@@ -2150,36 +2164,78 @@ var isOnline = navigator.onLine !== false;
 
 function atualizarStatusOnline() {
   isOnline = navigator.onLine !== false;
+  atualizarStatusSync();
+}
+
+/* ── Indicador persistente de sincronização ──────────────────────────
+   Antes, a única pista de que os dados estavam carregando era um toast
+   que some em 3,2s — fácil de perder (e às vezes um toast cortava o outro
+   antes de dar tempo de ler), e nada impedia o usuário de ficar clicando
+   em "Sincronizar" achando que não tinha funcionado. Agora o badge no
+   topo e o botão "Sincronizar" ficam visivelmente "presos" em estado de
+   carregando enquanto houver alguma operação de sincronização ativa.
+   Usa contador (não booleano) porque o download inicial e o envio dos
+   pendentes podem rodar sobrepostos — o indicador só volta ao normal
+   quando TODAS as operações em curso terminarem. ── */
+var syncEmAndamento = false;
+var syncBusyCount = 0;
+
+function marcarSyncStatus(emAndamento) {
+  syncBusyCount = Math.max(0, syncBusyCount + (emAndamento ? 1 : -1));
+  syncEmAndamento = syncBusyCount > 0;
+  atualizarStatusSync();
+}
+
+function atualizarStatusSync() {
   var badge = document.getElementById('online-badge');
   if (badge) {
-    badge.style.background = isOnline ? '#dcfce7' : '#fee2e2';
-    badge.style.color = isOnline ? '#16a34a' : '#dc2626';
-    badge.style.borderColor = isOnline ? 'rgba(22,163,74,.25)' : 'rgba(220,38,38,.25)';
-    badge.textContent = isOnline ? '● Online' : '● Offline';
+    if (syncEmAndamento) {
+      badge.style.background = '#e0e7ff';
+      badge.style.color = '#4338ca';
+      badge.style.borderColor = 'rgba(67,56,202,.25)';
+      badge.innerHTML = '<span class="spinner" style="width:9px;height:9px;border-width:1.5px;vertical-align:-1px"></span> Sincronizando…';
+    } else {
+      badge.style.background = isOnline ? '#dcfce7' : '#fee2e2';
+      badge.style.color = isOnline ? '#16a34a' : '#dc2626';
+      badge.style.borderColor = isOnline ? 'rgba(22,163,74,.25)' : 'rgba(220,38,38,.25)';
+      badge.textContent = isOnline ? '● Online' : '● Offline';
+    }
   }
+  var syncBtn = document.getElementById('sb-sync-btn');
+  var syncIco = document.getElementById('sb-sync-ico');
+  var syncLbl = document.getElementById('sb-sync-lbl');
+  if (syncBtn) syncBtn.disabled = syncEmAndamento;
+  if (syncIco) syncIco.innerHTML = syncEmAndamento ? '<span class="spinner"></span>' : '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>';
+  if (syncLbl) syncLbl.textContent = syncEmAndamento ? 'Sincronizando…' : 'Sincronizar';
 }
 
 function sincronizarManual() {
   if (!sbEnabled()) { toast('Configure o Supabase primeiro', '⚠'); abrirConfigSb(); return; }
   if (!isOnline) { toast('Sem conexao com internet', '⚠'); return; }
-  toast('Sincronizando...', 'o', true);
+  if (syncEmAndamento) return; /* já está sincronizando — o botão fica desabilitado, mas evita corrida se chamado por outro caminho */
   lastSyncTime = 0;
   sbSyncDown(true);
 
   /* Reenvia só os relatórios com alterações locais ainda não confirmadas na
      nuvem, um de cada vez. Antes isso reenviava TODOS os relatórios locais
      em paralelo e sem limite a cada clique — mesmo os que não mudaram — o
-     que podia disparar dezenas/centenas de requisições simultâneas. */
+     que podia disparar dezenas/centenas de requisições simultâneas.
+     O progresso é mostrado pelo badge/botão (indicador persistente), não
+     por uma sequência de toasts que se cortam antes de dar tempo de ler. */
   var pendentes = [];
   for (var i = 0; i < reports.length; i++) if (reports[i]._pendingSync) pendentes.push(reports[i].id);
   if (pendentes.length === 0) return;
+  marcarSyncStatus(true);
   var idx = 0;
   function proximo() {
-    if (idx >= pendentes.length) { toast('Sincronização concluída!', 'o', true); return; }
+    if (idx >= pendentes.length) {
+      marcarSyncStatus(false);
+      toast('Sincronização concluída!', '✓', true);
+      return;
+    }
     var id = pendentes[idx++];
     sbUpsertOne(id, proximo);
   }
-  toast('Enviando ' + pendentes.length + ' relatório' + (pendentes.length !== 1 ? 's' : '') + ' pendente' + (pendentes.length !== 1 ? 's' : '') + '...', 'o', true);
   proximo();
 }
 
