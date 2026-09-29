@@ -700,6 +700,36 @@ function loadData() {
   if (sbEnabled()) sbSyncDown(true);
 }
 
+/* ── GET no Supabase com retry/backoff para falhas transitórias ──
+   502/503/504 (gateway/projeto indisponível) e erros de rede são tentados de
+   novo (até 2x, com espera crescente) antes de virar erro para o usuário.
+   O erro final leva .status e .transient para a mensagem ser clara. ── */
+var SB_RETRY_DELAYS = [800, 2000];
+function sbFetchJsonRetry(url, tentativa) {
+  tentativa = tentativa || 0;
+  function podeRepetir() { return tentativa < SB_RETRY_DELAYS.length; }
+  function repetir() {
+    return new Promise(function(res) { setTimeout(res, SB_RETRY_DELAYS[tentativa]); })
+      .then(function() { return sbFetchJsonRetry(url, tentativa + 1); });
+  }
+  return fetch(url, { headers: sbHeaders() }).then(function(r) {
+    if (r.ok) return r.json();
+    var transiente = (r.status === 502 || r.status === 503 || r.status === 504);
+    if (transiente && podeRepetir()) return repetir();
+    return r.json().catch(function(){ return {}; }).then(function(j) {
+      var err = new Error((j && (j.message || j.msg)) || ('Erro ' + r.status));
+      err.status = r.status;
+      err.transient = transiente;
+      throw err;
+    });
+  }, function(netErr) {
+    if (podeRepetir()) return repetir();
+    var err = new Error('sem conexão');
+    err.transient = true;
+    throw err;
+  });
+}
+
 /* ── Baixar relatórios do Supabase ── */
 var lastSyncTime = 0;
 var SYNC_INTERVAL = 60000; /* Sincronizar no máximo 1x por minuto */
@@ -738,19 +768,11 @@ function sbSyncDown(forceRender) {
         percebe exclusões, porque a linha some da tabela.
      No primeiro sync de um dispositivo (sem cursor salvo ainda) o delta
      vem sem filtro, ou seja, se comporta como o sync completo de antes. */
-  var pIds = fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id', { headers: sbHeaders() })
-    .then(function(r) {
-      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r.status)); });
-      return r.json();
-    });
+  var pIds = sbFetchJsonRetry(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id');
 
   var deltaUrl = SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,data,updated_at&order=updated_at.asc'
     + (cursor ? '&updated_at=gt.' + encodeURIComponent(cursor) : '');
-  var pDelta = fetch(deltaUrl, { headers: sbHeaders() })
-    .then(function(r) {
-      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r.status)); });
-      return r.json();
-    });
+  var pDelta = sbFetchJsonRetry(deltaUrl);
 
   Promise.all([pIds, pDelta])
     .then(function(res) {
@@ -798,7 +820,10 @@ function sbSyncDown(forceRender) {
     })
     .catch(function(e) {
       marcarSyncStatus(false);
-      toast('Falha ao sincronizar com a nuvem: ' + e.message, '✗');
+      /* Falha não deve travar a próxima tentativa pelo intervalo de throttle */
+      lastSyncTime = 0;
+      if (e && e.transient) toast('Nuvem indisponível (' + (e.status || 'sem conexão') + '). Seus dados locais foram mantidos — tente novamente em instantes.', '✗');
+      else toast('Falha ao sincronizar com a nuvem: ' + (e && e.message), '✗');
       try { reports = JSON.parse(localStorage.getItem(SK)) || []; } catch(err) { reports = []; }
       atualizarContador();
       renderHome();
