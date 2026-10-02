@@ -13,11 +13,11 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --red:#C02F34;--red2:#a52028;--black:#000;--gray:#666;--gray2:#888;--gray3:#aaa;--gray4:#ccc;
+  --red:#C02F34;--red2:#a52028;--navy:#16324A;--black:#1c1c1e;--gray:#666;--gray2:#767680;--gray3:#86868c;--gray4:#ccc;
   --bg:#f5f5f5;--card:#fff;--bdr:#e0e0e0;--bdr2:#d0d0d0;--white:#fff;
   --cl:#16a34a;--clb:#dcfce7;--cm:#d97706;--cmb:#fef3c7;
   --ch:#dc2626;--chb:#fee2e2;--cc:#7c3aed;--ccb:#ede9fe;--co:#0891b2;--cob:#cffafe;
-  --r:8px;--sh:0 1px 4px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.06);
+  --r:10px;--rl:16px;--sh:0 1px 2px rgba(20,20,20,.04),0 6px 18px rgba(20,20,20,.05);
   --shl:0 4px 20px rgba(0,0,0,.15);
   --sbot:env(safe-area-inset-bottom,0px);--stop:env(safe-area-inset-top,0px);
   --ft:'Barlow',system-ui,sans-serif;--ftt:'Barlow Condensed','Arial Narrow',sans-serif;
@@ -32,7 +32,7 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .sb-new{margin:12px 16px;background:var(--red);color:var(--white);border:none;border-radius:var(--r);padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:var(--ft);-webkit-tap-highlight-color:transparent}
 .sb-new:active{background:var(--red2)}
 .sb-sec{padding:12px 10px 4px}
-.sb-lbl{font-size:9px;color:var(--gray3);text-transform:uppercase;letter-spacing:1.5px;padding:0 8px 8px;display:block;font-weight:700}
+.sb-lbl{font-size:11px;color:var(--gray3);text-transform:uppercase;letter-spacing:.8px;padding:0 8px 8px;display:block;font-weight:700}
 .sb-btn{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:600;color:var(--gray);border:none;background:none;width:100%;text-align:left;-webkit-tap-highlight-color:transparent;font-family:var(--ft)}
 .sb-btn:active{background:var(--bg);color:var(--black)}
 .sb-btn.on{background:rgba(192,47,52,.07);color:var(--red);border-left:3px solid var(--red);padding-left:7px}
@@ -40,10 +40,13 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .sb-btn.on .sb-badge{background:rgba(192,47,52,.12);color:var(--red)}
 .sb-div{height:1px;background:var(--bdr);margin:6px 16px}
 .sb-user{margin-top:auto;padding:12px 16px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;background:var(--bg)}
-.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:var(--white);font-weight:800;font-size:13px;flex-shrink:0}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--navy);display:grid;place-items:center;color:var(--white);font-weight:800;font-size:13px;flex-shrink:0}
 .hdr{background:var(--white);border-bottom:1px solid var(--bdr);padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .hdr-ttl{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hdr-act{display:flex;gap:6px;flex-shrink:0}
+.as-st{display:block;font-size:11px;font-weight:700;color:var(--gray2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-st:empty{display:none}
+.as-st.warn{color:#b45309}
 .btn{border:none;cursor:pointer;border-radius:var(--r);font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:5px;padding:8px 14px;font-family:var(--ft);white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .btn:active{opacity:.75}
 .btn:disabled{opacity:.4;pointer-events:none}
@@ -63,74 +66,74 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .tab-btn.on{color:var(--red);border-color:var(--red)}
 .tbg{background:var(--red);color:var(--white);font-size:9px;font-weight:800;border-radius:99px;padding:1px 5px}
 .tab-pnl{display:none}.tab-pnl.on{display:block}
-.card{background:var(--card);border-radius:var(--r);border:1px solid var(--bdr);margin-bottom:14px;box-shadow:var(--sh)}
-.card-hdr{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:var(--r) var(--r) 0 0}
-.card-ttl{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1.2px}
+.card{background:var(--card);border-radius:var(--rl);margin-bottom:14px;box-shadow:var(--sh)}
+.card-hdr{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:var(--rl) var(--rl) 0 0}
+.card-ttl{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px}
 .card-body{padding:16px}
 .field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-.field label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px}
+.field label{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.6px}
 .field input,.field textarea,.field select{border:1.5px solid var(--bdr);border-radius:var(--r);padding:10px 12px;font-size:16px;color:var(--black);background:var(--white);font-family:var(--ft);outline:none;-webkit-appearance:none;width:100%}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--red)}
 .field textarea{min-height:80px;resize:vertical}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .req{color:var(--red)}
 /* Cover preview */
-.cvr{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.cvr{background:var(--white);border-radius:var(--rl);overflow:hidden;margin-bottom:14px;box-shadow:var(--sh)}
 .cvr-stripe{height:5px;background:var(--red)}
 .cvr-head{padding:18px 22px 16px;border-bottom:1px solid var(--bdr)}
 .cvr-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
 .cvr-logo img{height:26px;width:auto}
-.cvr-num-l{font-size:8px;color:var(--gray3);text-transform:uppercase;letter-spacing:1px;text-align:right}
+.cvr-num-l{font-size:10px;color:var(--gray3);text-transform:uppercase;letter-spacing:.8px;text-align:right}
 .cvr-num-v{font-family:var(--ftt);font-size:14px;font-weight:900;color:var(--red);text-align:right;margin-top:2px}
 .cvr-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(192,47,52,.07);border:1px solid rgba(192,47,52,.2);border-radius:4px;padding:3px 9px;margin-bottom:10px}
 .cvr-bdot{width:5px;height:5px;border-radius:50%;background:var(--red)}
-.cvr-btxt{font-size:8px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:2px}
+.cvr-btxt{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1.2px}
 .cvr-obra{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);line-height:1.2}
 .cvr-unid{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:4px}
 .cvr-meta{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--bdr)}
 .cvr-mf{background:var(--white);padding:9px 14px}
-.cvr-mfl{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--gray3);margin-bottom:3px;font-weight:700}
+.cvr-mfl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--gray3);margin-bottom:3px;font-weight:700}
 .cvr-mfv{font-size:11px;font-weight:700;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Stats */
 .sg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-.sc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 12px;display:flex;align-items:center;gap:11px;box-shadow:var(--sh);border-top:3px solid var(--bdr)}
-.sc.r{border-top-color:var(--red)}.sc.g{border-top-color:var(--gray)}
-.sc-ico{font-size:24px}
-.sc-num{font-family:var(--ftt);font-size:26px;font-weight:900;color:var(--black);line-height:1}
-.sc-lbl{font-size:11px;color:var(--gray);margin-top:2px}
+.sc{background:var(--card);border-radius:var(--rl);padding:16px 14px;display:flex;align-items:center;gap:13px;box-shadow:var(--sh)}
+.sc-ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex-shrink:0}
+.sc-num{font-family:var(--ftt);font-size:28px;font-weight:900;color:var(--black);line-height:1}
+.sc-lbl{font-size:12px;color:var(--gray);margin-top:3px;font-weight:500}
 /* Shortcuts */
 .sk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
-.sk-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:11px;-webkit-tap-highlight-color:transparent;box-shadow:var(--sh)}
-.sk-card:active{border-color:var(--red)}
-.sk-ico{width:36px;height:36px;border-radius:6px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
-.sk-lbl{font-size:12px;font-weight:700;color:var(--black)}
-.sk-sub{font-size:10px;color:var(--gray);margin-top:2px}
+.sk-card{background:var(--card);border-radius:var(--rl);padding:15px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent;box-shadow:var(--sh)}
+.sk-card:active{box-shadow:0 1px 2px rgba(20,20,20,.04),0 3px 10px rgba(192,47,52,.2)}
+.sk-ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex-shrink:0}
+.sk-lbl{font-size:13px;font-weight:700;color:var(--black)}
+.sk-sub{font-size:11px;color:var(--gray);margin-top:2px}
 /* Obra cards */
 .og{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:16px}
-.oc{background:var(--card);border:1px solid var(--bdr);border-top:3px solid var(--bdr);border-radius:var(--r);padding:14px;cursor:pointer;box-shadow:var(--sh)}
-.oc:active,.oc:hover{border-top-color:var(--red)}
-.oc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:11px}
-.oc-nome{font-size:13px;font-weight:700;color:var(--black);line-height:1.3}
-.oc-cli{font-size:11px;color:var(--gray);margin-top:3px}
-.oc-stats{display:flex;border:1px solid var(--bdr);border-radius:6px;overflow:hidden}
-.os{flex:1;text-align:center;padding:7px 4px;border-right:1px solid var(--bdr)}
+.oc{background:var(--card);border-radius:var(--rl);padding:18px;cursor:pointer;box-shadow:var(--sh)}
+.oc:active,.oc:hover{box-shadow:0 2px 4px rgba(20,20,20,.06),0 10px 26px rgba(20,20,20,.09)}
+.oc-top{display:flex;align-items:flex-start;gap:11px;margin-bottom:13px}
+.oc-ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;background:rgba(22,50,74,.08);color:var(--navy)}
+.oc-nome{font-size:14px;font-weight:700;color:var(--black);line-height:1.3}
+.oc-cli{font-size:12px;color:var(--gray);margin-top:3px}
+.oc-stats{display:flex}
+.os{flex:1;text-align:center;padding:0 4px 12px;border-right:1px solid var(--bdr)}
 .os:last-child{border-right:none}
-.os-n{display:block;font-family:var(--ftt);font-size:18px;font-weight:900;color:var(--black);line-height:1}
-.os-l{display:block;font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.os-n{display:block;font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);line-height:1}
+.os-l{display:block;font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 .os.red .os-n{color:#dc2626}
-.os.ok .os-n{color:#16a34a;font-size:13px}
-.oc-date{font-size:10px;color:var(--gray3);margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr)}
+.os.ok .os-n{color:#16a34a;font-size:14px}
+.oc-date{font-size:11px;color:var(--gray2);margin-top:0;padding-top:12px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:6px}
 /* Report rows */
 .r-row{display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1px solid var(--bdr);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .r-row:active{background:var(--bg)}
 .r-row:last-child{border-bottom:none}
-.r-ico{width:38px;height:38px;background:rgba(192,47,52,.07);border:1px solid rgba(192,47,52,.15);border-radius:8px;display:grid;place-items:center;flex-shrink:0}
-.r-nm{font-size:13px;font-weight:700;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.r-mt{font-size:11px;color:var(--gray);margin-top:2px}
-.r-dt{color:var(--red);font-weight:600}
+.r-ico{width:38px;height:38px;background:rgba(192,47,52,.07);border:1px solid rgba(192,47,52,.15);border-radius:10px;display:grid;place-items:center;flex-shrink:0;color:var(--red)}
+.r-nm{font-size:14px;font-weight:700;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-mt{font-size:12px;color:var(--gray);margin-top:2px}
+.r-dt{color:var(--black);font-weight:600}
 .r-act{display:flex;gap:4px;flex-shrink:0}
 /* Criticidade */
-.cbg{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;flex-shrink:0;text-transform:uppercase;letter-spacing:.5px;border:1px solid transparent}
+.cbg{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:10px;font-weight:700;flex-shrink:0;text-transform:uppercase;letter-spacing:.4px;border:none}
 .cdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
 .c-low{background:var(--clb);color:var(--cl);border-color:rgba(22,163,74,.2)}
 .c-med{background:var(--cmb);color:var(--cm);border-color:rgba(217,119,6,.2)}
@@ -138,7 +141,7 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .c-critical{background:var(--ccb);color:var(--cc);border-color:rgba(124,58,237,.2)}
 .c-orient{background:var(--cob);color:var(--co);border-color:rgba(6,120,140,.2)}
 /* Apontamentos */
-.apt{border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;background:var(--card);margin-bottom:12px;box-shadow:var(--sh)}
+.apt{border-radius:var(--rl);overflow:hidden;background:var(--card);margin-bottom:12px;box-shadow:var(--sh)}
 .apt-hdr{padding:10px 13px;display:flex;align-items:center;gap:8px;background:var(--bg);border-bottom:1px solid var(--bdr)}
 .apt-num{width:24px;height:24px;border-radius:4px;background:var(--red);color:var(--white);font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;font-family:var(--ftt)}
 .apt-nm{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -149,17 +152,17 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .ph-add:active{border-color:var(--red);color:var(--red)}
 .ph-sm{width:76px;height:36px;font-size:16px}
 /* Resumo / Considerações */
-.sum-box{background:var(--white);border:1px solid var(--bdr);border-top:4px solid var(--red);border-radius:var(--r);padding:20px;margin-bottom:14px;box-shadow:var(--sh)}
+.sum-box{background:var(--white);border-top:4px solid var(--red);border-radius:var(--rl);padding:20px;margin-bottom:14px;box-shadow:var(--sh)}
 .sum-ttl{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);margin-bottom:14px}
 .sum-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
 .sum-stat{background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:10px 6px;text-align:center}
 .sum-stat-n{font-family:var(--ftt);font-size:22px;font-weight:900;color:var(--red);line-height:1}
-.sum-stat-l{font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
+.sum-stat-l{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
 .sum-txt{font-size:13px;line-height:1.8;color:var(--black);background:var(--bg);border-radius:6px;padding:14px;border-left:4px solid var(--red);white-space:pre-wrap}
 .sum-ph{text-align:center;padding:20px 0;color:var(--gray);font-size:13px}
 /* Section label */
 .sec{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.sec-t{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;flex-shrink:0}
+.sec-t{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;flex-shrink:0}
 .sec-l{flex:1;height:1px;background:var(--bdr)}
 /* Filters */
 .fbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
@@ -183,7 +186,7 @@ body.ui-restrita .edit-only{display:none !important}
 body.ui-sem-ia .ia-only{display:none !important}
 body.ui-nao-admin .admin-only{display:none !important}
 .empty{text-align:center;padding:44px 20px;color:var(--gray)}
-.empty-ico{font-size:36px;margin-bottom:11px}
+.empty-ico{width:64px;height:64px;border-radius:50%;background:var(--bg);color:var(--gray3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
 .empty-ttl{font-family:var(--ftt);font-size:19px;font-weight:900;color:var(--black);margin-bottom:6px}
 .empty-txt{font-size:13px;margin-bottom:16px}
 .toast{position:fixed;bottom:calc(16px + var(--sbot));left:50%;-webkit-transform:translateX(-50%);transform:translateX(-50%);background:var(--black);color:var(--white);padding:10px 18px;border-radius:6px;font-size:13px;font-weight:600;box-shadow:var(--shl);z-index:9999;white-space:nowrap;max-width:90vw;-webkit-animation:tup .2s ease;animation:tup .2s ease;display:flex;align-items:center;gap:7px;font-family:var(--ft)}
@@ -295,7 +298,7 @@ body.ui-nao-admin .admin-only{display:none !important}
     <div id="pg-editor" class="pg">
       <div class="hdr">
         <button class="btn btn-g" onclick="voltarLista()" style="padding:7px 10px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg></button>
-        <span class="hdr-ttl" id="ed-ttl">Novo Relatório</span>
+        <div style="flex:1;min-width:0"><span class="hdr-ttl" id="ed-ttl" style="display:block">Novo Relatório</span><span class="as-st edit-only" id="autosave-st" role="status" aria-live="polite"></span></div>
         <div class="hdr-act">
           <button class="btn btn-o" onclick="gerarPDF()" style="padding:8px 10px"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> PDF</button>
           <button class="btn btn-r edit-only" onclick="salvarRelatorio()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg> Salvar</button>
@@ -700,6 +703,36 @@ function loadData() {
   if (sbEnabled()) sbSyncDown(true);
 }
 
+/* ── GET no Supabase com retry/backoff para falhas transitórias ──
+   502/503/504 (gateway/projeto indisponível) e erros de rede são tentados de
+   novo (até 2x, com espera crescente) antes de virar erro para o usuário.
+   O erro final leva .status e .transient para a mensagem ser clara. ── */
+var SB_RETRY_DELAYS = [800, 2000];
+function sbFetchJsonRetry(url, tentativa) {
+  tentativa = tentativa || 0;
+  function podeRepetir() { return tentativa < SB_RETRY_DELAYS.length; }
+  function repetir() {
+    return new Promise(function(res) { setTimeout(res, SB_RETRY_DELAYS[tentativa]); })
+      .then(function() { return sbFetchJsonRetry(url, tentativa + 1); });
+  }
+  return fetch(url, { headers: sbHeaders() }).then(function(r) {
+    if (r.ok) return r.json();
+    var transiente = (r.status === 502 || r.status === 503 || r.status === 504);
+    if (transiente && podeRepetir()) return repetir();
+    return r.json().catch(function(){ return {}; }).then(function(j) {
+      var err = new Error((j && (j.message || j.msg)) || ('Erro ' + r.status));
+      err.status = r.status;
+      err.transient = transiente;
+      throw err;
+    });
+  }, function(netErr) {
+    if (podeRepetir()) return repetir();
+    var err = new Error('sem conexão');
+    err.transient = true;
+    throw err;
+  });
+}
+
 /* ── Baixar relatórios do Supabase ── */
 var lastSyncTime = 0;
 var SYNC_INTERVAL = 60000; /* Sincronizar no máximo 1x por minuto */
@@ -738,19 +771,11 @@ function sbSyncDown(forceRender) {
         percebe exclusões, porque a linha some da tabela.
      No primeiro sync de um dispositivo (sem cursor salvo ainda) o delta
      vem sem filtro, ou seja, se comporta como o sync completo de antes. */
-  var pIds = fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id', { headers: sbHeaders() })
-    .then(function(r) {
-      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r.status)); });
-      return r.json();
-    });
+  var pIds = sbFetchJsonRetry(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id');
 
   var deltaUrl = SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,data,updated_at&order=updated_at.asc'
     + (cursor ? '&updated_at=gt.' + encodeURIComponent(cursor) : '');
-  var pDelta = fetch(deltaUrl, { headers: sbHeaders() })
-    .then(function(r) {
-      if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r.status)); });
-      return r.json();
-    });
+  var pDelta = sbFetchJsonRetry(deltaUrl);
 
   Promise.all([pIds, pDelta])
     .then(function(res) {
@@ -766,7 +791,8 @@ function sbSyncDown(forceRender) {
       for (var i = 0; i < delta.length; i++) {
         var row = delta[i];
         var idx = indicePorId[String(row.id)];
-        if (idx !== undefined) reports[idx] = row.data;
+        /* não sobrescreve um relatório com alterações locais ainda não enviadas */
+        if (idx !== undefined) { if (!reports[idx]._pendingSync) reports[idx] = row.data; }
         else { reports.push(row.data); indicePorId[String(row.id)] = reports.length - 1; }
       }
 
@@ -798,7 +824,10 @@ function sbSyncDown(forceRender) {
     })
     .catch(function(e) {
       marcarSyncStatus(false);
-      toast('Falha ao sincronizar com a nuvem: ' + e.message, '✗');
+      /* Falha não deve travar a próxima tentativa pelo intervalo de throttle */
+      lastSyncTime = 0;
+      if (e && e.transient) toast('Nuvem indisponível (' + (e.status || 'sem conexão') + '). Seus dados locais foram mantidos — tente novamente em instantes.', '✗');
+      else toast('Falha ao sincronizar com a nuvem: ' + (e && e.message), '✗');
       try { reports = JSON.parse(localStorage.getItem(SK)) || []; } catch(err) { reports = []; }
       atualizarContador();
       renderHome();
@@ -845,6 +874,20 @@ function sbUploadFoto(dataUrl, path) {
   });
 }
 
+/* ── Cache de uploads: a mesma foto (mesmo data:URL) só vai ao Storage uma vez
+   por sessão, mesmo que o relatório seja salvo várias vezes — essencial para o
+   salvamento automático, senão cada foto nova reenviaria todas as anteriores
+   (e deixaria cópias órfãs no Storage). Guarda a Promise, então dois envios
+   simultâneos da mesma foto também compartilham um único upload. ── */
+var fotoUploadCache = new Map();
+function sbUploadFotoCached(dataUrl, path) {
+  var hit = fotoUploadCache.get(dataUrl);
+  if (hit) return hit;
+  var p = sbUploadFoto(dataUrl, path).catch(function(e) { fotoUploadCache.delete(dataUrl); throw e; });
+  fotoUploadCache.set(dataUrl, p);
+  return p;
+}
+
 /* ── Storage: pede URLs assinadas (temporárias) em lote ── */
 function sbSignedUrlsEmLote(paths, expiraSeg) {
   if (paths.length === 0) return Promise.resolve({});
@@ -867,6 +910,7 @@ function sbSignedUrlsEmLote(paths, expiraSeg) {
 function sbPrepararFotosParaEnvio(report) {
   var clone = JSON.parse(JSON.stringify(report));
   delete clone._pendingSync; /* controle só local — não precisa ir para o banco */
+  delete clone._ver;
   var uploads = [];
   for (var i = 0; i < clone.items.length; i++) {
     var fotos = clone.items[i].fotos || [];
@@ -887,7 +931,7 @@ function sbPrepararFotosParaEnvio(report) {
   function proximo() {
     if (idx >= uploads.length) return clone;
     var u = uploads[idx];
-    return sbUploadFoto(u.dataUrl, u.path).then(function(path) {
+    return sbUploadFotoCached(u.dataUrl, u.path).then(function(path) {
       clone.items[u.ii].fotos[u.fi] = FOTO_PREFIXO + path;
       idx++;
       return proximo();
@@ -946,13 +990,15 @@ function resolverFotosRelatorio(r) {
 }
 
 /* ── Upsert de UM relatório no Supabase (fotos vão para o Storage antes) ──
-   onDone(ok) é chamado ao final (sucesso ou falha) para permitir uma fila. */
-function sbUpsertOne(reportId, onDone) {
+   onDone(ok) é chamado ao final (sucesso ou falha) para permitir uma fila.
+   silent: não mostra toast de erro (usado pelo salvamento automático). */
+function sbUpsertOne(reportId, onDone, silent) {
   var r = null;
   for (var i = 0; i < reports.length; i++) {
     if (reports[i].id === reportId) { r = reports[i]; break; }
   }
   if (!r) { if (onDone) onDone(false); return; }
+  var verInicio = r._ver || 0; /* versão enviada — se mudar durante o envio, continua pendente */
   sbPrepararFotosParaEnvio(r).then(function(slim) {
     return fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
       method: 'POST',
@@ -961,11 +1007,11 @@ function sbUpsertOne(reportId, onDone) {
     });
   }).then(function(r2) {
     if (!r2.ok) return r2.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r2.status)); });
-    r._pendingSync = false;
+    if ((r._ver || 0) === verInicio) r._pendingSync = false;
     persistLocal();
     if (onDone) onDone(true);
   }).catch(function(e) {
-    toast('Relatório salvo neste dispositivo, mas falhou ao enviar para a nuvem: ' + e.message, '⚠');
+    if (!silent) toast('Relatório salvo neste dispositivo, mas falhou ao enviar para a nuvem: ' + e.message, '⚠');
     if (onDone) onDone(false);
   });
 }
@@ -1311,6 +1357,7 @@ function atualizarContador() {
 
 /* ══ NAVEGAÇÃO ═══════════════════════════════════════════════════ */
 function navegar(v) {
+  if (v !== 'editor') flushAutoSave();
   var pages = document.querySelectorAll('.pg');
   for (var i = 0; i < pages.length; i++) pages[i].classList.remove('on');
   var pg = document.getElementById('pg-' + v);
@@ -1387,6 +1434,15 @@ function renderHome() {
     if (d) { var p = d.split('/'); if (p.length === 3 && parseInt(p[1]) === now.getMonth() + 1 && parseInt(p[2]) === now.getFullYear()) totalMes++; }
   }
 
+  var icoObras = '<svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>';
+  var icoRel   = '<svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>';
+  var icoCrit  = '<svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  var icoCal   = '<svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  var icoCalSm = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  var icoPdf   = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="12" y1="12" x2="12" y2="18"/></svg>';
+  var icoFolder = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>';
+  var icoPrint = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>';
+
   var obrasCards = '';
   var max = obras.length > 6 ? 6 : obras.length;
   for (var i = 0; i < max; i++) {
@@ -1400,13 +1456,13 @@ function renderHome() {
       : '<div class="os ok"><span class="os-n">✓</span><span class="os-l">Ok</span></div>';
     var cliH = ob.cliente ? '<div class="oc-cli">' + escH(ob.cliente) + '</div>' : '';
     obrasCards += '<div class="oc" onclick="filtrarObra(\'' + escH(ob.nome) + '\')">'
-      + '<div class="oc-top"><div style="font-size:22px;flex-shrink:0">🏗️</div>'
+      + '<div class="oc-top"><div class="oc-ico">' + icoObras + '</div>'
       + '<div><div class="oc-nome">' + escH(ob.nome) + '</div>' + cliH + '</div></div>'
       + '<div class="oc-stats">'
       + '<div class="os"><span class="os-n">' + rels.length + '</span><span class="os-l">Rel.</span></div>'
       + '<div class="os"><span class="os-n">' + tApt + '</span><span class="os-l">Apts.</span></div>'
       + critH + '</div>'
-      + '<div class="oc-date">Última vistoria: <strong style="color:var(--red)">' + ult + '</strong></div>'
+      + '<div class="oc-date">' + icoCalSm + 'Última vistoria <strong style="color:var(--black)">' + ult + '</strong></div>'
       + '</div>';
   }
   var maisObras = obras.length > 6
@@ -1421,7 +1477,7 @@ function renderHome() {
     recentesH = '<div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div><div class="empty-ttl">Carregando seus relatórios…</div>'
       + '<div class="empty-txt">Buscando os dados salvos na nuvem.</div></div>';
   } else if (reports.length === 0) {
-    recentesH = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum relatório salvo</div>'
+    recentesH = '<div class="empty"><div class="empty-ico"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div><div class="empty-ttl">Nenhum relatório salvo</div>'
       + '<div class="empty-txt">Crie o primeiro relatório de vistoria técnica ROCONTEC.</div>'
       + '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Primeiro Relatório</button></div>';
   } else {
@@ -1432,17 +1488,17 @@ function renderHome() {
   var pdfClick = reports.length > 0 ? 'gerarPDFById(' + reports[0].id + ')' : 'toast(\'Nenhum relatório salvo\',\'⚠\')';
 
   var html = '<div class="sg">'
-    + '<div class="sc r"><span class="sc-ico">🏗️</span><div><div class="sc-num">' + totalObras + '</div><div class="sc-lbl">Obras</div></div></div>'
-    + '<div class="sc g"><span class="sc-ico">📋</span><div><div class="sc-num">' + totalRels + '</div><div class="sc-lbl">Relatórios</div></div></div>'
-    + '<div class="sc" style="border-top-color:#dc2626"><span class="sc-ico">🔴</span><div><div class="sc-num" style="color:#dc2626">' + totalCrit + '</div><div class="sc-lbl">Críticos</div></div></div>'
-    + '<div class="sc" style="border-top-color:var(--gray)"><span class="sc-ico">🗓️</span><div><div class="sc-num">' + totalMes + '</div><div class="sc-lbl">Este Mês</div></div></div>'
+    + '<div class="sc"><span class="sc-ico" style="background:rgba(192,47,52,.09);color:var(--red)">' + icoObras + '</span><div><div class="sc-num">' + totalObras + '</div><div class="sc-lbl">Obras</div></div></div>'
+    + '<div class="sc"><span class="sc-ico" style="background:rgba(22,50,74,.08);color:var(--navy)">' + icoRel + '</span><div><div class="sc-num">' + totalRels + '</div><div class="sc-lbl">Relatórios</div></div></div>'
+    + '<div class="sc"><span class="sc-ico" style="background:rgba(220,38,38,.09);color:#dc2626">' + icoCrit + '</span><div><div class="sc-num" style="color:#dc2626">' + totalCrit + '</div><div class="sc-lbl">Críticos</div></div></div>'
+    + '<div class="sc"><span class="sc-ico" style="background:var(--bg);color:var(--gray)">' + icoCal + '</span><div><div class="sc-num">' + totalMes + '</div><div class="sc-lbl">Este Mês</div></div></div>'
     + '</div>'
     + '<div class="sec"><div class="sec-t">Ações Rápidas</div><div class="sec-l"></div></div>'
     + '<div class="sk-grid">'
-    + '<div class="sk-card edit-only" onclick="novoRelatorio()"><div class="sk-ico" style="background:rgba(192,47,52,.08)">📋</div><div><div class="sk-lbl">Novo Relatório</div><div class="sk-sub">Criar vistoria</div></div></div>'
-    + '<div class="sk-card" onclick="navegar(\'list\')"><div class="sk-ico" style="background:rgba(102,102,102,.08)">📂</div><div><div class="sk-lbl">Todos Relatórios</div><div class="sk-sub">' + totalRels + ' salvos</div></div></div>'
-    + '<div class="sk-card" onclick="navegar(\'obras\')"><div class="sk-ico" style="background:rgba(17,39,53,.08)">🏗️</div><div><div class="sk-lbl">Dir. de Obras</div><div class="sk-sub">' + totalObras + ' obra' + (totalObras !== 1 ? 's' : '') + '</div></div></div>'
-    + '<div class="sk-card" onclick="' + pdfClick + '"><div class="sk-ico" style="background:rgba(192,47,52,.06)">🖨️</div><div><div class="sk-lbl">Gerar PDF</div><div class="sk-sub">' + (reports.length > 0 ? 'Último relatório' : 'Sem relatórios') + '</div></div></div>'
+    + '<div class="sk-card edit-only" onclick="novoRelatorio()"><div class="sk-ico" style="background:rgba(192,47,52,.09);color:var(--red)">' + icoPdf + '</div><div><div class="sk-lbl">Novo Relatório</div><div class="sk-sub">Criar vistoria</div></div></div>'
+    + '<div class="sk-card" onclick="navegar(\'list\')"><div class="sk-ico" style="background:var(--bg);color:var(--gray)">' + icoFolder + '</div><div><div class="sk-lbl">Todos Relatórios</div><div class="sk-sub">' + totalRels + ' salvos</div></div></div>'
+    + '<div class="sk-card" onclick="navegar(\'obras\')"><div class="sk-ico" style="background:rgba(22,50,74,.08);color:var(--navy)">' + icoObras + '</div><div><div class="sk-lbl">Dir. de Obras</div><div class="sk-sub">' + totalObras + ' obra' + (totalObras !== 1 ? 's' : '') + '</div></div></div>'
+    + '<div class="sk-card" onclick="' + pdfClick + '"><div class="sk-ico" style="background:rgba(192,47,52,.06);color:var(--red)">' + icoPrint + '</div><div><div class="sk-lbl">Gerar PDF</div><div class="sk-sub">' + (reports.length > 0 ? 'Último relatório' : 'Sem relatórios') + '</div></div></div>'
     + '</div>';
 
   if (obras.length > 0) {
@@ -1451,8 +1507,8 @@ function renderHome() {
   }
 
   html += '<div class="sec"><div class="sec-t">Vistorias Recentes</div><div class="sec-l"></div></div>'
-    + '<div class="card"><div class="card-hdr"><span class="card-ttl">Últimas Vistorias</span>'
-    + '<button class="btn btn-g" style="font-size:12px" onclick="navegar(\'list\')">Ver todas →</button></div>'
+    + '<div class="card"><div class="card-hdr"><span class="card-ttl" style="color:var(--black)">Últimas Vistorias</span>'
+    + '<button class="btn btn-g" style="font-size:12px;color:var(--red);font-weight:700" onclick="navegar(\'list\')">Ver todas →</button></div>'
     + recentesH + '</div>';
 
   document.getElementById('home-body').innerHTML = html;
@@ -1469,7 +1525,7 @@ function renderObras() {
   var el = document.getElementById('obras-body');
   if (!el) return;
   if (obras.length === 0) {
-    el.innerHTML = '<div class="card"><div class="empty"><div class="empty-ico">🏗️</div>'
+    el.innerHTML = '<div class="card"><div class="empty"><div class="empty-ico"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>'
       + '<div class="empty-ttl">Nenhuma obra</div>'
       + '<div class="empty-txt">Crie o primeiro relatório de vistoria para iniciar o diretório de obras.</div>'
       + '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Relatório</button></div></div>';
@@ -1506,7 +1562,7 @@ function renderObras() {
 
     html += '<div class="card" style="margin-bottom:16px">'
       + '<div class="card-hdr">'
-      + '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px">🏗️</span><div><div class="card-ttl" style="font-size:13px;color:var(--black)">' + escH(ob.nome) + '</div>' + cliH + '</div></div>'
+      + '<div style="display:flex;align-items:center;gap:10px"><span style="width:30px;height:30px;border-radius:8px;background:rgba(22,50,74,.08);color:var(--navy);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></span><div><div class="card-ttl" style="font-size:13px;color:var(--black)">' + escH(ob.nome) + '</div>' + cliH + '</div></div>'
       + '<div style="display:flex;align-items:center;gap:12px">'
       + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--red)">' + rels.length + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Rel.</div></div>'
       + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black)">' + tApt + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Apts.</div></div>'
@@ -1602,7 +1658,9 @@ function renderList() {
     rowsH = '<div class="card"><div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div>'
       + '<div class="empty-ttl">Carregando seus relatórios…</div><div class="empty-txt">Buscando os dados salvos na nuvem.</div></div></div>';
   } else if (lista.length === 0) {
-    rowsH = '<div class="card"><div class="empty"><div class="empty-ico">' + (reports.length === 0 ? '📋' : '🔍') + '</div>'
+    rowsH = '<div class="card"><div class="empty"><div class="empty-ico">' + (reports.length === 0
+        ? '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>'
+        : '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') + '</div>'
       + '<div class="empty-ttl">' + (reports.length === 0 ? 'Nenhum relatório' : 'Sem resultados') + '</div>'
       + '<div class="empty-txt">' + (reports.length === 0 ? 'Crie o primeiro relatório ROCONTEC.' : 'Ajuste os filtros.') + '</div>'
       + (reports.length === 0 ? '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar</button>' : '')
@@ -1626,6 +1684,9 @@ function renderListFull() {
 /* ══ EDITOR ═══════════════════════════════════════════════════════ */
 function novoRelatorio() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
+  flushAutoSave();
+  setAutoSaveStatus('');
+  autoSaveAvisouObra = false;
   editId = null;
   items  = [];
   consid = '';
@@ -1641,6 +1702,9 @@ function novoRelatorio() {
 }
 
 function abrirRelatorio(id) {
+  flushAutoSave();
+  setAutoSaveStatus('');
+  autoSaveAvisouObra = false;
   var r = null;
   for (var i = 0; i < reports.length; i++) if (reports[i].id === id) { r = reports[i]; break; }
   if (!r) return;
@@ -1739,13 +1803,42 @@ function comprimirFotosItems(itemsArr, callback) {
   next();
 }
 
+function lerCapaIntro() {
+  return {
+    cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') },
+    intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }
+  };
+}
+
+/* Grava (cria ou atualiza) o relatório em edição em `reports`, marcando-o como
+   pendente de envio. Compartilhado entre Salvar manual e salvamento automático. */
+function gravarRelatorioAtual(ci, itensArr) {
+  var now = new Date().toLocaleDateString('pt-BR');
+  if (editId) {
+    for (var i = 0; i < reports.length; i++) {
+      if (reports[i].id === editId) {
+        reports[i].cover   = ci.cover;
+        reports[i].intro   = ci.intro;
+        reports[i].items   = JSON.parse(JSON.stringify(itensArr));
+        reports[i].consid  = consid;
+        reports[i].updated = now;
+        reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
+        reports[i]._ver = (reports[i]._ver || 0) + 1;
+        return;
+      }
+    }
+    return; /* relatório em edição não existe mais localmente (ex.: excluído em outro aparelho) — não recria */
+  }
+  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: JSON.parse(JSON.stringify(itensArr)), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
+  reports.unshift(nr);
+  editId = nr.id;
+}
+
 function salvarRelatorio() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   var obra = G('f-obra');
   if (!obra) { toast('Informe o nome da obra', '⚠'); return; }
-  var now   = new Date().toLocaleDateString('pt-BR');
-  var cover = { obra: obra, cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') };
-  var intro = { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') };
+  var ci = lerCapaIntro();
   var snapItems = JSON.parse(JSON.stringify(items));
 
   /* Salvar btn feedback */
@@ -1762,23 +1855,7 @@ function salvarRelatorio() {
       }
     }
 
-    if (editId) {
-      for (var i = 0; i < reports.length; i++) {
-        if (reports[i].id === editId) {
-          reports[i].cover   = cover;
-          reports[i].intro   = intro;
-          reports[i].items   = JSON.parse(JSON.stringify(comprimidos));
-          reports[i].consid  = consid;
-          reports[i].updated = now;
-          reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
-          break;
-        }
-      }
-    } else {
-      var nr = { id: Date.now(), cover: cover, intro: intro, items: JSON.parse(JSON.stringify(comprimidos)), consid: consid, created: now, updated: now, _pendingSync: true };
-      reports.unshift(nr);
-      editId = nr.id;
-    }
+    gravarRelatorioAtual(ci, comprimidos);
 
     saveData(editId);
     toast('Relatório salvo com imagens comprimidas!', 'o', true);
@@ -1793,6 +1870,76 @@ function salvarRelatorio() {
     /* Atualizar miniaturas na tela após compressão */
     renderApts();
   });
+}
+
+/* ══ SALVAMENTO AUTOMÁTICO ═════════════════════════════════════════
+   Disparado depois de anexar fotos (com uma pequena pausa para agrupar
+   várias fotos de uma vez). A parte local (gravar em `reports` +
+   localStorage) é sempre síncrona — assim nunca perde dado se o usuário
+   navegar logo em seguida. O envio à nuvem é assíncrono, silencioso e
+   serializado (um upsert por vez; pedidos feitos durante o envio entram
+   numa fila e reenviam o estado local mais recente ao terminar). Sem rede,
+   o relatório fica marcado como pendente e é reenviado ao reconectar. */
+var AUTOSAVE_DELAY = 1500;
+var autoSaveTimer = null;
+var autoSaveEmCurso = false;
+var autoSaveFila = {};
+var autoSaveAvisouObra = false;
+
+function setAutoSaveStatus(txt, aviso) {
+  var el = document.getElementById('autosave-st');
+  if (!el) return;
+  el.textContent = txt || '';
+  el.className = 'as-st edit-only' + (aviso ? ' warn' : '');
+}
+
+function horaAgora() {
+  var d = new Date();
+  return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+}
+
+function agendarAutoSave() {
+  if (!podeEditar()) return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(autoSalvarRelatorio, AUTOSAVE_DELAY);
+}
+
+/* Executa já um salvamento automático que esteja agendado (antes de trocar
+   de tela/relatório ou quando a página vai para segundo plano). */
+function flushAutoSave() {
+  if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSalvarRelatorio(); }
+}
+
+function autoSalvarRelatorio() {
+  autoSaveTimer = null;
+  if (!podeEditar()) return;
+  if (!G('f-obra')) {
+    setAutoSaveStatus('Informe a obra', true);
+    if (!autoSaveAvisouObra) { autoSaveAvisouObra = true; toast('Informe o nome da obra na Capa para ativar o salvamento automático', '⚠'); }
+    return;
+  }
+  gravarRelatorioAtual(lerCapaIntro(), items);
+  persistLocal();
+  atualizarContador();
+  enviarNuvemAuto(editId);
+}
+
+function enviarNuvemAuto(id) {
+  if (!sbEnabled()) { setAutoSaveStatus('Salvo ' + horaAgora()); return; }
+  if (!isOnline) { setAutoSaveStatus('Pendente (offline)', true); return; }
+  if (autoSaveEmCurso) { autoSaveFila[id] = true; return; }
+  autoSaveEmCurso = true;
+  setAutoSaveStatus('Salvando…');
+  sbUpsertOne(id, function(ok) {
+    autoSaveEmCurso = false;
+    if (ok) setAutoSaveStatus('Salvo ' + horaAgora());
+    else setAutoSaveStatus('Pendente de envio', true);
+    for (var k in autoSaveFila) {
+      delete autoSaveFila[k];
+      enviarNuvemAuto(isNaN(+k) ? k : +k);
+      break;
+    }
+  }, true);
 }
 
 /* ══ APONTAMENTOS ══════════════════════════════════════════════════ */
@@ -1848,9 +1995,14 @@ function criarInputFoto(id, cap) {
       (function(file) {
         var reader = new FileReader();
         reader.onload = function(ev) {
-          for (var j = 0; j < items.length; j++) {
-            if (items[j].id === id) { items[j].fotos.push(ev.target.result); atualizarFotos(id); break; }
-          }
+          /* comprime já ao anexar (mantém o relatório leve para salvar/enviar) */
+          var bruta = ev.target.result;
+          var comprimir = (typeof bruta === 'string' && bruta.length > 409600) ? comprimirImagem : function(u, m, cb) { cb(u); };
+          comprimir(bruta, 409600, function(foto) {
+            for (var j = 0; j < items.length; j++) {
+              if (items[j].id === id) { items[j].fotos.push(foto); atualizarFotos(id); agendarAutoSave(); break; }
+            }
+          });
         };
         reader.readAsDataURL(file);
       })(files[i]);
@@ -1953,7 +2105,7 @@ function renderApts() {
   if (tb) tb.innerHTML = '🔍 Vistoria' + (items.length > 0 ? ' <span class="tbg">' + items.length + '</span>' : '');
 
   if (items.length === 0) {
-    document.getElementById('apts-list').innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Nenhum Apontamento</div><div class="empty-txt">Registre não conformidades e itens de atenção da obra.</div><button class="btn btn-r edit-only" style="padding:12px 24px" onclick="addApt()">+ Adicionar</button></div>';
+    document.getElementById('apts-list').innerHTML = '<div class="empty"><div class="empty-ico"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div><div class="empty-ttl">Nenhum Apontamento</div><div class="empty-txt">Registre não conformidades e itens de atenção da obra.</div><button class="btn btn-r edit-only" style="padding:12px 24px" onclick="addApt()">+ Adicionar</button></div>';
     return;
   }
 
@@ -2511,27 +2663,44 @@ function sincronizarManual() {
   lastSyncTime = 0;
   sbSyncDown(true);
 
-  /* Reenvia só os relatórios com alterações locais ainda não confirmadas na
-     nuvem, um de cada vez. Antes isso reenviava TODOS os relatórios locais
-     em paralelo e sem limite a cada clique — mesmo os que não mudaram — o
-     que podia disparar dezenas/centenas de requisições simultâneas.
-     O progresso é mostrado pelo badge/botão (indicador persistente), não
-     por uma sequência de toasts que se cortam antes de dar tempo de ler. */
+  reenviarPendentes(function(enviados) {
+    if (enviados > 0) toast('Sincronização concluída!', '✓', true);
+  });
+}
+
+/* Reenvia só os relatórios com alterações locais ainda não confirmadas na
+   nuvem, um de cada vez. Antes isso reenviava TODOS os relatórios locais
+   em paralelo e sem limite a cada clique — mesmo os que não mudaram — o
+   que podia disparar dezenas/centenas de requisições simultâneas.
+   O progresso é mostrado pelo badge/botão (indicador persistente), não
+   por uma sequência de toasts que se cortam antes de dar tempo de ler.
+   Também é chamado ao reconectar, para enviar o que foi salvo offline. */
+var reenvioEmCurso = false;
+function reenviarPendentes(onDone) {
+  if (!sbEnabled() || !isOnline || reenvioEmCurso) { if (onDone) onDone(0); return; }
   var pendentes = [];
   for (var i = 0; i < reports.length; i++) if (reports[i]._pendingSync) pendentes.push(reports[i].id);
-  if (pendentes.length === 0) return;
+  if (pendentes.length === 0) { if (onDone) onDone(0); return; }
+  reenvioEmCurso = true;
   marcarSyncStatus(true);
-  var idx = 0;
-  function proximo() {
+  var idx = 0, enviados = 0;
+  function proximo(ok) {
+    if (ok) enviados++;
     if (idx >= pendentes.length) {
+      reenvioEmCurso = false;
       marcarSyncStatus(false);
-      toast('Sincronização concluída!', '✓', true);
+      var el = document.getElementById('autosave-st');
+      if (el && /Pendente/.test(el.textContent)) {
+        var atual = null;
+        for (var i = 0; i < reports.length; i++) if (reports[i].id === editId) { atual = reports[i]; break; }
+        if (atual && !atual._pendingSync) setAutoSaveStatus('Salvo ' + horaAgora());
+      }
+      if (onDone) onDone(enviados);
       return;
     }
-    var id = pendentes[idx++];
-    sbUpsertOne(id, proximo);
+    sbUpsertOne(pendentes[idx++], proximo);
   }
-  proximo();
+  proximo(false);
 }
 
 /* ══ BACKUP — EXPORTAR / IMPORTAR JSON ══════════════════════════ */
@@ -2692,7 +2861,9 @@ window.onload = function() {
 
   // Detectar online/offline
   atualizarStatusOnline();
-  window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); } });
+  window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); reenviarPendentes(); } });
+  document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'hidden') flushAutoSave(); });
+  window.addEventListener('pagehide', flushAutoSave);
   window.addEventListener('offline', function() { atualizarStatusOnline(); toast('Sem internet — modo offline', '⚠'); });
 };
 </script>
