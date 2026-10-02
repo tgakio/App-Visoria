@@ -44,6 +44,9 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .hdr{background:var(--white);border-bottom:1px solid var(--bdr);padding:11px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .hdr-ttl{font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hdr-act{display:flex;gap:6px;flex-shrink:0}
+.as-st{display:block;font-size:11px;font-weight:700;color:var(--gray2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-st:empty{display:none}
+.as-st.warn{color:#b45309}
 .btn{border:none;cursor:pointer;border-radius:var(--r);font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:5px;padding:8px 14px;font-family:var(--ft);white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .btn:active{opacity:.75}
 .btn:disabled{opacity:.4;pointer-events:none}
@@ -295,7 +298,7 @@ body.ui-nao-admin .admin-only{display:none !important}
     <div id="pg-editor" class="pg">
       <div class="hdr">
         <button class="btn btn-g" onclick="voltarLista()" style="padding:7px 10px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg></button>
-        <span class="hdr-ttl" id="ed-ttl">Novo Relatório</span>
+        <div style="flex:1;min-width:0"><span class="hdr-ttl" id="ed-ttl" style="display:block">Novo Relatório</span><span class="as-st edit-only" id="autosave-st" role="status" aria-live="polite"></span></div>
         <div class="hdr-act">
           <button class="btn btn-o" onclick="gerarPDF()" style="padding:8px 10px"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> PDF</button>
           <button class="btn btn-r edit-only" onclick="salvarRelatorio()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg> Salvar</button>
@@ -788,7 +791,8 @@ function sbSyncDown(forceRender) {
       for (var i = 0; i < delta.length; i++) {
         var row = delta[i];
         var idx = indicePorId[String(row.id)];
-        if (idx !== undefined) reports[idx] = row.data;
+        /* não sobrescreve um relatório com alterações locais ainda não enviadas */
+        if (idx !== undefined) { if (!reports[idx]._pendingSync) reports[idx] = row.data; }
         else { reports.push(row.data); indicePorId[String(row.id)] = reports.length - 1; }
       }
 
@@ -870,6 +874,20 @@ function sbUploadFoto(dataUrl, path) {
   });
 }
 
+/* ── Cache de uploads: a mesma foto (mesmo data:URL) só vai ao Storage uma vez
+   por sessão, mesmo que o relatório seja salvo várias vezes — essencial para o
+   salvamento automático, senão cada foto nova reenviaria todas as anteriores
+   (e deixaria cópias órfãs no Storage). Guarda a Promise, então dois envios
+   simultâneos da mesma foto também compartilham um único upload. ── */
+var fotoUploadCache = new Map();
+function sbUploadFotoCached(dataUrl, path) {
+  var hit = fotoUploadCache.get(dataUrl);
+  if (hit) return hit;
+  var p = sbUploadFoto(dataUrl, path).catch(function(e) { fotoUploadCache.delete(dataUrl); throw e; });
+  fotoUploadCache.set(dataUrl, p);
+  return p;
+}
+
 /* ── Storage: pede URLs assinadas (temporárias) em lote ── */
 function sbSignedUrlsEmLote(paths, expiraSeg) {
   if (paths.length === 0) return Promise.resolve({});
@@ -892,6 +910,7 @@ function sbSignedUrlsEmLote(paths, expiraSeg) {
 function sbPrepararFotosParaEnvio(report) {
   var clone = JSON.parse(JSON.stringify(report));
   delete clone._pendingSync; /* controle só local — não precisa ir para o banco */
+  delete clone._ver;
   var uploads = [];
   for (var i = 0; i < clone.items.length; i++) {
     var fotos = clone.items[i].fotos || [];
@@ -912,7 +931,7 @@ function sbPrepararFotosParaEnvio(report) {
   function proximo() {
     if (idx >= uploads.length) return clone;
     var u = uploads[idx];
-    return sbUploadFoto(u.dataUrl, u.path).then(function(path) {
+    return sbUploadFotoCached(u.dataUrl, u.path).then(function(path) {
       clone.items[u.ii].fotos[u.fi] = FOTO_PREFIXO + path;
       idx++;
       return proximo();
@@ -971,13 +990,15 @@ function resolverFotosRelatorio(r) {
 }
 
 /* ── Upsert de UM relatório no Supabase (fotos vão para o Storage antes) ──
-   onDone(ok) é chamado ao final (sucesso ou falha) para permitir uma fila. */
-function sbUpsertOne(reportId, onDone) {
+   onDone(ok) é chamado ao final (sucesso ou falha) para permitir uma fila.
+   silent: não mostra toast de erro (usado pelo salvamento automático). */
+function sbUpsertOne(reportId, onDone, silent) {
   var r = null;
   for (var i = 0; i < reports.length; i++) {
     if (reports[i].id === reportId) { r = reports[i]; break; }
   }
   if (!r) { if (onDone) onDone(false); return; }
+  var verInicio = r._ver || 0; /* versão enviada — se mudar durante o envio, continua pendente */
   sbPrepararFotosParaEnvio(r).then(function(slim) {
     return fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
       method: 'POST',
@@ -986,11 +1007,11 @@ function sbUpsertOne(reportId, onDone) {
     });
   }).then(function(r2) {
     if (!r2.ok) return r2.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r2.status)); });
-    r._pendingSync = false;
+    if ((r._ver || 0) === verInicio) r._pendingSync = false;
     persistLocal();
     if (onDone) onDone(true);
   }).catch(function(e) {
-    toast('Relatório salvo neste dispositivo, mas falhou ao enviar para a nuvem: ' + e.message, '⚠');
+    if (!silent) toast('Relatório salvo neste dispositivo, mas falhou ao enviar para a nuvem: ' + e.message, '⚠');
     if (onDone) onDone(false);
   });
 }
@@ -1336,6 +1357,7 @@ function atualizarContador() {
 
 /* ══ NAVEGAÇÃO ═══════════════════════════════════════════════════ */
 function navegar(v) {
+  if (v !== 'editor') flushAutoSave();
   var pages = document.querySelectorAll('.pg');
   for (var i = 0; i < pages.length; i++) pages[i].classList.remove('on');
   var pg = document.getElementById('pg-' + v);
@@ -1662,6 +1684,9 @@ function renderListFull() {
 /* ══ EDITOR ═══════════════════════════════════════════════════════ */
 function novoRelatorio() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
+  flushAutoSave();
+  setAutoSaveStatus('');
+  autoSaveAvisouObra = false;
   editId = null;
   items  = [];
   consid = '';
@@ -1677,6 +1702,9 @@ function novoRelatorio() {
 }
 
 function abrirRelatorio(id) {
+  flushAutoSave();
+  setAutoSaveStatus('');
+  autoSaveAvisouObra = false;
   var r = null;
   for (var i = 0; i < reports.length; i++) if (reports[i].id === id) { r = reports[i]; break; }
   if (!r) return;
@@ -1775,13 +1803,42 @@ function comprimirFotosItems(itemsArr, callback) {
   next();
 }
 
+function lerCapaIntro() {
+  return {
+    cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') },
+    intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }
+  };
+}
+
+/* Grava (cria ou atualiza) o relatório em edição em `reports`, marcando-o como
+   pendente de envio. Compartilhado entre Salvar manual e salvamento automático. */
+function gravarRelatorioAtual(ci, itensArr) {
+  var now = new Date().toLocaleDateString('pt-BR');
+  if (editId) {
+    for (var i = 0; i < reports.length; i++) {
+      if (reports[i].id === editId) {
+        reports[i].cover   = ci.cover;
+        reports[i].intro   = ci.intro;
+        reports[i].items   = JSON.parse(JSON.stringify(itensArr));
+        reports[i].consid  = consid;
+        reports[i].updated = now;
+        reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
+        reports[i]._ver = (reports[i]._ver || 0) + 1;
+        return;
+      }
+    }
+    return; /* relatório em edição não existe mais localmente (ex.: excluído em outro aparelho) — não recria */
+  }
+  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: JSON.parse(JSON.stringify(itensArr)), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
+  reports.unshift(nr);
+  editId = nr.id;
+}
+
 function salvarRelatorio() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   var obra = G('f-obra');
   if (!obra) { toast('Informe o nome da obra', '⚠'); return; }
-  var now   = new Date().toLocaleDateString('pt-BR');
-  var cover = { obra: obra, cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') };
-  var intro = { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') };
+  var ci = lerCapaIntro();
   var snapItems = JSON.parse(JSON.stringify(items));
 
   /* Salvar btn feedback */
@@ -1798,23 +1855,7 @@ function salvarRelatorio() {
       }
     }
 
-    if (editId) {
-      for (var i = 0; i < reports.length; i++) {
-        if (reports[i].id === editId) {
-          reports[i].cover   = cover;
-          reports[i].intro   = intro;
-          reports[i].items   = JSON.parse(JSON.stringify(comprimidos));
-          reports[i].consid  = consid;
-          reports[i].updated = now;
-          reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
-          break;
-        }
-      }
-    } else {
-      var nr = { id: Date.now(), cover: cover, intro: intro, items: JSON.parse(JSON.stringify(comprimidos)), consid: consid, created: now, updated: now, _pendingSync: true };
-      reports.unshift(nr);
-      editId = nr.id;
-    }
+    gravarRelatorioAtual(ci, comprimidos);
 
     saveData(editId);
     toast('Relatório salvo com imagens comprimidas!', 'o', true);
@@ -1829,6 +1870,76 @@ function salvarRelatorio() {
     /* Atualizar miniaturas na tela após compressão */
     renderApts();
   });
+}
+
+/* ══ SALVAMENTO AUTOMÁTICO ═════════════════════════════════════════
+   Disparado depois de anexar fotos (com uma pequena pausa para agrupar
+   várias fotos de uma vez). A parte local (gravar em `reports` +
+   localStorage) é sempre síncrona — assim nunca perde dado se o usuário
+   navegar logo em seguida. O envio à nuvem é assíncrono, silencioso e
+   serializado (um upsert por vez; pedidos feitos durante o envio entram
+   numa fila e reenviam o estado local mais recente ao terminar). Sem rede,
+   o relatório fica marcado como pendente e é reenviado ao reconectar. */
+var AUTOSAVE_DELAY = 1500;
+var autoSaveTimer = null;
+var autoSaveEmCurso = false;
+var autoSaveFila = {};
+var autoSaveAvisouObra = false;
+
+function setAutoSaveStatus(txt, aviso) {
+  var el = document.getElementById('autosave-st');
+  if (!el) return;
+  el.textContent = txt || '';
+  el.className = 'as-st edit-only' + (aviso ? ' warn' : '');
+}
+
+function horaAgora() {
+  var d = new Date();
+  return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+}
+
+function agendarAutoSave() {
+  if (!podeEditar()) return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(autoSalvarRelatorio, AUTOSAVE_DELAY);
+}
+
+/* Executa já um salvamento automático que esteja agendado (antes de trocar
+   de tela/relatório ou quando a página vai para segundo plano). */
+function flushAutoSave() {
+  if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSalvarRelatorio(); }
+}
+
+function autoSalvarRelatorio() {
+  autoSaveTimer = null;
+  if (!podeEditar()) return;
+  if (!G('f-obra')) {
+    setAutoSaveStatus('Informe a obra', true);
+    if (!autoSaveAvisouObra) { autoSaveAvisouObra = true; toast('Informe o nome da obra na Capa para ativar o salvamento automático', '⚠'); }
+    return;
+  }
+  gravarRelatorioAtual(lerCapaIntro(), items);
+  persistLocal();
+  atualizarContador();
+  enviarNuvemAuto(editId);
+}
+
+function enviarNuvemAuto(id) {
+  if (!sbEnabled()) { setAutoSaveStatus('Salvo ' + horaAgora()); return; }
+  if (!isOnline) { setAutoSaveStatus('Pendente (offline)', true); return; }
+  if (autoSaveEmCurso) { autoSaveFila[id] = true; return; }
+  autoSaveEmCurso = true;
+  setAutoSaveStatus('Salvando…');
+  sbUpsertOne(id, function(ok) {
+    autoSaveEmCurso = false;
+    if (ok) setAutoSaveStatus('Salvo ' + horaAgora());
+    else setAutoSaveStatus('Pendente de envio', true);
+    for (var k in autoSaveFila) {
+      delete autoSaveFila[k];
+      enviarNuvemAuto(isNaN(+k) ? k : +k);
+      break;
+    }
+  }, true);
 }
 
 /* ══ APONTAMENTOS ══════════════════════════════════════════════════ */
@@ -1884,9 +1995,14 @@ function criarInputFoto(id, cap) {
       (function(file) {
         var reader = new FileReader();
         reader.onload = function(ev) {
-          for (var j = 0; j < items.length; j++) {
-            if (items[j].id === id) { items[j].fotos.push(ev.target.result); atualizarFotos(id); break; }
-          }
+          /* comprime já ao anexar (mantém o relatório leve para salvar/enviar) */
+          var bruta = ev.target.result;
+          var comprimir = (typeof bruta === 'string' && bruta.length > 409600) ? comprimirImagem : function(u, m, cb) { cb(u); };
+          comprimir(bruta, 409600, function(foto) {
+            for (var j = 0; j < items.length; j++) {
+              if (items[j].id === id) { items[j].fotos.push(foto); atualizarFotos(id); agendarAutoSave(); break; }
+            }
+          });
         };
         reader.readAsDataURL(file);
       })(files[i]);
@@ -2547,27 +2663,44 @@ function sincronizarManual() {
   lastSyncTime = 0;
   sbSyncDown(true);
 
-  /* Reenvia só os relatórios com alterações locais ainda não confirmadas na
-     nuvem, um de cada vez. Antes isso reenviava TODOS os relatórios locais
-     em paralelo e sem limite a cada clique — mesmo os que não mudaram — o
-     que podia disparar dezenas/centenas de requisições simultâneas.
-     O progresso é mostrado pelo badge/botão (indicador persistente), não
-     por uma sequência de toasts que se cortam antes de dar tempo de ler. */
+  reenviarPendentes(function(enviados) {
+    if (enviados > 0) toast('Sincronização concluída!', '✓', true);
+  });
+}
+
+/* Reenvia só os relatórios com alterações locais ainda não confirmadas na
+   nuvem, um de cada vez. Antes isso reenviava TODOS os relatórios locais
+   em paralelo e sem limite a cada clique — mesmo os que não mudaram — o
+   que podia disparar dezenas/centenas de requisições simultâneas.
+   O progresso é mostrado pelo badge/botão (indicador persistente), não
+   por uma sequência de toasts que se cortam antes de dar tempo de ler.
+   Também é chamado ao reconectar, para enviar o que foi salvo offline. */
+var reenvioEmCurso = false;
+function reenviarPendentes(onDone) {
+  if (!sbEnabled() || !isOnline || reenvioEmCurso) { if (onDone) onDone(0); return; }
   var pendentes = [];
   for (var i = 0; i < reports.length; i++) if (reports[i]._pendingSync) pendentes.push(reports[i].id);
-  if (pendentes.length === 0) return;
+  if (pendentes.length === 0) { if (onDone) onDone(0); return; }
+  reenvioEmCurso = true;
   marcarSyncStatus(true);
-  var idx = 0;
-  function proximo() {
+  var idx = 0, enviados = 0;
+  function proximo(ok) {
+    if (ok) enviados++;
     if (idx >= pendentes.length) {
+      reenvioEmCurso = false;
       marcarSyncStatus(false);
-      toast('Sincronização concluída!', '✓', true);
+      var el = document.getElementById('autosave-st');
+      if (el && /Pendente/.test(el.textContent)) {
+        var atual = null;
+        for (var i = 0; i < reports.length; i++) if (reports[i].id === editId) { atual = reports[i]; break; }
+        if (atual && !atual._pendingSync) setAutoSaveStatus('Salvo ' + horaAgora());
+      }
+      if (onDone) onDone(enviados);
       return;
     }
-    var id = pendentes[idx++];
-    sbUpsertOne(id, proximo);
+    sbUpsertOne(pendentes[idx++], proximo);
   }
-  proximo();
+  proximo(false);
 }
 
 /* ══ BACKUP — EXPORTAR / IMPORTAR JSON ══════════════════════════ */
@@ -2728,7 +2861,9 @@ window.onload = function() {
 
   // Detectar online/offline
   atualizarStatusOnline();
-  window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); } });
+  window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); reenviarPendentes(); } });
+  document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'hidden') flushAutoSave(); });
+  window.addEventListener('pagehide', flushAutoSave);
   window.addEventListener('offline', function() { atualizarStatusOnline(); toast('Sem internet — modo offline', '⚠'); });
 };
 </script>
