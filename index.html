@@ -145,6 +145,8 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .apt-body{padding:14px}
 .photos{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .ph{width:76px;height:76px;object-fit:cover;border-radius:6px;border:1px solid var(--bdr);cursor:pointer}
+.ph-loading,.ph-off{display:grid;place-items:center;background:var(--bg);cursor:default;color:var(--gray3)}
+.ph-off{font-size:10px;font-weight:600;text-align:center;line-height:1.2;padding:4px;color:var(--gray)}
 .ph-add{width:76px;height:76px;border:2px dashed var(--bdr2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--gray);-webkit-tap-highlight-color:transparent;font-size:20px;gap:2px}
 .ph-add:active{border-color:var(--red);color:var(--red)}
 .ph-sm{width:76px;height:36px;font-size:16px}
@@ -697,6 +699,10 @@ function authLogout() {
 function loadData() {
   try { apiKey = localStorage.getItem('roc_k') || ''; } catch(e) {}
   try { reports = JSON.parse(localStorage.getItem(SK)) || []; } catch(e) { reports = []; }
+  /* Limpa URLs assinadas antigas que versões anteriores deixaram gravadas
+     no relatório local (expiram e causavam fotos quebradas): volta tudo
+     para a referência estável; a URL de exibição é regerada ao abrir. */
+  for (var i = 0; i < reports.length; i++) canonizarFotosItens(reports[i].items || []);
   if (sbEnabled()) sbSyncDown(true);
 }
 
@@ -845,22 +851,72 @@ function sbUploadFoto(dataUrl, path) {
   });
 }
 
-/* ── Storage: pede URLs assinadas (temporárias) em lote ── */
-function sbSignedUrlsEmLote(paths, expiraSeg) {
-  if (paths.length === 0) return Promise.resolve({});
-  return fetch(SB_URL + '/storage/v1/object/sign/' + SB_BUCKET, {
-    method: 'POST', headers: sbHeaders(),
-    body: JSON.stringify({ expiresIn: expiraSeg || 604800, paths: paths })
-  }).then(function(r) { return r.json(); })
-    .then(function(arr) {
-      var map = {};
-      if (Array.isArray(arr)) {
-        for (var i = 0; i < arr.length; i++) {
-          if (arr[i].signedURL) map[arr[i].path] = SB_URL + '/storage/v1' + arr[i].signedURL;
+/* ── Fotos no Storage: URLs assinadas ────────────────────────────────
+   O bucket é privado, então toda foto precisa de uma URL assinada que
+   EXPIRA. Antes, a URL assinada era gravada dentro do relatório local (e
+   no localStorage) e nunca mais renovada: passados 7 dias, as fotos de
+   relatórios que ninguém editou deixavam de carregar — e o app nem
+   tentava de novo, porque só reconhecia referências "sbfoto:", não URLs
+   assinadas antigas. Agora:
+   - a referência estável no relatório é sempre o caminho no Storage
+     ("sbfoto:...");
+   - a URL assinada só existe numa cópia de trabalho (editor/PDF) e num
+     cache em memória com validade curta;
+   - toda foto do nosso Storage (referência OU URL assinada antiga que
+     ficou salva) é re-assinada ao abrir o relatório ou gerar o PDF. ── */
+var FOTO_URL_TTL_SEG = 86400;            /* validade pedida ao Storage (1 dia) */
+var FOTO_CACHE_MS = 20 * 3600 * 1000;    /* reaproveita a URL na sessão por 20h */
+var fotoUrlCache = {};                   /* caminho no Storage -> {url, ate} */
+
+/* Caminho no Storage se o valor é uma referência "sbfoto:" ou uma URL
+   assinada/pública do nosso bucket; null para base64, outros links etc. */
+function refDeFoto(val) {
+  if (typeof val !== 'string') return null;
+  if (val.indexOf(FOTO_PREFIXO) === 0) return val.slice(FOTO_PREFIXO.length);
+  if (SB_URL && val.indexOf(SB_URL) === 0) {
+    var m = /\/object\/(?:sign|public)\/[^/]+\/([^?]+)/.exec(val);
+    if (m) return decodeURIComponent(m[1]);
+  }
+  return null;
+}
+
+function fotoUrlValida(path, val) {
+  var c = fotoUrlCache[path];
+  return !!(c && c.ate > Date.now() && c.url === val);
+}
+
+/* ── Storage: pede URLs assinadas em lotes e guarda no cache. Se a sessão
+   tiver expirado (token vencido), renova e tenta de novo uma vez em vez de
+   falhar em silêncio. ── */
+function sbSignedUrlsEmLote(paths) {
+  if (paths.length === 0) return Promise.resolve();
+  var lotes = [];
+  for (var i = 0; i < paths.length; i += 100) lotes.push(paths.slice(i, i + 100));
+
+  function assinarLote(lote, jaRenovou) {
+    return fetch(SB_URL + '/storage/v1/object/sign/' + SB_BUCKET, {
+      method: 'POST', headers: sbHeaders(),
+      body: JSON.stringify({ expiresIn: FOTO_URL_TTL_SEG, paths: lote })
+    }).then(function(r) {
+      if ((r.status === 400 || r.status === 401 || r.status === 403) && !jaRenovou) {
+        return sbRefreshSessao().then(function(ok) { return ok ? assinarLote(lote, true) : null; });
+      }
+      return r.ok ? r.json() : null;
+    }).then(function(arr) {
+      if (!Array.isArray(arr)) return;
+      for (var k = 0; k < arr.length; k++) {
+        if (arr[k].signedURL) {
+          fotoUrlCache[arr[k].path] = { url: SB_URL + '/storage/v1' + arr[k].signedURL, ate: Date.now() + FOTO_CACHE_MS };
         }
       }
-      return map;
-    }).catch(function() { return {}; });
+    }).catch(function() { /* rede indisponível: as fotos ficam sem URL e o chamador avisa */ });
+  }
+
+  return sbSessaoOk().then(function() {
+    var seq = Promise.resolve();
+    lotes.forEach(function(lote) { seq = seq.then(function() { return assinarLote(lote, false); }); });
+    return seq;
+  });
 }
 
 /* ── Antes de enviar um relatório: troca fotos base64 por upload no Storage ── */
@@ -896,52 +952,101 @@ function sbPrepararFotosParaEnvio(report) {
   return proximo();
 }
 
-/* ── Ao baixar: troca referências sbfoto: por URLs assinadas para exibir ── */
-function sbResolverFotos(reportsArr) {
-  var refs = [];
-  for (var i = 0; i < reportsArr.length; i++) {
-    var itens = reportsArr[i].items || [];
-    for (var j = 0; j < itens.length; j++) {
-      var fotos = itens[j].fotos || [];
-      for (var k = 0; k < fotos.length; k++) {
-        if (typeof fotos[k] === 'string' && fotos[k].indexOf(FOTO_PREFIXO) === 0) {
-          refs.push({ ri: i, ii: j, fi: k, path: fotos[k].slice(FOTO_PREFIXO.length) });
-        }
-      }
-    }
-  }
-  if (refs.length === 0) return Promise.resolve(reportsArr);
-  var paths = refs.map(function(r) { return r.path; });
-  return sbSignedUrlsEmLote(paths, 604800).then(function(map) {
-    for (var i = 0; i < refs.length; i++) {
-      var ref = refs[i];
-      if (map[ref.path]) reportsArr[ref.ri].items[ref.ii].fotos[ref.fi] = map[ref.path];
-    }
-    return reportsArr;
-  });
-}
-
-/* ── Verifica se um relatório ainda tem referências "sbfoto:" (foto no Storage
-   que nunca foi assinada nesta sessão) ── */
-function temFotoNaoResolvida(r) {
-  var itens = (r && r.items) || [];
+/* ── Volta qualquer foto do nosso Storage (URL assinada antiga ou referência)
+   para a referência estável "sbfoto:caminho", no próprio array. Usado antes
+   de guardar relatórios localmente, para nunca persistir uma URL que expira. ── */
+function canonizarFotosItens(itens) {
   for (var i = 0; i < itens.length; i++) {
     var fotos = itens[i].fotos || [];
     for (var j = 0; j < fotos.length; j++) {
-      if (typeof fotos[j] === 'string' && fotos[j].indexOf(FOTO_PREFIXO) === 0) return true;
+      var p = refDeFoto(fotos[j]);
+      if (p) fotos[j] = FOTO_PREFIXO + p;
+    }
+  }
+  return itens;
+}
+
+/* ── Alguma foto deste objeto (com .items) ainda não tem URL de exibição
+   válida nesta sessão? Vale para referência "sbfoto:" e também para URL
+   assinada que sobrou salva de uma sessão anterior (possivelmente vencida). ── */
+function precisaResolverFotos(obj) {
+  if (!sbEnabled()) return false;
+  var itens = (obj && obj.items) || [];
+  for (var i = 0; i < itens.length; i++) {
+    var fotos = itens[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      var p = refDeFoto(fotos[j]);
+      if (p && !fotoUrlValida(p, fotos[j])) return true;
     }
   }
   return false;
 }
 
-/* ── Resolve as fotos de UM relatório sob demanda (ao abrir/gerar PDF), em vez
-   de assinar as fotos de TODOS os relatórios a cada sincronização — antes
-   sbSyncDown chamava sbResolverFotos sobre a base inteira sempre. ── */
-function resolverFotosRelatorio(r) {
-  if (!sbEnabled() || !temFotoNaoResolvida(r)) return Promise.resolve(false);
-  return sbResolverFotos([r]).then(function() {
-    persistLocal();
-    return true;
+/* ── Preenche, NA CÓPIA recebida (editor ou cópia do PDF), a URL de exibição
+   atual de cada foto do Storage. Nunca grava nada no relatório salvo.
+   Resolve true se alguma foto foi atualizada. ── */
+function resolverFotosEmObjeto(obj) {
+  if (!sbEnabled()) return Promise.resolve(false);
+  var itens = (obj && obj.items) || [];
+  var refs = [], faltam = [], vistos = {}, agora = Date.now();
+  for (var i = 0; i < itens.length; i++) {
+    var fotos = itens[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      var p = refDeFoto(fotos[j]);
+      if (!p || fotoUrlValida(p, fotos[j])) continue;
+      refs.push({ ii: i, fi: j, path: p });
+      var c = fotoUrlCache[p];
+      if (!(c && c.ate > agora) && !vistos[p]) { vistos[p] = true; faltam.push(p); }
+    }
+  }
+  if (refs.length === 0) return Promise.resolve(false);
+  fotosResolvendo++;
+  return sbSignedUrlsEmLote(faltam).then(function() {
+    fotosResolvendo--;
+    var mudou = false, falhas = 0, agora2 = Date.now();
+    for (var k = 0; k < refs.length; k++) {
+      var c2 = fotoUrlCache[refs[k].path];
+      if (c2 && c2.ate > agora2) { itens[refs[k].ii].fotos[refs[k].fi] = c2.url; mudou = true; }
+      else falhas++;
+    }
+    if (falhas > 0) toast(falhas + (falhas === 1 ? ' foto não pôde ser carregada' : ' fotos não puderam ser carregadas') + ' — verifique a conexão e abra o relatório novamente.', '⚠');
+    return mudou;
+  });
+}
+
+/* ── <img> de uma foto do apontamento. Referência ainda não resolvida vira um
+   quadro "carregando" (em vez de imagem quebrada). Se a URL falhar (vencida
+   dentro da sessão, rede), fotoFalhou() renova uma vez e depois avisa. ── */
+var fotosResolvendo = 0; /* assinaturas em andamento: enquanto > 0, referência sem URL = "carregando" */
+function fotoImgHtml(aptId, idx, src) {
+  if (typeof src === 'string' && src.indexOf(FOTO_PREFIXO) === 0) {
+    return fotosResolvendo > 0
+      ? '<div class="ph ph-loading" title="Carregando foto…"><span class="spinner"></span></div>'
+      : '<div class="ph ph-off" title="Não foi possível carregar esta foto">Foto indisponível</div>';
+  }
+  return '<img src="' + src + '" class="ph" data-apt="' + aptId + '" data-idx="' + idx + '" onclick="ampliarFoto(' + aptId + ',' + idx + ')" onerror="fotoFalhou(this)" title="Toque para ampliar"/>';
+}
+
+function fotoIndisponivel(img) {
+  var d = document.createElement('div');
+  d.className = 'ph ph-off';
+  d.title = 'Não foi possível carregar esta foto';
+  d.textContent = 'Foto indisponível';
+  if (img.parentNode) img.parentNode.replaceChild(d, img);
+}
+
+function fotoFalhou(img) {
+  if (img.dataset.tentou) { fotoIndisponivel(img); return; }
+  img.dataset.tentou = '1';
+  var aptId = Number(img.dataset.apt), idx = Number(img.dataset.idx), apt = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === aptId) { apt = items[i]; break; }
+  var p = apt ? refDeFoto(apt.fotos[idx]) : null;
+  if (!p || !sbEnabled()) { fotoIndisponivel(img); return; }
+  delete fotoUrlCache[p];
+  sbSignedUrlsEmLote([p]).then(function() {
+    var c = fotoUrlCache[p];
+    if (c) { apt.fotos[idx] = c.url; img.src = c.url; }
+    else fotoIndisponivel(img);
   });
 }
 
@@ -1667,15 +1772,20 @@ function abrirRelatorio(id) {
      assinatura chegar — resolvendo só as fotos DESTE relatório, não das
      de todos os outros como acontecia antes a cada sincronização. */
   items = JSON.parse(JSON.stringify(r.items || []));
+  /* A URL de exibição é preenchida só nesta cópia de trabalho (items); o
+     relatório salvo em `reports` continua só com referências estáveis.
+     A resolução é disparada ANTES do primeiro desenho para as fotos
+     aparecerem como "carregando" (e não como indisponíveis). */
+  var copiaEditor = { items: items };
+  var resolvendo = precisaResolverFotos(copiaEditor) ? resolverFotosEmObjeto(copiaEditor) : null;
   renderApts();
   atualizarSumStats();
   aplicarModoEdicaoEditor();
-  if (temFotoNaoResolvida(r)) {
-    resolverFotosRelatorio(r).then(function(atualizou) {
-      if (atualizou && editId === id) {
-        items = JSON.parse(JSON.stringify(r.items || []));
-        renderApts();
-      }
+  if (resolvendo) {
+    resolvendo.then(function() {
+      if (editId !== id) return;
+      /* só a área de fotos de cada apontamento — não redesenha os campos */
+      for (var i = 0; i < items.length; i++) atualizarFotos(items[i].id);
     });
   }
 }
@@ -1767,7 +1877,7 @@ function salvarRelatorio() {
         if (reports[i].id === editId) {
           reports[i].cover   = cover;
           reports[i].intro   = intro;
-          reports[i].items   = JSON.parse(JSON.stringify(comprimidos));
+          reports[i].items   = canonizarFotosItens(JSON.parse(JSON.stringify(comprimidos)));
           reports[i].consid  = consid;
           reports[i].updated = now;
           reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
@@ -1775,7 +1885,7 @@ function salvarRelatorio() {
         }
       }
     } else {
-      var nr = { id: Date.now(), cover: cover, intro: intro, items: JSON.parse(JSON.stringify(comprimidos)), consid: consid, created: now, updated: now, _pendingSync: true };
+      var nr = { id: Date.now(), cover: cover, intro: intro, items: canonizarFotosItens(JSON.parse(JSON.stringify(comprimidos))), consid: consid, created: now, updated: now, _pendingSync: true };
       reports.unshift(nr);
       editId = nr.id;
     }
@@ -1930,7 +2040,7 @@ function atualizarFotos(id) {
   if (!c) return;
   var h = '';
   for (var i = 0; i < apt.fotos.length; i++) {
-    h += '<img src="' + apt.fotos[i] + '" class="ph" onclick="ampliarFoto(' + id + ',' + i + ')" title="Toque para ampliar"/>';
+    h += fotoImgHtml(id, i, apt.fotos[i]);
   }
   h += '<div class="edit-only" style="display:flex;flex-direction:column;gap:5px">'
     + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
@@ -1971,7 +2081,7 @@ function renderApts() {
     for (var ci = 0; ci < CATS.length; ci++) catOptsH += '<option value="' + CATS[ci] + '"' + (CATS[ci] === a.categoria ? ' selected' : '') + '>' + CATS[ci] + '</option>';
 
     var fotosH = '';
-    for (var fi = 0; fi < a.fotos.length; fi++) fotosH += '<img src="' + a.fotos[fi] + '" class="ph" onclick="ampliarFoto(' + a.id + ',' + fi + ')" title="Toque para ampliar"/>';
+    for (var fi = 0; fi < a.fotos.length; fi++) fotosH += fotoImgHtml(a.id, fi, a.fotos[fi]);
 
     html += '<div class="apt" id="apt-' + a.id + '">'
       + '<div class="apt-hdr">'
@@ -2246,20 +2356,22 @@ function gerarPDFById(id) {
   }
   if (!r) return;
 
+  /* Deep copy para não alterar os dados originais — as URLs de exibição das
+     fotos são preenchidas só nesta cópia. */
+  var rCopy = JSON.parse(JSON.stringify(r));
+
   function continuarComPdf() {
-    /* Deep copy para não alterar os dados originais */
-    var rCopy = JSON.parse(JSON.stringify(r));
     toast('Gerando PDF...', 'o', true);
     comprimirFotosRelatorio(rCopy, function(rComprimido) {
       imprimirRelatorio(rComprimido);
     });
   }
 
-  /* Garante que as fotos deste relatório têm URL assinada antes de
+  /* Garante que as fotos têm URL de exibição válida antes de
      comprimir/imprimir — senão a foto sai quebrada no PDF. */
-  if (temFotoNaoResolvida(r)) {
+  if (precisaResolverFotos(rCopy)) {
     toast('Carregando fotos...', 'o');
-    resolverFotosRelatorio(r).then(continuarComPdf);
+    resolverFotosEmObjeto(rCopy).then(continuarComPdf);
   } else {
     continuarComPdf();
   }
