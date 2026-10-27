@@ -202,7 +202,7 @@ body.ui-nao-admin .admin-only{display:none !important}
 .md-btns{display:flex;gap:8px}
 /* Bottom nav */
 .bnav{display:none;background:var(--white);border-top:1px solid var(--bdr);padding:6px 0 calc(6px + var(--sbot));position:fixed;bottom:0;left:0;right:0;z-index:20;justify-content:space-around}
-.bn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;cursor:pointer;border:none;background:none;color:var(--gray);font-size:9px;font-weight:700;font-family:var(--ft);-webkit-tap-highlight-color:transparent;min-width:56px;text-transform:uppercase;letter-spacing:.5px}
+.bn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;cursor:pointer;border:none;background:none;color:var(--gray);font-size:9px;font-weight:700;font-family:var(--ft);-webkit-tap-highlight-color:transparent;flex:1 1 0;min-width:0;text-transform:uppercase;letter-spacing:.3px}
 .bn-btn.on{color:var(--red)}
 .bn-ico{font-size:22px;line-height:1}
 .fab{position:fixed;bottom:calc(66px + var(--sbot));right:16px;width:52px;height:52px;border-radius:26px;background:var(--red);color:var(--white);border:none;font-size:28px;line-height:1;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(192,47,52,.4);z-index:19;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -258,6 +258,10 @@ body.ui-nao-admin .admin-only{display:none !important}
       <button class="sb-btn admin-only" onclick="abrirAcessos()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Acessos e Perfis
+      </button>
+      <button class="sb-btn admin-only" onclick="abrirDisciplinas()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Disciplinas
       </button>
       <button class="sb-btn" id="sb-sync-btn" onclick="sincronizarManual()">
         <span id="sb-sync-ico"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></span>
@@ -409,6 +413,7 @@ body.ui-nao-admin .admin-only{display:none !important}
     <button class="bn-btn" id="bn-obras" onclick="navegar('obras')"><span class="bn-ico">🏗️</span>Obras</button>
     <button class="bn-btn" id="bn-list" onclick="navegar('list')"><span class="bn-ico">📂</span>Relatórios</button>
     <button class="bn-btn" id="bn-config" onclick="abrirChave()"><span class="bn-ico">⚙️</span>Config</button>
+    <button class="bn-btn admin-only" id="bn-admin" onclick="abrirMenuAdmin()"><span class="bn-ico">🛡️</span>Admin</button>
     <button class="bn-btn" onclick="abrirConfigSb()"><span class="bn-ico">☁️</span>Nuvem</button>
     <button class="bn-btn" onclick="abrirBackup()"><span class="bn-ico">💾</span>Backup</button>
   </nav>
@@ -536,7 +541,71 @@ var CRITS = {
   high:     {l:'Alta',     cls:'c-high'},
   critical: {l:'Crítica',  cls:'c-critical'}
 };
-var CATS = ['Civil','Estrutura','Fundações','Elétrica','Hidráulica','Impermeabilização','Acabamentos','Fachada','Segurança','Climatização','Outros'];
+/* ══ DISCIPLINAS ═══════════════════════════════════════════════════
+   Lista do campo "Disciplina" dos apontamentos, mantida pelo
+   administrador (tabela public.disciplinas no Supabase). Disciplina
+   nunca é apagada, só desativada: as desativadas somem da escolha para
+   apontamentos novos, mas continuam valendo nos relatórios já salvos
+   (o apontamento guarda o nome em texto). Sem nuvem (modo local), a
+   lista fica só no localStorage. */
+var SK_DISC = 'roc_disc';
+var DISCIPLINAS_PADRAO = ['Fundação e contenção','Estrutura de concreto','Prumada','Alvenaria','Instalações elétricas','Contramarco','Esquadria de ferro','Contrapiso','Distribuição hidráulica','Revestimento em argamassa','Revestimento de gesso','Drywall','Outras instalações','Impermeabilização argamassa polimérica','Impermeabilização manta asfáltica','Revestimento cerâmico','Forro de gesso','Pintura interna','Bancada','Esquadrias de alumínio','Esquadria de madeira','Louças e metais','Revestimento vinílico e laminado','Piscina','Fachada','Marcenaria','Coberturas','Shafts e escadaria','Áreas técnicas','Área comum - residencial','Garagem e piso sobre terra'];
+var DISCIPLINAS_LEGADO = ['Civil','Estrutura','Fundações','Elétrica','Hidráulica','Impermeabilização','Acabamentos','Segurança','Climatização','Outros'];
+var disciplinas = disciplinasPadrao(); /* [{id, nome, ativo, ordem}] — substituída pela da nuvem/cache ao carregar */
+
+function disciplinasPadrao() {
+  var lista = [], n = 0;
+  DISCIPLINAS_PADRAO.forEach(function(nm) { lista.push({ id: 'l' + (++n), nome: nm, ativo: true, ordem: n }); });
+  DISCIPLINAS_LEGADO.forEach(function(nm) { lista.push({ id: 'l' + (++n), nome: nm, ativo: false, ordem: 100 + n }); });
+  return lista;
+}
+
+/* Cache local primeiro (abre sem esperar a rede), nuvem em seguida */
+function carregarDisciplinas() {
+  try { disciplinas = JSON.parse(localStorage.getItem(SK_DISC)) || []; } catch(e) { disciplinas = []; }
+  if (!disciplinas.length) disciplinas = disciplinasPadrao();
+  if (!sbEnabled()) return Promise.resolve();
+  return fetch(SB_URL + '/rest/v1/disciplinas?select=id,nome,ativo,ordem&order=ordem.asc,nome.asc', { headers: sbHeaders() })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!Array.isArray(data) || !data.length) return;
+      disciplinas = data;
+      try { localStorage.setItem(SK_DISC, JSON.stringify(disciplinas)); } catch(e) {}
+      /* se a aba Vistoria já estiver desenhada, atualiza as opções */
+      if (document.getElementById('pg-editor') && document.getElementById('pg-editor').classList.contains('on')) renderApts();
+    })
+    .catch(function() { /* sem rede: segue com o cache local */ });
+}
+
+function salvarDisciplinasLocal() {
+  try { localStorage.setItem(SK_DISC, JSON.stringify(disciplinas)); } catch(e) {}
+}
+
+/* Opções do <select> de disciplina: só as ativas. Se o apontamento já tem
+   uma disciplina desativada (ou fora da lista), ela continua aparecendo
+   selecionada, marcada como "(desativada)", para não perder a informação. */
+function opcoesDisciplina(atual) {
+  var ativas = disciplinas.filter(function(d) { return d.ativo; })
+    .sort(function(a, b) { return (a.ordem - b.ordem) || a.nome.localeCompare(b.nome); });
+  var h = '<option value=""' + (!atual ? ' selected' : '') + '>Selecione…</option>';
+  var achou = false;
+  ativas.forEach(function(d) {
+    var sel = d.nome === atual;
+    if (sel) achou = true;
+    h += '<option value="' + escH(d.nome) + '"' + (sel ? ' selected' : '') + '>' + escH(d.nome) + '</option>';
+  });
+  if (atual && !achou) h += '<option value="' + escH(atual) + '" selected>' + escH(atual) + ' (desativada)</option>';
+  return h;
+}
+
+/* Nome digitado todo em MAIÚSCULAS vira "Maiúscula só na primeira letra"
+   (padrão da lista); texto já misturado é respeitado como veio. */
+function normalizarNomeDisciplina(txt) {
+  var s = (txt || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  if (s === s.toUpperCase() && s !== s.toLowerCase()) s = s.toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 /* ══ STORAGE — Local + Supabase ════════════════════════════════ */
 
@@ -703,6 +772,7 @@ function loadData() {
      no relatório local (expiram e causavam fotos quebradas): volta tudo
      para a referência estável; a URL de exibição é regerada ao abrir. */
   for (var i = 0; i < reports.length; i++) canonizarFotosItens(reports[i].items || []);
+  carregarDisciplinas();
   if (sbEnabled()) sbSyncDown(true);
 }
 
@@ -1295,6 +1365,138 @@ function resetarSenha(email) {
     if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j.error_description || j.msg || j.message) || 'Falha ao enviar e-mail'); });
     toast('E-mail de redefinição enviado para ' + email, 'o', true);
   }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+/* ══ ADMIN: MENU E DISCIPLINAS ════════════════════════════════════ */
+/* No celular a barra lateral não aparece; este menu dá acesso às telas de
+   administração a partir do botão "Admin" da barra inferior. */
+function abrirMenuAdmin() {
+  if (!ehAdmin()) { toast('Só administradores acessam esta área', '⚠'); return; }
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Administração</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">'
+    + (sbEnabled() ? '<button class="btn btn-o" style="padding:14px;font-size:14px;justify-content:center" onclick="fecharModal();abrirAcessos()">Acessos e Perfis</button>' : '')
+    + '<button class="btn btn-o" style="padding:14px;font-size:14px;justify-content:center" onclick="fecharModal();abrirDisciplinas()">Disciplinas</button>'
+    + '<button class="btn btn-o" style="padding:12px;font-size:13px;justify-content:center" onclick="fecharModal()">Fechar</button>'
+    + '</div>';
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function abrirDisciplinas() {
+  if (!ehAdmin()) { toast('Só administradores gerenciam as disciplinas', '⚠'); return; }
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Disciplinas</div>'
+    + '<p class="md-txt">Lista do campo <strong>Disciplina</strong> dos apontamentos (aba Vistoria). Disciplinas <strong>desativadas</strong> deixam de aparecer para apontamentos novos, mas continuam nos relatórios já salvos. Ao renomear, os relatórios antigos mantêm o nome anterior.</p>'
+    + '<div id="disc-lista" style="max-height:42vh;overflow-y:auto;margin-bottom:12px"></div>'
+    + '<input class="md-inp" id="disc-nova" placeholder="Nova disciplina" onkeydown="if(event.key===\'Enter\')adicionarDisciplina()"/>'
+    + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="adicionarDisciplina()">Adicionar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Fechar</button></div>';
+  document.getElementById('modal').style.display = 'flex';
+  renderListaDisciplinas();
+  carregarDisciplinas().then(renderListaDisciplinas); /* garante a versão mais recente da nuvem */
+}
+
+function renderListaDisciplinas() {
+  var el = document.getElementById('disc-lista');
+  if (!el) return;
+  var porOrdem = function(a, b) { return (a.ordem - b.ordem) || a.nome.localeCompare(b.nome); };
+  var ativas = disciplinas.filter(function(d) { return d.ativo; }).sort(porOrdem);
+  var inativas = disciplinas.filter(function(d) { return !d.ativo; }).sort(porOrdem);
+  function linha(d) {
+    var idAttr = String(d.id).replace(/'/g, "\\'");
+    return '<div style="display:flex;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      + '<input class="md-inp" style="margin:0;flex:1;padding:8px 10px;font-size:14px;' + (d.ativo ? '' : 'opacity:.55;') + '" value="' + escH(d.nome) + '" onchange="renomearDisciplina(\'' + idAttr + '\',this)"/>'
+      + '<button class="btn btn-g" style="font-size:11px;padding:4px 8px;' + (d.ativo ? 'color:var(--red)' : 'color:#16a34a') + '" onclick="alternarDisciplina(\'' + idAttr + '\')">' + (d.ativo ? 'Desativar' : 'Ativar') + '</button>'
+      + '</div>';
+  }
+  var h = '<div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin:2px 0 4px">Ativas (' + ativas.length + ')</div>'
+    + (ativas.length ? ativas.map(linha).join('') : '<div class="md-note">Nenhuma disciplina ativa.</div>');
+  if (inativas.length) {
+    h += '<div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 4px">Desativadas (' + inativas.length + ')</div>'
+      + inativas.map(linha).join('');
+  }
+  el.innerHTML = h;
+}
+
+function acharDisciplina(id) {
+  for (var i = 0; i < disciplinas.length; i++) if (String(disciplinas[i].id) === String(id)) return disciplinas[i];
+  return null;
+}
+
+function disciplinaDuplicada(nome, ignorarId) {
+  var n = nome.toLowerCase();
+  return disciplinas.some(function(d) { return d.nome.toLowerCase() === n && String(d.id) !== String(ignorarId); });
+}
+
+/* Reflete a mudança nas opções da aba Vistoria se o editor estiver aberto */
+function aposMudarDisciplinas() {
+  salvarDisciplinasLocal();
+  renderListaDisciplinas();
+  var ed = document.getElementById('pg-editor');
+  if (ed && ed.classList.contains('on')) renderApts();
+}
+
+function msgErroDisciplina(res) {
+  if (res.status === 409) return 'Já existe uma disciplina com esse nome';
+  return (res.body && (res.body.message || res.body.msg)) || 'Falha ao salvar disciplina';
+}
+
+function atualizarDisciplina(d, campos, onOk, onFalha) {
+  if (!sbEnabled()) {
+    for (var k in campos) if (campos.hasOwnProperty(k)) d[k] = campos[k];
+    aposMudarDisciplinas(); onOk(); return;
+  }
+  fetch(SB_URL + '/rest/v1/disciplinas?id=eq.' + encodeURIComponent(d.id), {
+    method: 'PATCH', headers: Object.assign({}, sbHeaders(), { 'Prefer': 'return=representation' }), body: JSON.stringify(campos)
+  }).then(function(r) { return r.json().catch(function() { return null; }).then(function(b) { return { ok: r.ok, status: r.status, body: b }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(msgErroDisciplina(res));
+      /* RLS bloqueia sem erro: se nenhuma linha voltou, não teve permissão */
+      if (!Array.isArray(res.body) || !res.body.length) throw new Error('Sem permissão para alterar disciplinas');
+      for (var k in campos) if (campos.hasOwnProperty(k)) d[k] = campos[k];
+      aposMudarDisciplinas(); onOk();
+    })
+    .catch(function(e) { toast('Erro: ' + e.message, '✗'); if (onFalha) onFalha(); });
+}
+
+function renomearDisciplina(id, inp) {
+  var d = acharDisciplina(id);
+  if (!d) return;
+  var novo = normalizarNomeDisciplina(inp.value);
+  if (!novo) { inp.value = d.nome; toast('O nome não pode ficar vazio', '⚠'); return; }
+  if (novo === d.nome) { inp.value = novo; return; }
+  if (disciplinaDuplicada(novo, id)) { inp.value = d.nome; toast('Já existe uma disciplina com esse nome', '⚠'); return; }
+  atualizarDisciplina(d, { nome: novo }, function() { toast('Disciplina renomeada', 'o', true); }, function() { inp.value = d.nome; });
+}
+
+function alternarDisciplina(id) {
+  var d = acharDisciplina(id);
+  if (!d) return;
+  var ativar = !d.ativo;
+  atualizarDisciplina(d, { ativo: ativar }, function() {
+    toast(ativar ? 'Disciplina ativada' : 'Disciplina desativada — continua nos relatórios já salvos', 'o', true);
+  });
+}
+
+function adicionarDisciplina() {
+  var inp = document.getElementById('disc-nova');
+  var nome = normalizarNomeDisciplina(inp.value);
+  if (!nome) { toast('Informe o nome da disciplina', '⚠'); return; }
+  if (disciplinaDuplicada(nome, null)) { toast('Já existe uma disciplina com esse nome', '⚠'); return; }
+  var ordem = disciplinas.reduce(function(m, d) { return Math.max(m, d.ordem || 0); }, 0) + 1;
+  if (!sbEnabled()) {
+    disciplinas.push({ id: 'l' + Date.now(), nome: nome, ativo: true, ordem: ordem });
+    inp.value = ''; aposMudarDisciplinas(); toast('Disciplina adicionada', 'o', true);
+    return;
+  }
+  fetch(SB_URL + '/rest/v1/disciplinas', {
+    method: 'POST', headers: Object.assign({}, sbHeaders(), { 'Prefer': 'return=representation' }),
+    body: JSON.stringify([{ nome: nome, ativo: true, ordem: ordem }])
+  }).then(function(r) { return r.json().catch(function() { return null; }).then(function(b) { return { ok: r.ok, status: r.status, body: b }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(msgErroDisciplina(res));
+      if (!Array.isArray(res.body) || !res.body.length) throw new Error('Sem permissão para incluir disciplinas');
+      disciplinas.push(res.body[0]);
+      inp.value = ''; aposMudarDisciplinas(); toast('Disciplina adicionada', 'o', true);
+    })
+    .catch(function(e) { toast('Erro: ' + e.message, '✗'); });
 }
 
 /* ══ MEU PERFIL (nome + trocar a própria senha) ═══════════════════ */
@@ -1908,7 +2110,7 @@ function salvarRelatorio() {
 /* ══ APONTAMENTOS ══════════════════════════════════════════════════ */
 function addApt() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
-  items.push({ id: Date.now(), titulo: '', descricao: '', local: '', criticidade: 'med', categoria: 'Civil', fotos: [] });
+  items.push({ id: Date.now(), titulo: '', descricao: '', local: '', criticidade: 'med', categoria: '', fotos: [] });
   renderApts();
   abrirTab('vistoria', document.querySelectorAll('.tab-btn')[2]);
   setTimeout(function() {
@@ -2077,8 +2279,7 @@ function renderApts() {
     for (var k in CRITS) {
       if (CRITS.hasOwnProperty(k)) crOptsH += '<option value="' + k + '"' + (k === a.criticidade ? ' selected' : '') + '>' + CRITS[k].l + '</option>';
     }
-    var catOptsH = '';
-    for (var ci = 0; ci < CATS.length; ci++) catOptsH += '<option value="' + CATS[ci] + '"' + (CATS[ci] === a.categoria ? ' selected' : '') + '>' + CATS[ci] + '</option>';
+    var catOptsH = opcoesDisciplina(a.categoria);
 
     var fotosH = '';
     for (var fi = 0; fi < a.fotos.length; fi++) fotosH += fotoImgHtml(a.id, fi, a.fotos[fi]);
@@ -2722,6 +2923,7 @@ function abrirChave() {
     + '<p class="md-txt">A geração de considerações finais e o aprimoramento de descrições técnicas usam Inteligência Artificial processada pelo servidor do app — você não precisa ter uma chave da Anthropic.</p>'
     + '<div class="md-note">ℹ️ Se o administrador configurou um código de acesso, informe-o abaixo. Se não souber, deixe em branco e tente gerar — o app avisa se for necessário.</div>'
     + '<input class="md-inp" type="password" id="modal-key" placeholder="Código de acesso (opcional)" value="' + escH(apiKey) + '"/>'
+    + (sbEnabled() ? '<button class="btn btn-o" style="width:100%;margin-top:10px;justify-content:center" onclick="fecharModal();abrirMeuPerfil()">Meu perfil e senha</button>' : '')
     + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="salvarChave()">Salvar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Fechar</button></div>';
   document.getElementById('modal').style.display = 'flex';
   setTimeout(function() { var k = document.getElementById('modal-key'); if (k) k.focus(); }, 100);
