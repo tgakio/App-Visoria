@@ -583,7 +583,7 @@ function salvarDisciplinasLocal() {
 
 /* Opções do <select> de disciplina: só as ativas. Se o apontamento já tem
    uma disciplina desativada (ou fora da lista), ela continua aparecendo
-   selecionada, marcada como "(desativada)", para não perder a informação. */
+   selecionada, com o nome normal, para não perder a informação. */
 function opcoesDisciplina(atual) {
   var ativas = disciplinas.filter(function(d) { return d.ativo; })
     .sort(function(a, b) { return (a.ordem - b.ordem) || a.nome.localeCompare(b.nome); });
@@ -594,7 +594,7 @@ function opcoesDisciplina(atual) {
     if (sel) achou = true;
     h += '<option value="' + escH(d.nome) + '"' + (sel ? ' selected' : '') + '>' + escH(d.nome) + '</option>';
   });
-  if (atual && !achou) h += '<option value="' + escH(atual) + '" selected>' + escH(atual) + ' (desativada)</option>';
+  if (atual && !achou) h += '<option value="' + escH(atual) + '" selected>' + escH(atual) + '</option>';
   return h;
 }
 
