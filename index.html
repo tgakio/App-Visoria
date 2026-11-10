@@ -230,6 +230,30 @@ body.ui-nao-admin .admin-only{display:none !important}
 .auth-switch{text-align:center;font-size:12px;color:var(--gray);margin-top:14px}
 .auth-switch a{color:var(--red);font-weight:700;cursor:pointer;text-decoration:none}
 
+/* ── Pendências / atendimento ── */
+.pd-gr{margin-bottom:16px}
+.pd-gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 8px;font-size:14px}
+.pd-gs{cursor:pointer;font-weight:700;font-size:14px;padding:10px 4px;min-height:32px}
+.pd-card{background:var(--card);border-radius:var(--rl);box-shadow:var(--sh);padding:14px;margin-bottom:10px}
+.pd-card.pd-novo{border:2px solid var(--navy);padding:12px}
+.pd-th{flex:0 0 64px;width:64px;height:64px;border-radius:10px;object-fit:cover;background:#ececef}
+.pd-th0{display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:20px}
+.pd-ti{font-weight:700;font-size:15px;line-height:1.25}
+.pd-lo{font-size:13px;color:var(--gray);margin-top:2px}
+.pd-meta{font-size:12.5px;color:var(--gray);margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pd-seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px}
+.pd-sg{min-height:44px;border-radius:10px;border:1px solid #d6d6db;background:#fff;color:#3f3f46;font-family:var(--ft);font-size:13px;font-weight:700;cursor:pointer;padding:0 4px;-webkit-tap-highlight-color:transparent}
+.pd-sg.ok{background:#dcfce7;border:2px solid #16a34a;color:#14532d}
+.pd-sg.at{background:#fef3c7;border:2px solid #d97706;color:#78350f}
+.pd-sg.no{background:#fee2e2;border:2px solid #dc2626;color:#7f1d1d}
+.pd-obs{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid var(--bdr2);border-radius:10px;padding:10px 12px;font-family:var(--ft);font-size:14px;min-height:44px}
+.pd-fotos{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.pd-fd{width:72px;height:72px;border-radius:10px;object-fit:cover;cursor:pointer}
+.pd-add{min-height:44px;border:2px dashed var(--navy);border-radius:10px;background:#fff;color:var(--navy);font-family:var(--ft);font-size:13px;font-weight:700;padding:0 12px;cursor:pointer}
+.pd-warn{margin-top:10px;padding:8px 12px;border-radius:10px;background:#fee2e2;font-size:13px;color:#7f1d1d}
+.pd-bar{height:8px;border-radius:4px;background:#ececef;overflow:hidden}
+.pd-bar i{display:block;height:100%;background:var(--navy)}
+.pd-sit{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:var(--gray);margin-bottom:10px}
 /* ── Painel / Visitas orientativas ── */
 .vz-banner{display:flex;flex-wrap:wrap;align-items:center;gap:12px;border-radius:14px;padding:12px 16px;margin-bottom:14px;font-size:14px;line-height:1.45}
 .vz-banner.warn{background:#fef3c7;border:1px solid #f5c542;color:#78350f}
@@ -393,6 +417,7 @@ button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
       <div class="tabs">
         <button class="tab-btn on" onclick="abrirTab('capa',this)">📄 Capa</button>
         <button class="tab-btn" onclick="abrirTab('intro',this)">📝 Introdução</button>
+        <button class="tab-btn" onclick="abrirTab('pend',this)" id="tab-pend">📋 Pendências</button>
         <button class="tab-btn" onclick="abrirTab('vistoria',this)" id="tab-vist">🔍 Vistoria</button>
         <button class="tab-btn" onclick="abrirTab('consid',this)">📝 Considerações</button>
       </div>
@@ -452,6 +477,7 @@ button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
         </div>
       </div>
       <!-- VISTORIA -->
+      <div id="pnl-pend" class="tab-pnl" style="padding:16px"></div>
       <div id="pnl-vistoria" class="tab-pnl" style="padding:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap">
           <div id="apts-cnt" style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.5px">0 apontamentos</div>
@@ -855,7 +881,7 @@ function loadData() {
   /* Limpa URLs assinadas antigas que versões anteriores deixaram gravadas
      no relatório local (expiram e causavam fotos quebradas): volta tudo
      para a referência estável; a URL de exibição é regerada ao abrir. */
-  for (var i = 0; i < reports.length; i++) canonizarFotosItens(reports[i].items || []);
+  for (var i = 0; i < reports.length; i++) { canonizarFotosItens(reports[i].items || []); canonizarFotosItens(reports[i].conferencias || []); }
   carregarDisciplinas();
   if (sbEnabled()) sbSyncDown(true);
 }
@@ -1121,17 +1147,19 @@ function sbPrepararFotosParaEnvio(report) {
   delete clone._pendingSync; /* controle só local — não precisa ir para o banco */
   delete clone._ver;
   var uploads = [];
-  for (var i = 0; i < clone.items.length; i++) {
-    var fotos = clone.items[i].fotos || [];
+  var conts = containersFotos(clone); /* apontamentos + conferências */
+  for (var i = 0; i < conts.length; i++) {
+    var fotos = conts[i].fotos || [];
+    var cid = (conts[i].id !== undefined) ? conts[i].id : ('c' + conts[i].origemItem);
     for (var j = 0; j < fotos.length; j++) {
       var val = fotos[j];
       if (typeof val === 'string' && val.indexOf('data:image') === 0) {
-        var path = 'relatorios/' + report.id + '/' + clone.items[i].id + '-' + j + '-' + Date.now() + '.jpg';
-        uploads.push({ ii: i, fi: j, path: path, dataUrl: val });
+        var path = 'relatorios/' + report.id + '/' + cid + '-' + j + '-' + Date.now() + '.jpg';
+        uploads.push({ cont: conts[i], fi: j, path: path, dataUrl: val });
       } else if (typeof val === 'string' && val.indexOf('http') === 0) {
         /* URL assinada de uma sessão anterior: guarda só a referência ao caminho original */
         var match = /\/object\/(?:sign|public)\/[^/]+\/([^?]+)/.exec(val);
-        if (match) clone.items[i].fotos[j] = FOTO_PREFIXO + decodeURIComponent(match[1]);
+        if (match) conts[i].fotos[j] = FOTO_PREFIXO + decodeURIComponent(match[1]);
       }
     }
   }
@@ -1141,7 +1169,7 @@ function sbPrepararFotosParaEnvio(report) {
     if (idx >= uploads.length) return clone;
     var u = uploads[idx];
     return sbUploadFotoCached(u.dataUrl, u.path).then(function(path) {
-      clone.items[u.ii].fotos[u.fi] = FOTO_PREFIXO + path;
+      u.cont.fotos[u.fi] = FOTO_PREFIXO + path;
       idx++;
       return proximo();
     });
@@ -1168,7 +1196,7 @@ function canonizarFotosItens(itens) {
    assinada que sobrou salva de uma sessão anterior (possivelmente vencida). ── */
 function precisaResolverFotos(obj) {
   if (!sbEnabled()) return false;
-  var itens = (obj && obj.items) || [];
+  var itens = containersFotos(obj);
   for (var i = 0; i < itens.length; i++) {
     var fotos = itens[i].fotos || [];
     for (var j = 0; j < fotos.length; j++) {
@@ -1184,7 +1212,7 @@ function precisaResolverFotos(obj) {
    Resolve true se alguma foto foi atualizada. ── */
 function resolverFotosEmObjeto(obj) {
   if (!sbEnabled()) return Promise.resolve(false);
-  var itens = (obj && obj.items) || [];
+  var itens = containersFotos(obj);
   var refs = [], faltam = [], vistos = {}, agora = Date.now();
   for (var i = 0; i < itens.length; i++) {
     var fotos = itens[i].fotos || [];
@@ -1814,6 +1842,369 @@ function contarApts(relatorios) {
 }
 
 /* ══ HOME ════════════════════════════════════════════════════════ */
+/* ══ ACOMPANHAMENTO DO ATENDIMENTO DAS ORIENTAÇÕES / PENDÊNCIAS ══
+   Como funciona:
+   - Todo apontamento grave (alta/crítica) ou orientativo vira uma "pendência"
+     da obra, nascendo como "Aberta".
+   - Na visita seguinte, a aba "Pendências" do relatório lista o que ficou
+     aberto nas visitas anteriores da mesma obra; para cada uma a equipe marca
+     Atendida / Em andamento / Não atendida (opcionalmente com observação e foto
+     do atendimento).
+   - A conferência fica gravada no relatório NOVO (`conferencias`), nunca nos
+     antigos — assim uma visita nova não sobrescreve um relatório antigo. O
+     status atual de uma pendência é a conferência mais recente.
+   - Pendências de visitas anteriores a ATENDIMENTO_INICIO que nunca foram
+     conferidas aparecem como "anteriores ao controle" e não entram na taxa
+     de atendimento até serem conferidas. ══ */
+var CONFERIR_CRIT = { critical: true, high: true, orient: true };
+var ATENDIMENTO_INICIO = '2026-11-10';
+var CONF_ST = { atendida: ['ok', 'Atendida'], andamento: ['at', 'Em andamento'], nao_atendida: ['cr', 'Não atendida'] };
+var confs = [];              /* conferências do relatório em edição */
+var pendFotosTentadas = false;
+var aptSitMap = {};
+
+function isoData(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+function dataAtualRel() { var v = G('f-data'); return v ? new Date(v + 'T12:00:00') : new Date(); }
+
+/* Todas as listas que têm .fotos: apontamentos, conferências e (no PDF) as pendências impressas */
+function containersFotos(obj) {
+  var out = [], srcs = [obj && obj.items, obj && obj.conferencias, obj && obj._pend];
+  for (var s = 0; s < srcs.length; s++) {
+    var arr = srcs[s] || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i] && Object.prototype.toString.call(arr[i].fotos) === '[object Array]') out.push(arr[i]);
+  }
+  return out;
+}
+
+function relsDaObra(nome) {
+  var alvo = normBusca(nome).trim(), out = [];
+  for (var i = 0; i < reports.length; i++) {
+    if (normBusca((reports[i].cover && reports[i].cover.obra) || '').trim() === alvo) out.push(reports[i]);
+  }
+  return out;
+}
+
+/* Pendências de uma obra com o status atual de cada uma (conferência mais recente vence) */
+function calcPendencias(rels) {
+  var lista = [], mapa = {};
+  var ord = rels.slice().sort(function(a, b) {
+    var da = dataVisita(a), db = dataVisita(b);
+    var ta = da ? da.getTime() : 0, tb = db ? db.getTime() : 0;
+    return ta !== tb ? ta - tb : Number(a.id) - Number(b.id);
+  });
+  for (var i = 0; i < ord.length; i++) {
+    var r = ord[i], dv = dataVisita(r), it = r.items || [];
+    for (var k = 0; k < it.length; k++) {
+      if (!CONFERIR_CRIT[it[k].criticidade]) continue;
+      var o = { chave: String(r.id) + ':' + String(it[k].id), relId: r.id, itemId: it[k].id, titulo: it[k].titulo || 'Sem título',
+        local: it[k].local || '', categoria: it[k].categoria || '', crit: it[k].criticidade, data: dv, fotos: it[k].fotos || [],
+        confs: [], status: 'aberta', legado: false, diasAberta: dv ? diasDesde(dv) : 0 };
+      lista.push(o); mapa[o.chave] = o;
+    }
+  }
+  var todas = [];
+  for (var j = 0; j < ord.length; j++) {
+    var cs = ord[j].conferencias || [];
+    for (var m = 0; m < cs.length; m++) todas.push({ c: cs[m], relId: ord[j].id, dt: cs[m].data || isoData(dataVisita(ord[j]) || new Date()) });
+  }
+  todas.sort(function(a, b) { return a.dt < b.dt ? -1 : (a.dt > b.dt ? 1 : 0); });
+  for (var t = 0; t < todas.length; t++) {
+    var c = todas[t].c, alvo = mapa[String(c.origemRel) + ':' + String(c.origemItem)];
+    if (!alvo) continue;
+    alvo.confs.push({ status: c.status, obs: c.obs || '', data: todas[t].dt, relId: todas[t].relId, fotos: c.fotos || [] });
+    alvo.status = c.status;
+  }
+  for (var q = 0; q < lista.length; q++) {
+    lista[q].legado = lista[q].status === 'aberta' && !!lista[q].data && isoData(lista[q].data) < ATENDIMENTO_INICIO;
+  }
+  return lista;
+}
+
+/* Pendências que o relatório em edição deve conferir (obra igual, visitas anteriores, ainda não atendidas) */
+function pendenciasAConferir() {
+  var obra = G('f-obra');
+  if (!obra) return [];
+  var dAtual = meioDia(dataAtualRel());
+  var rels = relsDaObra(obra).filter(function(r) {
+    if (r.id === editId) return false;
+    var d = dataVisita(r);
+    return d && meioDia(d).getTime() <= dAtual.getTime();
+  });
+  var lista = calcPendencias(rels).filter(function(o) { return o.status !== 'atendida'; });
+  for (var i = 0; i < lista.length; i++) lista[i].sel = confPorChave(lista[i].chave);
+  return lista;
+}
+
+function confPorChave(chave) {
+  for (var i = 0; i < confs.length; i++) if (String(confs[i].origemRel) + ':' + String(confs[i].origemItem) === chave) return confs[i];
+  return null;
+}
+function pdChave(chave) {
+  var p = chave.split(':');
+  return { rel: isNaN(Number(p[0])) ? p[0] : Number(p[0]), item: isNaN(Number(p[1])) ? p[1] : Number(p[1]) };
+}
+
+/* URL de exibição de uma foto (referência do Storage só vale se já foi assinada) */
+function fotoExibicao(val) {
+  if (typeof val !== 'string' || !val) return '';
+  var p = refDeFoto(val);
+  if (!p) return val;
+  if (fotoUrlValida(p, val)) return val;
+  var c = fotoUrlCache[p];
+  return (c && c.ate > Date.now()) ? c.url : '';
+}
+
+function atualizarBadgePend() {
+  var tb = document.getElementById('tab-pend');
+  if (!tb) return;
+  var n = 0, lista = pendenciasAConferir();
+  for (var i = 0; i < lista.length; i++) if (!lista[i].sel) n++;
+  tb.innerHTML = '📋 Pendências' + (n > 0 ? ' <span class="tbg">' + n + '</span>' : '');
+}
+
+function pdMudou() { renderPendencias(); atualizarBadgePend(); agendarAutoSave(); }
+
+function pdSetStatus(chave, st) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
+  var c = confPorChave(chave);
+  if (c && c.status === st) {
+    confs = confs.filter(function(x) { return x !== c; });   /* tocar de novo desfaz a marcação */
+  } else if (c) {
+    c.status = st; c.data = isoData(dataAtualRel());
+  } else {
+    var k = pdChave(chave);
+    confs.push({ origemRel: k.rel, origemItem: k.item, status: st, obs: '', data: isoData(dataAtualRel()), fotos: [] });
+  }
+  pdMudou();
+}
+function pdObs(chave, txt) { var c = confPorChave(chave); if (c) { c.obs = txt; agendarAutoSave(); } }
+function pdTodas(relId) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
+  var lista = pendenciasAConferir();
+  for (var i = 0; i < lista.length; i++) {
+    if (String(lista[i].relId) !== String(relId)) continue;
+    var c = confPorChave(lista[i].chave);
+    if (c) { c.status = 'atendida'; c.data = isoData(dataAtualRel()); }
+    else confs.push({ origemRel: lista[i].relId, origemItem: lista[i].itemId, status: 'atendida', obs: '', data: isoData(dataAtualRel()), fotos: [] });
+  }
+  pdMudou();
+}
+function pdAddFoto(chave) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
+  var c = confPorChave(chave);
+  if (!c) return;
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function(e) {
+    var f = (e.target.files || [])[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var bruta = ev.target.result;
+      var comprimir = (typeof bruta === 'string' && bruta.length > 409600) ? comprimirImagem : function(u, m, cb) { cb(u); };
+      comprimir(bruta, 409600, function(foto) {
+        var cc = confPorChave(chave);
+        if (!cc) return;
+        if (cc.fotos.length >= 3) { toast('Máximo de 3 fotos por conferência', '⚠'); return; }
+        cc.fotos.push(foto);
+        pdMudou();
+      });
+    };
+    reader.readAsDataURL(f);
+  };
+  inp.click();
+}
+function pdRemFoto(chave, i) {
+  var c = confPorChave(chave);
+  if (!c || !confirm('Remover esta foto?')) return;
+  c.fotos.splice(i, 1);
+  pdMudou();
+}
+
+function pdCard(o) {
+  var sel = o.sel, st = sel ? sel.status : '';
+  var antes = fotoExibicao(o.fotos[0]);
+  var thumb = antes ? '<img src="' + antes + '" class="pd-th" alt="Foto da visita original"/>' : '<div class="pd-th pd-th0">📷</div>';
+  var critInfo = o.crit === 'critical' ? ['#ede9fe', '#4c1d95', 'Crítica'] : (o.crit === 'high' ? ['#fee2e2', '#7f1d1d', 'Alta'] : ['#cffafe', '#155e75', 'Orientativa']);
+  var ult = o.confs.length ? o.confs[o.confs.length - 1] : null;
+  var ultTxt = ult ? ' · última conferência: ' + CONF_ST[ult.status][1] + ' em ' + fmtData(new Date(ult.data + 'T12:00:00')) : '';
+  var botoes = '';
+  if (podeEditar()) {
+    var chaveJs = '\'' + o.chave + '\'';
+    botoes = '<div class="pd-seg">'
+      + '<button type="button" class="pd-sg' + (st === 'atendida' ? ' ok' : '') + '" aria-pressed="' + (st === 'atendida') + '" onclick="pdSetStatus(' + chaveJs + ',\'atendida\')">' + (st === 'atendida' ? '✓ ' : '') + 'Atendida</button>'
+      + '<button type="button" class="pd-sg' + (st === 'andamento' ? ' at' : '') + '" aria-pressed="' + (st === 'andamento') + '" onclick="pdSetStatus(' + chaveJs + ',\'andamento\')">Em andamento</button>'
+      + '<button type="button" class="pd-sg' + (st === 'nao_atendida' ? ' no' : '') + '" aria-pressed="' + (st === 'nao_atendida') + '" onclick="pdSetStatus(' + chaveJs + ',\'nao_atendida\')">Não atendida</button></div>';
+  } else if (st) {
+    botoes = '<div style="margin-top:8px"><span class="vz-chip ' + CONF_ST[st][0] + '">' + CONF_ST[st][1] + '</span></div>';
+  }
+  var extra = '';
+  if (sel) {
+    var fh = '';
+    for (var i = 0; i < sel.fotos.length; i++) {
+      var u = fotoExibicao(sel.fotos[i]);
+      fh += u ? '<img src="' + u + '" class="pd-fd" alt="Foto do atendimento" onclick="pdRemFoto(\'' + o.chave + '\',' + i + ')" title="Toque para remover"/>' : '<div class="pd-fd pd-th0">…</div>';
+    }
+    extra = '<input class="pd-obs" value="' + escH(sel.obs || '') + '" placeholder="Observação (opcional)" aria-label="Observação" onchange="pdObs(\'' + o.chave + '\',this.value)"' + (podeEditar() ? '' : ' readonly') + '/>'
+      + '<div class="pd-fotos">' + fh + (podeEditar() && sel.fotos.length < 3 ? '<button type="button" class="pd-add" onclick="pdAddFoto(\'' + o.chave + '\')">📷 Foto do atendimento</button>' : '') + '</div>';
+    if (st === 'nao_atendida') extra += '<div class="pd-warn"><b>Reincidente:</b> segue aberta e entra no relatório desta visita.</div>';
+  }
+  return '<div class="pd-card' + (sel ? '' : ' pd-novo') + '"><div style="display:flex;gap:12px">' + thumb
+    + '<div style="flex:1;min-width:0"><div class="pd-ti">' + escH(o.titulo) + '</div>'
+    + '<div class="pd-lo">' + escH(o.categoria) + (o.categoria && o.local ? ' · ' : '') + escH(o.local) + '</div>'
+    + '<div class="pd-meta"><span class="vz-chip" style="background:' + critInfo[0] + ';color:' + critInfo[1] + '">' + critInfo[2] + '</span> aberta há ' + o.diasAberta + ' dias' + escH(ultTxt)
+    + (o.legado ? ' · <i>anterior ao controle</i>' : '') + '</div></div></div>' + botoes + extra + '</div>';
+}
+
+function renderPendencias() {
+  var el = document.getElementById('pnl-pend');
+  if (!el) return;
+  if (!G('f-obra')) { el.innerHTML = '<div class="empty"><div class="empty-ttl">Informe a obra</div><div class="empty-txt">Preencha o nome da obra na Capa para ver as pendências das visitas anteriores.</div></div>'; return; }
+  var lista = pendenciasAConferir();
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ttl">Nenhuma pendência em aberto</div><div class="empty-txt">As visitas anteriores desta obra não têm apontamentos graves ou orientativos aguardando conferência.</div></div>';
+    return;
+  }
+  /* fotos da visita original ainda sem URL assinada: pede em lote uma vez e redesenha */
+  if (sbEnabled() && !pendFotosTentadas) {
+    var faltam = [], vistos = {};
+    for (var f = 0; f < lista.length; f++) {
+      var vals = [lista[f].fotos[0]].concat(lista[f].sel ? lista[f].sel.fotos : []);
+      for (var v = 0; v < vals.length; v++) {
+        var p = refDeFoto(vals[v]);
+        if (p && !fotoExibicao(vals[v]) && !vistos[p]) { vistos[p] = true; faltam.push(p); }
+      }
+    }
+    if (faltam.length) { pendFotosTentadas = true; sbSignedUrlsEmLote(faltam).then(function() { renderPendencias(); }); }
+  }
+  var feitas = 0, grupos = [], porRel = {};
+  for (var i = 0; i < lista.length; i++) {
+    if (lista[i].sel) feitas++;
+    var g = porRel[lista[i].relId];
+    if (!g) { g = { relId: lista[i].relId, data: lista[i].data, itens: [] }; porRel[lista[i].relId] = g; grupos.push(g); }
+    g.itens.push(lista[i]);
+  }
+  grupos.sort(function(a, b) { return (b.data ? b.data.getTime() : 0) - (a.data ? a.data.getTime() : 0); });
+  var pct = Math.round(feitas / lista.length * 100);
+  var html = '<div class="card"><div class="card-hdr"><span class="card-ttl">Pendências das visitas anteriores</span><span style="font-size:12px;font-weight:700">' + feitas + ' de ' + lista.length + ' conferidas</span></div>'
+    + '<div class="card-body"><div class="pd-bar"><i style="width:' + pct + '%"></i></div>'
+    + '<div style="font-size:13px;color:var(--gray);margin-top:8px;line-height:1.5">Marque o que a obra já resolveu. A conferência fica neste relatório e alimenta o painel de atendimento. Pendências sem marcação continuam abertas.</div></div></div>';
+  for (var gi = 0; gi < grupos.length; gi++) {
+    var gr = grupos[gi], legado = gr.itens.every(function(x) { return x.legado; });
+    var topo = '<div class="pd-gh"><b>Visita de ' + fmtData(gr.data, true) + '</b> · ' + pluralPt(gr.itens.length, 'pendência', 'pendências') + (legado ? ' · anteriores ao controle' : '')
+      + (podeEditar() ? '<button type="button" class="vz-link" onclick="pdTodas(\'' + gr.relId + '\')">Marcar todas como atendidas</button>' : '') + '</div>';
+    var cards = '';
+    for (var c = 0; c < gr.itens.length; c++) cards += pdCard(gr.itens[c]);
+    html += (gi === 0 || !legado) ? '<div class="pd-gr">' + topo + cards + '</div>'
+      : '<details class="pd-gr"><summary class="pd-gs">' + 'Visita de ' + fmtData(gr.data, true) + ' · ' + pluralPt(gr.itens.length, 'pendência', 'pendências') + ' · anteriores ao controle</summary>' + topo + cards + '</details>';
+  }
+  el.innerHTML = html;
+}
+
+/* Situação (com histórico) de cada apontamento do relatório em edição — mostrada na aba Vistoria */
+function mapaSituacao() {
+  var obra = G('f-obra'), map = {};
+  if (!obra || !editId) return map;
+  var lista = calcPendencias(relsDaObra(obra));
+  for (var i = 0; i < lista.length; i++) map[lista[i].chave] = lista[i];
+  return map;
+}
+function sitAptHtml(a) {
+  if (!editId) return '';
+  var o = aptSitMap[String(editId) + ':' + String(a.id)];
+  if (!o || !o.confs.length) return '';
+  var hist = 'Aberta ' + fmtData(o.data);
+  for (var i = 0; i < o.confs.length; i++) hist += ' → ' + CONF_ST[o.confs[i].status][1] + ' ' + fmtData(new Date(o.confs[i].data + 'T12:00:00'));
+  return '<div class="pd-sit"><span class="vz-chip ' + CONF_ST[o.status][0] + '">' + CONF_ST[o.status][1] + '</span><span>' + escH(hist) + '</span></div>';
+}
+
+/* Seção "Situação das pendências da visita anterior" do PDF: o que este relatório conferiu */
+function pendPdf(r) {
+  var cs = r.conferencias || [];
+  if (!cs.length) return [];
+  var rels = relsDaObra((r.cover && r.cover.obra) || '').filter(function(x) { return String(x.id) !== String(r.id); });
+  var mapa = {}, lista = calcPendencias(rels);
+  for (var i = 0; i < lista.length; i++) mapa[lista[i].chave] = lista[i];
+  var out = [];
+  for (var k = 0; k < cs.length; k++) {
+    var o = mapa[String(cs[k].origemRel) + ':' + String(cs[k].origemItem)];
+    if (!o) continue;
+    out.push({ titulo: o.titulo, local: o.local, categoria: o.categoria, crit: o.crit, status: cs[k].status, obs: cs[k].obs || '',
+      dataConf: cs[k].data, dataOrigem: isoData(o.data || new Date()), fotos: [o.fotos[0] || '', (cs[k].fotos || [])[0] || ''] });
+  }
+  return out;
+}
+
+/* ── Painel de atendimento (página Visitas) ── */
+function resumoAtendimento() {
+  var res = { total: 0, aberta: 0, andamento: 0, atendida: 0, nao_atendida: 0, legado: 0, dias: [], idade: [0, 0, 0, 0], obras: [], conferencias: 0 };
+  var obras = resumoObras();
+  for (var i = 0; i < obras.length; i++) {
+    var rels = obras[i].relatorios;
+    for (var r = 0; r < rels.length; r++) res.conferencias += (rels[r].conferencias || []).length;
+    var lst = calcPendencias(rels).filter(function(x) { return x.crit === 'orient'; });
+    if (!lst.length) continue;
+    var ob = { nome: obras[i].nome, emitidas: lst.length, atendidas: 0, abertas: 0, maisAntiga: 0 };
+    for (var k = 0; k < lst.length; k++) {
+      var x = lst[k];
+      res.total++;
+      if (x.status === 'atendida') {
+        res.atendida++; ob.atendidas++;
+        var uc = x.confs[x.confs.length - 1];
+        if (x.data && uc) res.dias.push(Math.max(0, Math.round((new Date(uc.data + 'T12:00:00') - meioDia(x.data)) / 86400000)));
+      } else {
+        ob.abertas++;
+        if (x.diasAberta > ob.maisAntiga) ob.maisAntiga = x.diasAberta;
+        res.idade[x.diasAberta <= 15 ? 0 : (x.diasAberta <= 30 ? 1 : (x.diasAberta <= 60 ? 2 : 3))]++;
+        if (x.status === 'andamento') res.andamento++;
+        else if (x.status === 'nao_atendida') res.nao_atendida++;
+        else if (x.legado) res.legado++;
+        else res.aberta++;
+      }
+    }
+    res.obras.push(ob);
+  }
+  res.obras.sort(function(a, b) { return b.abertas - a.abertas; });
+  return res;
+}
+
+function htmlAtendimento() {
+  var a = resumoAtendimento();
+  if (!a.total) return '';
+  var base = a.atendida + a.andamento + a.nao_atendida + a.aberta;
+  var taxa = base ? Math.round(a.atendida / base * 100) + '<small>%</small>' : '—';
+  var med = a.dias.length ? medianaLista(a.dias) : null;
+  var h = '<div class="vz-top" style="margin-top:6px"><div><h2 class="vz-h">Atendimento das orientações</h2><div class="vz-sub">Situação das ' + a.total + ' orientações, conforme a conferência feita na visita seguinte</div></div></div>';
+  if (!a.conferencias) {
+    h += '<div class="vz-banner warn" role="status"><div class="vz-bt">Ainda não há conferências registradas. As ' + a.legado + ' orientações existentes aparecem como <b>anteriores ao controle</b> (visitas até ' + fmtData(new Date(ATENDIMENTO_INICIO + 'T12:00:00'), true) + ') e passam a contar quando forem conferidas na aba <b>Pendências</b> da próxima visita de cada obra.</div></div>';
+  }
+  h += '<div class="vz-kpis">'
+    + kpiCard('#9ca3af', 'Abertas', String(a.aberta), 'sem conferência ainda')
+    + kpiCard('#d97706', 'Em andamento', '<span style="color:#78350f">' + a.andamento + '</span>', 'a obra já iniciou')
+    + kpiCard('#16a34a', 'Atendidas', '<span style="color:#14532d">' + a.atendida + '</span>', med !== null ? 'mediana de ' + med + ' dias até o atendimento' : 'ainda sem atendimentos')
+    + kpiCard('#dc2626', 'Reincidentes', '<span style="color:#991b1b">' + a.nao_atendida + '</span>', 'não atendidas na conferência')
+    + kpiCard('#16324A', 'Taxa de atendimento', taxa, a.legado ? a.legado + ' anteriores ao controle fora da taxa' : 'atendidas sobre as controladas')
+    + '</div>';
+  var linhas = '';
+  for (var i = 0; i < Math.min(6, a.obras.length); i++) {
+    var o = a.obras[i], pc = Math.round(o.atendidas / o.emitidas * 100);
+    linhas += '<div class="vz-hb" style="grid-template-columns:minmax(110px,1.3fr) 48px 2fr 54px 86px"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escH(o.nome) + '</span><span>' + o.emitidas + '</span>'
+      + '<div style="display:flex;align-items:center;gap:8px"><div class="vz-tr"><i style="width:' + pc + '%;background:#16a34a"></i></div><b>' + pc + '%</b></div><span>' + o.abertas + '</span>'
+      + '<span style="' + (o.maisAntiga > 60 ? 'color:#991b1b;font-weight:700' : '') + '">' + (o.abertas ? o.maisAntiga + ' dias' : '—') + '</span></div>';
+  }
+  var idade = '', rot = ['até 15 dias', '16 a 30', '31 a 60', 'mais de 60'], cor = ['#16324A', '#16324A', '#d97706', '#dc2626'], maxI = Math.max(1, a.idade[0], a.idade[1], a.idade[2], a.idade[3]);
+  for (var b = 0; b < 4; b++) idade += '<div class="vz-hb" style="grid-template-columns:84px 1fr 28px"><span style="font-weight:600">' + rot[b] + '</span><div class="vz-tr" style="height:16px"><i style="width:' + Math.round(a.idade[b] / maxI * 100) + '%;background:' + cor[b] + '"></i></div><b style="text-align:right">' + a.idade[b] + '</b></div>';
+  var abertas = a.idade[0] + a.idade[1] + a.idade[2] + a.idade[3];
+  h += '<div class="vz-cols"><section class="vz-card vz-main"><h2 class="vz-h">Atendimento por obra</h2><div class="vz-sub">Obras com mais orientações em aberto</div>'
+    + '<div style="overflow-x:auto"><div style="min-width:520px"><div class="vz-hb" style="grid-template-columns:minmax(110px,1.3fr) 48px 2fr 54px 86px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray)"><span>Obra</span><span>Emitidas</span><span>Atendidas</span><span>Abertas</span><span>Mais antiga</span></div>' + linhas + '</div></div></section>'
+    + '<section class="vz-card vz-side" style="flex:1 1 300px"><h2 class="vz-h">Idade das pendências em aberto</h2><div class="vz-sub">' + abertas + ' orientações ainda sem atendimento</div>' + idade + '</section></div>';
+  return h;
+}
+function medianaLista(v) {
+  var s = v.slice().sort(function(a, b) { return a - b; }), m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+}
+
 /* ══ VISITAS: data da visita, cadência por obra, Painel e Visitas orientativas ══
    - "Visita" = um relatório; a data usada é a da vistoria (cover.dataVistoria),
      não a da última edição (r.updated), que mudava a cada abertura/salvamento.
@@ -2244,6 +2635,8 @@ function renderVisitas() {
     + '<div style="display:flex;gap:14px;font-size:13px;font-weight:600"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#b91c1c"></span>Graves (alta + crítica)</span><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#0891b2"></span>Orientativas</span></div></div>'
     + '<div class="vz-mini">' + evH + '</div></section></div>';
 
+  html += htmlAtendimento();
+
   if (encerradas.length) {
     html += '<details class="vz-card" style="margin-bottom:16px"><summary style="cursor:pointer;font-weight:700;font-size:15px;min-height:32px">Obras encerradas (' + encerradas.length + ')</summary><div style="margin-top:8px">';
     for (var z = 0; z < encerradas.length; z++) {
@@ -2260,7 +2653,11 @@ function renderVisitas() {
 /* ══ OBRAS ════════════════════════════════════════════════════════ */
 function novoRelatorioObra(obra, cli) {
   novoRelatorio();
-  setTimeout(function() { V('f-obra', obra); V('f-cliente', cli); atualizarPreview(); }, 150);
+  setTimeout(function() {
+    V('f-obra', obra); V('f-cliente', cli); atualizarPreview();
+    /* Passo 1 da nova visita: conferir o que ficou pendente nas visitas anteriores */
+    if (pendenciasAConferir().length) abrirTab('pend', document.getElementById('tab-pend'));
+  }, 150);
 }
 
 function renderObras() {
@@ -2432,6 +2829,7 @@ function novoRelatorio() {
   autoSaveAvisouObra = false;
   editId = null;
   items  = [];
+  confs  = [];
   consid = '';
   var fields = ['f-obra','f-cliente','f-data','f-num','f-resp','f-cargo','f-emp','f-hist','f-esc','f-sol','f-intro'];
   for (var i = 0; i < fields.length; i++) V(fields[i], '');
@@ -2442,6 +2840,7 @@ function novoRelatorio() {
   renderApts();
   atualizarSumStats();
   aplicarModoEdicaoEditor();
+  atualizarBadgePend();
 }
 
 function abrirRelatorio(id) {
@@ -2474,11 +2873,12 @@ function abrirRelatorio(id) {
      assinatura chegar — resolvendo só as fotos DESTE relatório, não das
      de todos os outros como acontecia antes a cada sincronização. */
   items = JSON.parse(JSON.stringify(r.items || []));
+  confs = JSON.parse(JSON.stringify(r.conferencias || []));
   /* A URL de exibição é preenchida só nesta cópia de trabalho (items); o
      relatório salvo em `reports` continua só com referências estáveis.
      A resolução é disparada ANTES do primeiro desenho para as fotos
      aparecerem como "carregando" (e não como indisponíveis). */
-  var copiaEditor = { items: items };
+  var copiaEditor = { items: items, conferencias: confs };
   var resolvendo = precisaResolverFotos(copiaEditor) ? resolverFotosEmObjeto(copiaEditor) : null;
   renderApts();
   atualizarSumStats();
@@ -2488,8 +2888,11 @@ function abrirRelatorio(id) {
       if (editId !== id) return;
       /* só a área de fotos de cada apontamento — não redesenha os campos */
       for (var i = 0; i < items.length; i++) atualizarFotos(items[i].id);
+      var pp = document.getElementById('pnl-pend');
+      if (pp && pp.classList.contains('on')) renderPendencias();
     });
   }
+  atualizarBadgePend();
 }
 
 function voltarLista() { navegar(reports.length ? 'list' : 'home'); }
@@ -2511,6 +2914,7 @@ function atualizarPreview() {
   var pvResp = document.getElementById('pv-resp'); if (pvResp) pvResp.textContent = resp;
   var pvCarg = document.getElementById('pv-cargo');if (pvCarg) pvCarg.textContent = cargo;
   var edTtl  = document.getElementById('ed-ttl'); if (edTtl) edTtl.textContent = G('f-obra') || 'Novo Relatório';
+  if (typeof atualizarBadgePend === 'function') atualizarBadgePend();
 }
 
 function abrirTab(nome, btn) {
@@ -2521,7 +2925,7 @@ function abrirTab(nome, btn) {
   if (btn) btn.classList.add('on');
   var pnl = document.getElementById('pnl-' + nome);
   if (pnl) pnl.classList.add('on');
-  // consid tab opened
+  if (nome === 'pend') { pendFotosTentadas = false; renderPendencias(); }
 }
 
 /* ══ SALVAR ════════════════════════════════════════════════════════ */
@@ -2560,7 +2964,7 @@ function lerCapaIntro() {
 
 /* Grava (cria ou atualiza) o relatório em edição em `reports`, marcando-o como
    pendente de envio. Compartilhado entre Salvar manual e salvamento automático. */
-function gravarRelatorioAtual(ci, itensArr) {
+function gravarRelatorioAtual(ci, itensArr, confsArr) {
   var now = new Date().toLocaleDateString('pt-BR');
   if (editId) {
     for (var i = 0; i < reports.length; i++) {
@@ -2568,6 +2972,7 @@ function gravarRelatorioAtual(ci, itensArr) {
         reports[i].cover   = ci.cover;
         reports[i].intro   = ci.intro;
         reports[i].items   = canonizarFotosItens(JSON.parse(JSON.stringify(itensArr)));
+        reports[i].conferencias = canonizarFotosItens(JSON.parse(JSON.stringify(confsArr || [])));
         reports[i].consid  = consid;
         reports[i].updated = now;
         reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
@@ -2577,7 +2982,7 @@ function gravarRelatorioAtual(ci, itensArr) {
     }
     return; /* relatório em edição não existe mais localmente (ex.: excluído em outro aparelho) — não recria */
   }
-  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: canonizarFotosItens(JSON.parse(JSON.stringify(itensArr))), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
+  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: canonizarFotosItens(JSON.parse(JSON.stringify(itensArr))), conferencias: canonizarFotosItens(JSON.parse(JSON.stringify(confsArr || []))), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
   reports.unshift(nr);
   editId = nr.id;
 }
@@ -2603,7 +3008,7 @@ function salvarRelatorio() {
       }
     }
 
-    gravarRelatorioAtual(ci, comprimidos);
+    gravarRelatorioAtual(ci, comprimidos, confs);
 
     saveData(editId);
     toast('Relatório salvo com imagens comprimidas!', 'o', true);
@@ -2666,7 +3071,7 @@ function autoSalvarRelatorio() {
     if (!autoSaveAvisouObra) { autoSaveAvisouObra = true; toast('Informe o nome da obra na Capa para ativar o salvamento automático', '⚠'); }
     return;
   }
-  gravarRelatorioAtual(lerCapaIntro(), items);
+  gravarRelatorioAtual(lerCapaIntro(), items, confs);
   persistLocal();
   atualizarContador();
   enviarNuvemAuto(editId);
@@ -2695,7 +3100,7 @@ function addApt() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   items.push({ id: Date.now(), titulo: '', descricao: '', local: '', criticidade: 'med', categoria: '', fotos: [] });
   renderApts();
-  abrirTab('vistoria', document.querySelectorAll('.tab-btn')[2]);
+  abrirTab('vistoria', document.getElementById('tab-vist'));
   setTimeout(function() {
     var list = document.getElementById('apts-list');
     if (list && list.lastElementChild) list.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2840,6 +3245,7 @@ function atualizarFotos(id) {
 }
 
 function renderApts() {
+  aptSitMap = mapaSituacao();
   var fcEl = document.getElementById('fc-crit');
   var fc   = fcEl ? fcEl.value : 'all';
   var vis  = fc === 'all' ? items.slice() : items.filter(function(a) { return a.criticidade === fc; });
@@ -2880,6 +3286,7 @@ function renderApts() {
       + '<button class="btn btn-d edit-only" style="padding:4px 7px;font-size:12px" onclick="remApt(' + a.id + ')">✕</button>'
       + '</div>'
       + '<div class="apt-body">'
+      + sitAptHtml(a)
       + '<div class="field"><label>Não Conformidade / Título <span class="req">*</span></label>'
       + '<input value="' + escH(a.titulo) + '" placeholder="Ex: Fissuras verticais na alvenaria do 3° pavimento" oninput="updApt(' + a.id + ',\'titulo\',this.value)"' + (somenteLeitura ? ' readonly' : '') + '/></div>'
       + '<div class="field"><label>Local / Pavimento / Ambiente</label>'
@@ -3139,7 +3546,7 @@ function comprimirFotosRelatorio(report, callback) {
 function gerarPDFById(id) {
   var r = null;
   if (id === editId && id !== null) {
-    r = { cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') }, intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }, items: JSON.parse(JSON.stringify(items)), consid: consid };
+    r = { cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') }, intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }, items: JSON.parse(JSON.stringify(items)), conferencias: JSON.parse(JSON.stringify(confs)), id: editId, consid: consid };
   } else {
     for (var i = 0; i < reports.length; i++) if (reports[i].id === id) { r = reports[i]; break; }
   }
@@ -3148,6 +3555,7 @@ function gerarPDFById(id) {
   /* Deep copy para não alterar os dados originais — as URLs de exibição das
      fotos são preenchidas só nesta cópia. */
   var rCopy = JSON.parse(JSON.stringify(r));
+  rCopy._pend = pendPdf(rCopy); /* pendências conferidas neste relatório (antes/depois) */
 
   function continuarComPdf() {
     toast('Gerando PDF...', 'o', true);
@@ -3269,6 +3677,37 @@ function imprimirRelatorio(report) {
     ? '<h2>Introducao</h2><div style="background:#F5F5F5;border:1px solid #E0E0E0;border-left:4px solid #C02F34;border-radius:0 6px 6px 0;padding:15px 18px;margin-bottom:20px"><p style="font-size:12px;line-height:1.9;color:#333">' + escH(introTxt).replace(/\n/g, '<br>') + '</p></div>'
     : '';
 
+  // ── Pendências da visita anterior conferidas neste relatório
+  var pend = report._pend || [];
+  var pendH = '';
+  if (pend.length) {
+    var pc = { atendida: 0, andamento: 0, nao_atendida: 0 };
+    for (var pi0 = 0; pi0 < pend.length; pi0++) if (pc.hasOwnProperty(pend[pi0].status)) pc[pend[pi0].status]++;
+    var pSt = { atendida: ['Atendida', '#14532d', '#dcfce7'], andamento: ['Em andamento', '#78350f', '#fef3c7'], nao_atendida: ['Reincidente', '#7f1d1d', '#fee2e2'] };
+    var pBox = function(n, lbl, cor, bg, brd) { return '<div style="background:' + bg + ';border:1px solid #E0E0E0;border-top:3px solid ' + brd + ';border-radius:4px;padding:9px;text-align:center"><div style="font-size:20px;font-weight:900;color:' + cor + '">' + n + '</div><div style="font-size:8px;color:#666;text-transform:uppercase;margin-top:3px">' + lbl + '</div></div>'; };
+    var pFoto = function(src, rotulo) {
+      var ok = typeof src === 'string' && (src.indexOf('data:image') === 0 || src.indexOf('http') === 0);
+      return '<div><div style="font-size:9px;color:#666;text-transform:uppercase;font-weight:700;margin-bottom:4px">' + rotulo + '</div>'
+        + (ok ? '<img src="' + src + '" style="width:100%;height:120px;object-fit:contain;background:#f5f5f5;border:1px solid #E0E0E0;border-radius:6px;display:block"/>'
+              : '<div style="height:120px;border:1px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888">sem foto</div>') + '</div>';
+    };
+    pendH = '<h2>Situação das pendências da visita anterior</h2><div style="font-size:11px;color:#666;margin:-6px 0 12px">' + pend.length + ' pendência' + (pend.length !== 1 ? 's' : '') + ' conferida' + (pend.length !== 1 ? 's' : '') + ' nesta visita</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">'
+      + pBox(pend.length, 'Pendências', '#C02F34', '#F5F5F5', '#C02F34') + pBox(pc.atendida, 'Atendidas', '#14532d', '#dcfce7', '#16a34a')
+      + pBox(pc.andamento, 'Em andamento', '#78350f', '#fef3c7', '#d97706') + pBox(pc.nao_atendida, 'Reincidentes', '#7f1d1d', '#fee2e2', '#dc2626') + '</div>';
+    for (var pk = 0; pk < pend.length; pk++) {
+      var pe = pend[pk], ps = pSt[pe.status] || pSt.andamento;
+      var temFoto = (pe.fotos[0] || pe.fotos[1]);
+      pendH += '<div style="border:1px solid #E0E0E0;border-radius:6px;overflow:hidden;margin-bottom:10px;page-break-inside:avoid;break-inside:avoid">'
+        + '<div style="padding:8px 14px;background:#F5F5F5;display:flex;align-items:center;gap:8px;border-bottom:1px solid #E0E0E0"><span style="flex:1;font-weight:700;font-size:12px;color:#000">' + escH(pe.titulo) + '</span>'
+        + '<span style="background:' + ps[2] + ';color:' + ps[1] + ';padding:2px 9px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase">' + ps[0] + '</span></div>'
+        + '<div style="padding:8px 14px;font-size:11px;color:#555;line-height:1.5">' + (pe.local ? escH(pe.local) + ' · ' : '') + 'aberta em ' + fmtData(new Date(pe.dataOrigem + 'T12:00:00'), true)
+        + (pe.obs ? '<br><b>Observação:</b> ' + escH(pe.obs) : '') + '</div>'
+        + (temFoto ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 12px">' + pFoto(pe.fotos[0], 'Antes · ' + fmtData(new Date(pe.dataOrigem + 'T12:00:00'))) + pFoto(pe.fotos[1], 'Depois · ' + fmtData(new Date(pe.dataConf + 'T12:00:00'))) + '</div>' : '')
+        + '</div>';
+    }
+  }
+
   var considH = mc
     ? '<h2>Consideracoes Finais</h2><div style="background:#F5F5F5;border:1px solid #E0E0E0;border-left:4px solid #C02F34;border-radius:0 6px 6px 0;padding:15px 18px;margin-bottom:20px"><p style="font-size:12px;line-height:1.9;color:#333">' + escH(mc).replace(/\n/g, '<br>') + '</p></div>'
     : '';
@@ -3305,7 +3744,7 @@ function imprimirRelatorio(report) {
   html += '</div>';
 
   // ── Conteúdo
-  html += introH;
+  html += introH + pendH;
   html += '<h2>Quantitativos da Vistoria</h2>' + statsH;
   html += aptsH; /* o título "Desenvolvimento da Vistoria" faz parte do primeiro bloco */
   html += considH;
