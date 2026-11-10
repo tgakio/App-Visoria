@@ -2444,65 +2444,66 @@ function imprimirRelatorio(report) {
   var logoSmall = '<img src="' + LOGO_URI + '" alt="ROCONTEC" style="height:32px;width:auto;display:block;max-width:150px;object-fit:contain"/>';
   var logoTiny  = '<img src="' + LOGO_URI + '" alt="ROCONTEC" style="height:24px;width:auto;display:block;max-width:110px;object-fit:contain"/>';
 
-  // ── Apontamentos: máx 2 por página, fotos máx 3 por bloco com proporção preservada
+  // ── Apontamentos: SEMPRE 2 por página, qualquer que seja o número de fotos.
+  // Cada página tem altura fixa (A4 menos margens) dividida igualmente entre os
+  // dois apontamentos; o texto ocupa o que precisa e a área de fotos ocupa o
+  // espaço que sobra, com as fotos reduzidas (proporção preservada) para caber.
+  var APT_PAGE_H = '266mm'; /* altura útil A4: 297mm - 2x12mm de margem, com folga */
+  var APT_SOLO_H = '128mm'; /* altura de um apontamento sozinho na página (último, se ímpar) */
+  var MAX_FOTOS  = 9;
+
+  // Grade de fotos: colunas conforme a quantidade (4 fotos = 2x2, 5-6 = 3x2, 7-9 = 3x3)
+  function colunasFotos(n) { return n <= 1 ? 1 : (n === 2 ? 2 : (n === 3 ? 3 : (n === 4 ? 2 : 3))); }
+
+  function aptCardH(a, idx, estiloSlot) {
+    var localH = a.local ? '<p style="font-size:10px;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;flex:none">&#128205; ' + escH(a.local) + '</p>' : '';
+    var catH   = a.categoria ? '<span style="background:#E5E5E5;color:#555;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:600">' + escH(a.categoria) + '</span>' : '';
+    var desc   = a.descricao || 'Sem descricao registrada.';
+    // Textos longos reduzem a fonte para sobrar espaço às fotos
+    var fs = desc.length > 1500 ? 9 : (desc.length > 900 ? 10 : (desc.length > 500 ? 11 : 12));
+    var fotos  = (a.fotos || []).slice(0, MAX_FOTOS);
+    var fotosH = '';
+    if (fotos.length) {
+      var cols = colunasFotos(fotos.length);
+      var rows = Math.ceil(fotos.length / cols);
+      fotosH = '<div style="flex:1 1 0;min-height:24mm;margin-top:8px;display:grid;grid-template-columns:repeat(' + cols + ',minmax(0,1fr));grid-template-rows:repeat(' + rows + ',minmax(0,1fr));gap:6px">';
+      for (var fi = 0; fi < fotos.length; fi++) {
+        fotosH += '<div style="position:relative;min-width:0;min-height:0"><img src="' + fotos[fi] + '" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;object-position:center;background:#f5f5f5;border-radius:6px;border:1px solid #E0E0E0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact"/></div>';
+      }
+      fotosH += '</div>';
+    }
+    return '<div style="' + estiloSlot + ';display:flex;flex-direction:column;min-height:0;border:1px solid #E0E0E0;border-radius:6px;overflow:hidden">'
+      + '<div style="flex:none;padding:9px 14px;background:#F5F5F5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #E0E0E0">'
+      + '<span style="width:22px;height:22px;border-radius:4px;background:#C02F34;color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">' + (idx + 1) + '</span>'
+      + '<span style="font-weight:700;font-size:12px;flex:1;color:#000">' + escH(a.titulo || 'Sem titulo') + '</span>'
+      + '<span style="background:' + (cB[a.criticidade] || '#eee') + ';color:' + (cC[a.criticidade] || '#666') + ';padding:2px 9px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase">' + (cL[a.criticidade] || '') + '</span>'
+      + catH + '</div>'
+      + '<div style="flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:10px 14px 12px;background:#fff">'
+      + localH
+      + '<p style="flex:none;font-size:' + fs + 'px;line-height:1.6;color:#333">' + escH(desc).replace(/\n/g, '<br>') + '</p>'
+      + fotosH
+      + '</div></div>';
+  }
+
   var aptsH = '';
   if (mitems.length === 0) {
-    aptsH = '<p style="color:#888;font-size:12px;font-style:italic">Nenhum apontamento registrado.</p>';
+    aptsH = '<h2>Desenvolvimento da Vistoria <span style="font-size:11px;font-weight:600;color:#888;text-transform:none;letter-spacing:0">0 apontamentos</span></h2>'
+      + '<p style="color:#888;font-size:12px;font-style:italic">Nenhum apontamento registrado.</p>';
   } else {
-    for (var i = 0; i < mitems.length; i++) {
-      var a = mitems[i];
-      var localH = a.local ? '<p style="font-size:10px;color:#888;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;font-weight:600">&#128205; ' + escH(a.local) + '</p>' : '';
-      var catH   = a.categoria ? '<span style="background:#E5E5E5;color:#555;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:600">' + escH(a.categoria) + '</span>' : '';
-
-      // Fotos: grupos de 3 por bloco, cada bloco em nova página
-      var fotosH = '';
-      if (a.fotos && a.fotos.length) {
-        var totalF = a.fotos.length > 9 ? 9 : a.fotos.length;
-        for (var fi = 0; fi < totalF; fi++) {
-          var blockPos  = fi % 3;
-          var isFirst   = blockPos === 0;
-          var isLast    = blockPos === 2 || fi === totalF - 1;
-          // Quantas fotos neste bloco
-          var blockStart = fi - blockPos;
-          var blockEnd   = blockStart + 3 > totalF ? totalF : blockStart + 3;
-          var inBlock    = blockEnd - blockStart;
-          // Tamanho conforme quantidade no bloco
-          var fw = inBlock === 1 ? '98%' : (inBlock === 2 ? 'calc(49% - 4px)' : 'calc(32% - 6px)');
-          var fh = inBlock === 1 ? '260px' : (inBlock === 2 ? '220px' : '180px');
-          if (isFirst) {
-            fotosH += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center;page-break-inside:avoid;break-inside:avoid">';
-          }
-          fotosH += '<img src="' + a.fotos[fi] + '" style="width:' + fw + ';height:' + fh + ';object-fit:contain;object-position:center;background:#f5f5f5;border-radius:6px;border:1px solid #E0E0E0;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact"/>';
-          if (isLast) {
-            fotosH += '</div>';
-            if (fi < totalF - 1) {
-              fotosH += '<div style="page-break-after:always;break-after:page;height:0;margin:0;padding:0"></div>';
-            }
-          }
-        }
+    for (var pi = 0; pi < mitems.length; pi += 2) {
+      var dupla    = pi + 1 < mitems.length;
+      var primeira = pi === 0;
+      var haMais   = pi + 2 < mitems.length;
+      aptsH += '<div style="display:flex;flex-direction:column;gap:10px;page-break-inside:avoid;break-inside:avoid;'
+        + (primeira ? 'page-break-before:always;break-before:page;' : '')
+        + (haMais ? 'page-break-after:always;break-after:page;' : '')
+        + (dupla ? 'height:' + APT_PAGE_H + ';' : '') + '">';
+      if (primeira) {
+        aptsH += '<h2 style="flex:none;margin:0 0 2px">Desenvolvimento da Vistoria <span style="font-size:11px;font-weight:600;color:#888;text-transform:none;letter-spacing:0">' + mitems.length + ' apontamento' + (mitems.length !== 1 ? 's' : '') + '</span></h2>';
       }
-
-      // Cada par de apontamentos fica na mesma página
-      if (i % 2 === 0) {
-        aptsH += '<div style="page-break-inside:avoid;break-inside:avoid">';
-      }
-      aptsH += '<div style="margin-bottom:14px;border:1px solid #E0E0E0;border-radius:6px;overflow:hidden">'
-        + '<div style="padding:10px 14px;background:#F5F5F5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #E0E0E0">'
-        + '<span style="width:22px;height:22px;border-radius:4px;background:#C02F34;color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">' + (i + 1) + '</span>'
-        + '<span style="font-weight:700;font-size:12px;flex:1;color:#000">' + escH(a.titulo || 'Sem titulo') + '</span>'
-        + '<span style="background:' + (cB[a.criticidade] || '#eee') + ';color:' + (cC[a.criticidade] || '#666') + ';padding:2px 9px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase">' + (cL[a.criticidade] || '') + '</span>'
-        + catH + '</div>'
-        + '<div style="padding:12px 14px;background:#fff">'
-        + localH
-        + '<p style="font-size:12px;line-height:1.85;color:#333">' + escH(a.descricao || 'Sem descricao registrada.').replace(/\n/g, '<br>') + '</p>'
-        + fotosH
-        + '</div></div>';
-      if (i % 2 === 1 || i === mitems.length - 1) {
-        aptsH += '</div>';
-        if (i < mitems.length - 1) {
-          aptsH += '<div style="page-break-after:always;break-after:page;height:0;margin:0;padding:0"></div>';
-        }
-      }
+      aptsH += aptCardH(mitems[pi], pi, dupla ? 'flex:1 1 0' : 'height:' + APT_SOLO_H);
+      if (dupla) aptsH += aptCardH(mitems[pi + 1], pi + 1, 'flex:1 1 0');
+      aptsH += '</div>';
     }
   }
 
@@ -2557,8 +2558,7 @@ function imprimirRelatorio(report) {
   // ── Conteúdo
   html += introH;
   html += '<h2>Quantitativos da Vistoria</h2>' + statsH;
-  html += '<h2>Desenvolvimento da Vistoria <span style="font-size:11px;font-weight:600;color:#888;text-transform:none;letter-spacing:0">' + mitems.length + ' apontamento' + (mitems.length !== 1 ? 's' : '') + '</span></h2>';
-  html += aptsH;
+  html += aptsH; /* o título "Desenvolvimento da Vistoria" faz parte do primeiro bloco */
   html += considH;
 
   // ── RODAPÉ: logo pequeno à esquerda + data/nome à direita
