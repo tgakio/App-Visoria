@@ -148,6 +148,8 @@ body{font-family:var(--ft);background:var(--bg);color:var(--black);-webkit-font-
 .apt-body{padding:14px}
 .photos{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .ph{width:76px;height:76px;object-fit:cover;border-radius:6px;border:1px solid var(--bdr);cursor:pointer}
+.ph-loading,.ph-off{display:grid;place-items:center;background:var(--bg);cursor:default;color:var(--gray3)}
+.ph-off{font-size:10px;font-weight:600;text-align:center;line-height:1.2;padding:4px;color:var(--gray)}
 .ph-add{width:76px;height:76px;border:2px dashed var(--bdr2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--gray);-webkit-tap-highlight-color:transparent;font-size:20px;gap:2px}
 .ph-add:active{border-color:var(--red);color:var(--red)}
 .ph-sm{width:76px;height:36px;font-size:16px}
@@ -203,7 +205,7 @@ body.ui-nao-admin .admin-only{display:none !important}
 .md-btns{display:flex;gap:8px}
 /* Bottom nav */
 .bnav{display:none;background:var(--white);border-top:1px solid var(--bdr);padding:6px 0 calc(6px + var(--sbot));position:fixed;bottom:0;left:0;right:0;z-index:20;justify-content:space-around}
-.bn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;cursor:pointer;border:none;background:none;color:var(--gray);font-size:9px;font-weight:700;font-family:var(--ft);-webkit-tap-highlight-color:transparent;min-width:56px;text-transform:uppercase;letter-spacing:.5px}
+.bn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;cursor:pointer;border:none;background:none;color:var(--gray);font-size:9px;font-weight:700;font-family:var(--ft);-webkit-tap-highlight-color:transparent;flex:1 1 0;min-width:0;text-transform:uppercase;letter-spacing:.3px}
 .bn-btn.on{color:var(--red)}
 .bn-ico{font-size:22px;line-height:1}
 .fab{position:fixed;bottom:calc(66px + var(--sbot));right:16px;width:52px;height:52px;border-radius:26px;background:var(--red);color:var(--white);border:none;font-size:28px;line-height:1;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(192,47,52,.4);z-index:19;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -259,6 +261,10 @@ body.ui-nao-admin .admin-only{display:none !important}
       <button class="sb-btn admin-only" onclick="abrirAcessos()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Acessos e Perfis
+      </button>
+      <button class="sb-btn admin-only" onclick="abrirDisciplinas()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Disciplinas
       </button>
       <button class="sb-btn" id="sb-sync-btn" onclick="sincronizarManual()">
         <span id="sb-sync-ico"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></span>
@@ -410,6 +416,7 @@ body.ui-nao-admin .admin-only{display:none !important}
     <button class="bn-btn" id="bn-obras" onclick="navegar('obras')"><span class="bn-ico">🏗️</span>Obras</button>
     <button class="bn-btn" id="bn-list" onclick="navegar('list')"><span class="bn-ico">📂</span>Relatórios</button>
     <button class="bn-btn" id="bn-config" onclick="abrirChave()"><span class="bn-ico">⚙️</span>Config</button>
+    <button class="bn-btn admin-only" id="bn-admin" onclick="abrirMenuAdmin()"><span class="bn-ico">🛡️</span>Admin</button>
     <button class="bn-btn" onclick="abrirConfigSb()"><span class="bn-ico">☁️</span>Nuvem</button>
     <button class="bn-btn" onclick="abrirBackup()"><span class="bn-ico">💾</span>Backup</button>
   </nav>
@@ -537,7 +544,71 @@ var CRITS = {
   high:     {l:'Alta',     cls:'c-high'},
   critical: {l:'Crítica',  cls:'c-critical'}
 };
-var CATS = ['Civil','Estrutura','Fundações','Elétrica','Hidráulica','Impermeabilização','Acabamentos','Fachada','Segurança','Climatização','Outros'];
+/* ══ DISCIPLINAS ═══════════════════════════════════════════════════
+   Lista do campo "Disciplina" dos apontamentos, mantida pelo
+   administrador (tabela public.disciplinas no Supabase). Disciplina
+   nunca é apagada, só desativada: as desativadas somem da escolha para
+   apontamentos novos, mas continuam valendo nos relatórios já salvos
+   (o apontamento guarda o nome em texto). Sem nuvem (modo local), a
+   lista fica só no localStorage. */
+var SK_DISC = 'roc_disc';
+var DISCIPLINAS_PADRAO = ['Fundação e contenção','Estrutura de concreto','Prumada','Alvenaria','Instalações elétricas','Contramarco','Esquadria de ferro','Contrapiso','Distribuição hidráulica','Revestimento em argamassa','Revestimento de gesso','Drywall','Outras instalações','Impermeabilização argamassa polimérica','Impermeabilização manta asfáltica','Revestimento cerâmico','Forro de gesso','Pintura interna','Bancada','Esquadrias de alumínio','Esquadria de madeira','Louças e metais','Revestimento vinílico e laminado','Piscina','Fachada','Marcenaria','Coberturas','Shafts e escadaria','Áreas técnicas','Área comum - residencial','Garagem e piso sobre terra'];
+var DISCIPLINAS_LEGADO = ['Civil','Estrutura','Fundações','Elétrica','Hidráulica','Impermeabilização','Acabamentos','Segurança','Climatização','Outros'];
+var disciplinas = disciplinasPadrao(); /* [{id, nome, ativo, ordem}] — substituída pela da nuvem/cache ao carregar */
+
+function disciplinasPadrao() {
+  var lista = [], n = 0;
+  DISCIPLINAS_PADRAO.forEach(function(nm) { lista.push({ id: 'l' + (++n), nome: nm, ativo: true, ordem: n }); });
+  DISCIPLINAS_LEGADO.forEach(function(nm) { lista.push({ id: 'l' + (++n), nome: nm, ativo: false, ordem: 100 + n }); });
+  return lista;
+}
+
+/* Cache local primeiro (abre sem esperar a rede), nuvem em seguida */
+function carregarDisciplinas() {
+  try { disciplinas = JSON.parse(localStorage.getItem(SK_DISC)) || []; } catch(e) { disciplinas = []; }
+  if (!disciplinas.length) disciplinas = disciplinasPadrao();
+  if (!sbEnabled()) return Promise.resolve();
+  return fetch(SB_URL + '/rest/v1/disciplinas?select=id,nome,ativo,ordem&order=ordem.asc,nome.asc', { headers: sbHeaders() })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!Array.isArray(data) || !data.length) return;
+      disciplinas = data;
+      try { localStorage.setItem(SK_DISC, JSON.stringify(disciplinas)); } catch(e) {}
+      /* se a aba Vistoria já estiver desenhada, atualiza as opções */
+      if (document.getElementById('pg-editor') && document.getElementById('pg-editor').classList.contains('on')) renderApts();
+    })
+    .catch(function() { /* sem rede: segue com o cache local */ });
+}
+
+function salvarDisciplinasLocal() {
+  try { localStorage.setItem(SK_DISC, JSON.stringify(disciplinas)); } catch(e) {}
+}
+
+/* Opções do <select> de disciplina: só as ativas. Se o apontamento já tem
+   uma disciplina desativada (ou fora da lista), ela continua aparecendo
+   selecionada, com o nome normal, para não perder a informação. */
+function opcoesDisciplina(atual) {
+  var ativas = disciplinas.filter(function(d) { return d.ativo; })
+    .sort(function(a, b) { return (a.ordem - b.ordem) || a.nome.localeCompare(b.nome); });
+  var h = '<option value=""' + (!atual ? ' selected' : '') + '>Selecione…</option>';
+  var achou = false;
+  ativas.forEach(function(d) {
+    var sel = d.nome === atual;
+    if (sel) achou = true;
+    h += '<option value="' + escH(d.nome) + '"' + (sel ? ' selected' : '') + '>' + escH(d.nome) + '</option>';
+  });
+  if (atual && !achou) h += '<option value="' + escH(atual) + '" selected>' + escH(atual) + '</option>';
+  return h;
+}
+
+/* Nome digitado todo em MAIÚSCULAS vira "Maiúscula só na primeira letra"
+   (padrão da lista); texto já misturado é respeitado como veio. */
+function normalizarNomeDisciplina(txt) {
+  var s = (txt || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  if (s === s.toUpperCase() && s !== s.toLowerCase()) s = s.toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 /* ══ STORAGE — Local + Supabase ════════════════════════════════ */
 
@@ -700,6 +771,11 @@ function authLogout() {
 function loadData() {
   try { apiKey = localStorage.getItem('roc_k') || ''; } catch(e) {}
   try { reports = JSON.parse(localStorage.getItem(SK)) || []; } catch(e) { reports = []; }
+  /* Limpa URLs assinadas antigas que versões anteriores deixaram gravadas
+     no relatório local (expiram e causavam fotos quebradas): volta tudo
+     para a referência estável; a URL de exibição é regerada ao abrir. */
+  for (var i = 0; i < reports.length; i++) canonizarFotosItens(reports[i].items || []);
+  carregarDisciplinas();
   if (sbEnabled()) sbSyncDown(true);
 }
 
@@ -888,22 +964,72 @@ function sbUploadFotoCached(dataUrl, path) {
   return p;
 }
 
-/* ── Storage: pede URLs assinadas (temporárias) em lote ── */
-function sbSignedUrlsEmLote(paths, expiraSeg) {
-  if (paths.length === 0) return Promise.resolve({});
-  return fetch(SB_URL + '/storage/v1/object/sign/' + SB_BUCKET, {
-    method: 'POST', headers: sbHeaders(),
-    body: JSON.stringify({ expiresIn: expiraSeg || 604800, paths: paths })
-  }).then(function(r) { return r.json(); })
-    .then(function(arr) {
-      var map = {};
-      if (Array.isArray(arr)) {
-        for (var i = 0; i < arr.length; i++) {
-          if (arr[i].signedURL) map[arr[i].path] = SB_URL + '/storage/v1' + arr[i].signedURL;
+/* ── Fotos no Storage: URLs assinadas ────────────────────────────────
+   O bucket é privado, então toda foto precisa de uma URL assinada que
+   EXPIRA. Antes, a URL assinada era gravada dentro do relatório local (e
+   no localStorage) e nunca mais renovada: passados 7 dias, as fotos de
+   relatórios que ninguém editou deixavam de carregar — e o app nem
+   tentava de novo, porque só reconhecia referências "sbfoto:", não URLs
+   assinadas antigas. Agora:
+   - a referência estável no relatório é sempre o caminho no Storage
+     ("sbfoto:...");
+   - a URL assinada só existe numa cópia de trabalho (editor/PDF) e num
+     cache em memória com validade curta;
+   - toda foto do nosso Storage (referência OU URL assinada antiga que
+     ficou salva) é re-assinada ao abrir o relatório ou gerar o PDF. ── */
+var FOTO_URL_TTL_SEG = 86400;            /* validade pedida ao Storage (1 dia) */
+var FOTO_CACHE_MS = 20 * 3600 * 1000;    /* reaproveita a URL na sessão por 20h */
+var fotoUrlCache = {};                   /* caminho no Storage -> {url, ate} */
+
+/* Caminho no Storage se o valor é uma referência "sbfoto:" ou uma URL
+   assinada/pública do nosso bucket; null para base64, outros links etc. */
+function refDeFoto(val) {
+  if (typeof val !== 'string') return null;
+  if (val.indexOf(FOTO_PREFIXO) === 0) return val.slice(FOTO_PREFIXO.length);
+  if (SB_URL && val.indexOf(SB_URL) === 0) {
+    var m = /\/object\/(?:sign|public)\/[^/]+\/([^?]+)/.exec(val);
+    if (m) return decodeURIComponent(m[1]);
+  }
+  return null;
+}
+
+function fotoUrlValida(path, val) {
+  var c = fotoUrlCache[path];
+  return !!(c && c.ate > Date.now() && c.url === val);
+}
+
+/* ── Storage: pede URLs assinadas em lotes e guarda no cache. Se a sessão
+   tiver expirado (token vencido), renova e tenta de novo uma vez em vez de
+   falhar em silêncio. ── */
+function sbSignedUrlsEmLote(paths) {
+  if (paths.length === 0) return Promise.resolve();
+  var lotes = [];
+  for (var i = 0; i < paths.length; i += 100) lotes.push(paths.slice(i, i + 100));
+
+  function assinarLote(lote, jaRenovou) {
+    return fetch(SB_URL + '/storage/v1/object/sign/' + SB_BUCKET, {
+      method: 'POST', headers: sbHeaders(),
+      body: JSON.stringify({ expiresIn: FOTO_URL_TTL_SEG, paths: lote })
+    }).then(function(r) {
+      if ((r.status === 400 || r.status === 401 || r.status === 403) && !jaRenovou) {
+        return sbRefreshSessao().then(function(ok) { return ok ? assinarLote(lote, true) : null; });
+      }
+      return r.ok ? r.json() : null;
+    }).then(function(arr) {
+      if (!Array.isArray(arr)) return;
+      for (var k = 0; k < arr.length; k++) {
+        if (arr[k].signedURL) {
+          fotoUrlCache[arr[k].path] = { url: SB_URL + '/storage/v1' + arr[k].signedURL, ate: Date.now() + FOTO_CACHE_MS };
         }
       }
-      return map;
-    }).catch(function() { return {}; });
+    }).catch(function() { /* rede indisponível: as fotos ficam sem URL e o chamador avisa */ });
+  }
+
+  return sbSessaoOk().then(function() {
+    var seq = Promise.resolve();
+    lotes.forEach(function(lote) { seq = seq.then(function() { return assinarLote(lote, false); }); });
+    return seq;
+  });
 }
 
 /* ── Antes de enviar um relatório: troca fotos base64 por upload no Storage ── */
@@ -940,52 +1066,101 @@ function sbPrepararFotosParaEnvio(report) {
   return proximo();
 }
 
-/* ── Ao baixar: troca referências sbfoto: por URLs assinadas para exibir ── */
-function sbResolverFotos(reportsArr) {
-  var refs = [];
-  for (var i = 0; i < reportsArr.length; i++) {
-    var itens = reportsArr[i].items || [];
-    for (var j = 0; j < itens.length; j++) {
-      var fotos = itens[j].fotos || [];
-      for (var k = 0; k < fotos.length; k++) {
-        if (typeof fotos[k] === 'string' && fotos[k].indexOf(FOTO_PREFIXO) === 0) {
-          refs.push({ ri: i, ii: j, fi: k, path: fotos[k].slice(FOTO_PREFIXO.length) });
-        }
-      }
-    }
-  }
-  if (refs.length === 0) return Promise.resolve(reportsArr);
-  var paths = refs.map(function(r) { return r.path; });
-  return sbSignedUrlsEmLote(paths, 604800).then(function(map) {
-    for (var i = 0; i < refs.length; i++) {
-      var ref = refs[i];
-      if (map[ref.path]) reportsArr[ref.ri].items[ref.ii].fotos[ref.fi] = map[ref.path];
-    }
-    return reportsArr;
-  });
-}
-
-/* ── Verifica se um relatório ainda tem referências "sbfoto:" (foto no Storage
-   que nunca foi assinada nesta sessão) ── */
-function temFotoNaoResolvida(r) {
-  var itens = (r && r.items) || [];
+/* ── Volta qualquer foto do nosso Storage (URL assinada antiga ou referência)
+   para a referência estável "sbfoto:caminho", no próprio array. Usado antes
+   de guardar relatórios localmente, para nunca persistir uma URL que expira. ── */
+function canonizarFotosItens(itens) {
   for (var i = 0; i < itens.length; i++) {
     var fotos = itens[i].fotos || [];
     for (var j = 0; j < fotos.length; j++) {
-      if (typeof fotos[j] === 'string' && fotos[j].indexOf(FOTO_PREFIXO) === 0) return true;
+      var p = refDeFoto(fotos[j]);
+      if (p) fotos[j] = FOTO_PREFIXO + p;
+    }
+  }
+  return itens;
+}
+
+/* ── Alguma foto deste objeto (com .items) ainda não tem URL de exibição
+   válida nesta sessão? Vale para referência "sbfoto:" e também para URL
+   assinada que sobrou salva de uma sessão anterior (possivelmente vencida). ── */
+function precisaResolverFotos(obj) {
+  if (!sbEnabled()) return false;
+  var itens = (obj && obj.items) || [];
+  for (var i = 0; i < itens.length; i++) {
+    var fotos = itens[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      var p = refDeFoto(fotos[j]);
+      if (p && !fotoUrlValida(p, fotos[j])) return true;
     }
   }
   return false;
 }
 
-/* ── Resolve as fotos de UM relatório sob demanda (ao abrir/gerar PDF), em vez
-   de assinar as fotos de TODOS os relatórios a cada sincronização — antes
-   sbSyncDown chamava sbResolverFotos sobre a base inteira sempre. ── */
-function resolverFotosRelatorio(r) {
-  if (!sbEnabled() || !temFotoNaoResolvida(r)) return Promise.resolve(false);
-  return sbResolverFotos([r]).then(function() {
-    persistLocal();
-    return true;
+/* ── Preenche, NA CÓPIA recebida (editor ou cópia do PDF), a URL de exibição
+   atual de cada foto do Storage. Nunca grava nada no relatório salvo.
+   Resolve true se alguma foto foi atualizada. ── */
+function resolverFotosEmObjeto(obj) {
+  if (!sbEnabled()) return Promise.resolve(false);
+  var itens = (obj && obj.items) || [];
+  var refs = [], faltam = [], vistos = {}, agora = Date.now();
+  for (var i = 0; i < itens.length; i++) {
+    var fotos = itens[i].fotos || [];
+    for (var j = 0; j < fotos.length; j++) {
+      var p = refDeFoto(fotos[j]);
+      if (!p || fotoUrlValida(p, fotos[j])) continue;
+      refs.push({ ii: i, fi: j, path: p });
+      var c = fotoUrlCache[p];
+      if (!(c && c.ate > agora) && !vistos[p]) { vistos[p] = true; faltam.push(p); }
+    }
+  }
+  if (refs.length === 0) return Promise.resolve(false);
+  fotosResolvendo++;
+  return sbSignedUrlsEmLote(faltam).then(function() {
+    fotosResolvendo--;
+    var mudou = false, falhas = 0, agora2 = Date.now();
+    for (var k = 0; k < refs.length; k++) {
+      var c2 = fotoUrlCache[refs[k].path];
+      if (c2 && c2.ate > agora2) { itens[refs[k].ii].fotos[refs[k].fi] = c2.url; mudou = true; }
+      else falhas++;
+    }
+    if (falhas > 0) toast(falhas + (falhas === 1 ? ' foto não pôde ser carregada' : ' fotos não puderam ser carregadas') + ' — verifique a conexão e abra o relatório novamente.', '⚠');
+    return mudou;
+  });
+}
+
+/* ── <img> de uma foto do apontamento. Referência ainda não resolvida vira um
+   quadro "carregando" (em vez de imagem quebrada). Se a URL falhar (vencida
+   dentro da sessão, rede), fotoFalhou() renova uma vez e depois avisa. ── */
+var fotosResolvendo = 0; /* assinaturas em andamento: enquanto > 0, referência sem URL = "carregando" */
+function fotoImgHtml(aptId, idx, src) {
+  if (typeof src === 'string' && src.indexOf(FOTO_PREFIXO) === 0) {
+    return fotosResolvendo > 0
+      ? '<div class="ph ph-loading" title="Carregando foto…"><span class="spinner"></span></div>'
+      : '<div class="ph ph-off" title="Não foi possível carregar esta foto">Foto indisponível</div>';
+  }
+  return '<img src="' + src + '" class="ph" data-apt="' + aptId + '" data-idx="' + idx + '" onclick="ampliarFoto(' + aptId + ',' + idx + ')" onerror="fotoFalhou(this)" title="Toque para ampliar"/>';
+}
+
+function fotoIndisponivel(img) {
+  var d = document.createElement('div');
+  d.className = 'ph ph-off';
+  d.title = 'Não foi possível carregar esta foto';
+  d.textContent = 'Foto indisponível';
+  if (img.parentNode) img.parentNode.replaceChild(d, img);
+}
+
+function fotoFalhou(img) {
+  if (img.dataset.tentou) { fotoIndisponivel(img); return; }
+  img.dataset.tentou = '1';
+  var aptId = Number(img.dataset.apt), idx = Number(img.dataset.idx), apt = null;
+  for (var i = 0; i < items.length; i++) if (items[i].id === aptId) { apt = items[i]; break; }
+  var p = apt ? refDeFoto(apt.fotos[idx]) : null;
+  if (!p || !sbEnabled()) { fotoIndisponivel(img); return; }
+  delete fotoUrlCache[p];
+  sbSignedUrlsEmLote([p]).then(function() {
+    var c = fotoUrlCache[p];
+    if (c) { apt.fotos[idx] = c.url; img.src = c.url; }
+    else fotoIndisponivel(img);
   });
 }
 
@@ -1236,6 +1411,138 @@ function resetarSenha(email) {
     if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j.error_description || j.msg || j.message) || 'Falha ao enviar e-mail'); });
     toast('E-mail de redefinição enviado para ' + email, 'o', true);
   }).catch(function(e) { toast('Erro: ' + e.message, '✗'); });
+}
+
+/* ══ ADMIN: MENU E DISCIPLINAS ════════════════════════════════════ */
+/* No celular a barra lateral não aparece; este menu dá acesso às telas de
+   administração a partir do botão "Admin" da barra inferior. */
+function abrirMenuAdmin() {
+  if (!ehAdmin()) { toast('Só administradores acessam esta área', '⚠'); return; }
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Administração</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">'
+    + (sbEnabled() ? '<button class="btn btn-o" style="padding:14px;font-size:14px;justify-content:center" onclick="fecharModal();abrirAcessos()">Acessos e Perfis</button>' : '')
+    + '<button class="btn btn-o" style="padding:14px;font-size:14px;justify-content:center" onclick="fecharModal();abrirDisciplinas()">Disciplinas</button>'
+    + '<button class="btn btn-o" style="padding:12px;font-size:13px;justify-content:center" onclick="fecharModal()">Fechar</button>'
+    + '</div>';
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function abrirDisciplinas() {
+  if (!ehAdmin()) { toast('Só administradores gerenciam as disciplinas', '⚠'); return; }
+  document.getElementById('modal-body').innerHTML = '<div class="md-ttl">Disciplinas</div>'
+    + '<p class="md-txt">Lista do campo <strong>Disciplina</strong> dos apontamentos (aba Vistoria). Disciplinas <strong>desativadas</strong> deixam de aparecer para apontamentos novos, mas continuam nos relatórios já salvos. Ao renomear, os relatórios antigos mantêm o nome anterior.</p>'
+    + '<div id="disc-lista" style="max-height:42vh;overflow-y:auto;margin-bottom:12px"></div>'
+    + '<input class="md-inp" id="disc-nova" placeholder="Nova disciplina" onkeydown="if(event.key===\'Enter\')adicionarDisciplina()"/>'
+    + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="adicionarDisciplina()">Adicionar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Fechar</button></div>';
+  document.getElementById('modal').style.display = 'flex';
+  renderListaDisciplinas();
+  carregarDisciplinas().then(renderListaDisciplinas); /* garante a versão mais recente da nuvem */
+}
+
+function renderListaDisciplinas() {
+  var el = document.getElementById('disc-lista');
+  if (!el) return;
+  var porOrdem = function(a, b) { return (a.ordem - b.ordem) || a.nome.localeCompare(b.nome); };
+  var ativas = disciplinas.filter(function(d) { return d.ativo; }).sort(porOrdem);
+  var inativas = disciplinas.filter(function(d) { return !d.ativo; }).sort(porOrdem);
+  function linha(d) {
+    var idAttr = String(d.id).replace(/'/g, "\\'");
+    return '<div style="display:flex;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)">'
+      + '<input class="md-inp" style="margin:0;flex:1;padding:8px 10px;font-size:14px;' + (d.ativo ? '' : 'opacity:.55;') + '" value="' + escH(d.nome) + '" onchange="renomearDisciplina(\'' + idAttr + '\',this)"/>'
+      + '<button class="btn btn-g" style="font-size:11px;padding:4px 8px;' + (d.ativo ? 'color:var(--red)' : 'color:#16a34a') + '" onclick="alternarDisciplina(\'' + idAttr + '\')">' + (d.ativo ? 'Desativar' : 'Ativar') + '</button>'
+      + '</div>';
+  }
+  var h = '<div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin:2px 0 4px">Ativas (' + ativas.length + ')</div>'
+    + (ativas.length ? ativas.map(linha).join('') : '<div class="md-note">Nenhuma disciplina ativa.</div>');
+  if (inativas.length) {
+    h += '<div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 4px">Desativadas (' + inativas.length + ')</div>'
+      + inativas.map(linha).join('');
+  }
+  el.innerHTML = h;
+}
+
+function acharDisciplina(id) {
+  for (var i = 0; i < disciplinas.length; i++) if (String(disciplinas[i].id) === String(id)) return disciplinas[i];
+  return null;
+}
+
+function disciplinaDuplicada(nome, ignorarId) {
+  var n = nome.toLowerCase();
+  return disciplinas.some(function(d) { return d.nome.toLowerCase() === n && String(d.id) !== String(ignorarId); });
+}
+
+/* Reflete a mudança nas opções da aba Vistoria se o editor estiver aberto */
+function aposMudarDisciplinas() {
+  salvarDisciplinasLocal();
+  renderListaDisciplinas();
+  var ed = document.getElementById('pg-editor');
+  if (ed && ed.classList.contains('on')) renderApts();
+}
+
+function msgErroDisciplina(res) {
+  if (res.status === 409) return 'Já existe uma disciplina com esse nome';
+  return (res.body && (res.body.message || res.body.msg)) || 'Falha ao salvar disciplina';
+}
+
+function atualizarDisciplina(d, campos, onOk, onFalha) {
+  if (!sbEnabled()) {
+    for (var k in campos) if (campos.hasOwnProperty(k)) d[k] = campos[k];
+    aposMudarDisciplinas(); onOk(); return;
+  }
+  fetch(SB_URL + '/rest/v1/disciplinas?id=eq.' + encodeURIComponent(d.id), {
+    method: 'PATCH', headers: Object.assign({}, sbHeaders(), { 'Prefer': 'return=representation' }), body: JSON.stringify(campos)
+  }).then(function(r) { return r.json().catch(function() { return null; }).then(function(b) { return { ok: r.ok, status: r.status, body: b }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(msgErroDisciplina(res));
+      /* RLS bloqueia sem erro: se nenhuma linha voltou, não teve permissão */
+      if (!Array.isArray(res.body) || !res.body.length) throw new Error('Sem permissão para alterar disciplinas');
+      for (var k in campos) if (campos.hasOwnProperty(k)) d[k] = campos[k];
+      aposMudarDisciplinas(); onOk();
+    })
+    .catch(function(e) { toast('Erro: ' + e.message, '✗'); if (onFalha) onFalha(); });
+}
+
+function renomearDisciplina(id, inp) {
+  var d = acharDisciplina(id);
+  if (!d) return;
+  var novo = normalizarNomeDisciplina(inp.value);
+  if (!novo) { inp.value = d.nome; toast('O nome não pode ficar vazio', '⚠'); return; }
+  if (novo === d.nome) { inp.value = novo; return; }
+  if (disciplinaDuplicada(novo, id)) { inp.value = d.nome; toast('Já existe uma disciplina com esse nome', '⚠'); return; }
+  atualizarDisciplina(d, { nome: novo }, function() { toast('Disciplina renomeada', 'o', true); }, function() { inp.value = d.nome; });
+}
+
+function alternarDisciplina(id) {
+  var d = acharDisciplina(id);
+  if (!d) return;
+  var ativar = !d.ativo;
+  atualizarDisciplina(d, { ativo: ativar }, function() {
+    toast(ativar ? 'Disciplina ativada' : 'Disciplina desativada — continua nos relatórios já salvos', 'o', true);
+  });
+}
+
+function adicionarDisciplina() {
+  var inp = document.getElementById('disc-nova');
+  var nome = normalizarNomeDisciplina(inp.value);
+  if (!nome) { toast('Informe o nome da disciplina', '⚠'); return; }
+  if (disciplinaDuplicada(nome, null)) { toast('Já existe uma disciplina com esse nome', '⚠'); return; }
+  var ordem = disciplinas.reduce(function(m, d) { return Math.max(m, d.ordem || 0); }, 0) + 1;
+  if (!sbEnabled()) {
+    disciplinas.push({ id: 'l' + Date.now(), nome: nome, ativo: true, ordem: ordem });
+    inp.value = ''; aposMudarDisciplinas(); toast('Disciplina adicionada', 'o', true);
+    return;
+  }
+  fetch(SB_URL + '/rest/v1/disciplinas', {
+    method: 'POST', headers: Object.assign({}, sbHeaders(), { 'Prefer': 'return=representation' }),
+    body: JSON.stringify([{ nome: nome, ativo: true, ordem: ordem }])
+  }).then(function(r) { return r.json().catch(function() { return null; }).then(function(b) { return { ok: r.ok, status: r.status, body: b }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(msgErroDisciplina(res));
+      if (!Array.isArray(res.body) || !res.body.length) throw new Error('Sem permissão para incluir disciplinas');
+      disciplinas.push(res.body[0]);
+      inp.value = ''; aposMudarDisciplinas(); toast('Disciplina adicionada', 'o', true);
+    })
+    .catch(function(e) { toast('Erro: ' + e.message, '✗'); });
 }
 
 /* ══ MEU PERFIL (nome + trocar a própria senha) ═══════════════════ */
@@ -1731,15 +2038,20 @@ function abrirRelatorio(id) {
      assinatura chegar — resolvendo só as fotos DESTE relatório, não das
      de todos os outros como acontecia antes a cada sincronização. */
   items = JSON.parse(JSON.stringify(r.items || []));
+  /* A URL de exibição é preenchida só nesta cópia de trabalho (items); o
+     relatório salvo em `reports` continua só com referências estáveis.
+     A resolução é disparada ANTES do primeiro desenho para as fotos
+     aparecerem como "carregando" (e não como indisponíveis). */
+  var copiaEditor = { items: items };
+  var resolvendo = precisaResolverFotos(copiaEditor) ? resolverFotosEmObjeto(copiaEditor) : null;
   renderApts();
   atualizarSumStats();
   aplicarModoEdicaoEditor();
-  if (temFotoNaoResolvida(r)) {
-    resolverFotosRelatorio(r).then(function(atualizou) {
-      if (atualizou && editId === id) {
-        items = JSON.parse(JSON.stringify(r.items || []));
-        renderApts();
-      }
+  if (resolvendo) {
+    resolvendo.then(function() {
+      if (editId !== id) return;
+      /* só a área de fotos de cada apontamento — não redesenha os campos */
+      for (var i = 0; i < items.length; i++) atualizarFotos(items[i].id);
     });
   }
 }
@@ -1819,7 +2131,7 @@ function gravarRelatorioAtual(ci, itensArr) {
       if (reports[i].id === editId) {
         reports[i].cover   = ci.cover;
         reports[i].intro   = ci.intro;
-        reports[i].items   = JSON.parse(JSON.stringify(itensArr));
+        reports[i].items   = canonizarFotosItens(JSON.parse(JSON.stringify(itensArr)));
         reports[i].consid  = consid;
         reports[i].updated = now;
         reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
@@ -1829,7 +2141,7 @@ function gravarRelatorioAtual(ci, itensArr) {
     }
     return; /* relatório em edição não existe mais localmente (ex.: excluído em outro aparelho) — não recria */
   }
-  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: JSON.parse(JSON.stringify(itensArr)), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
+  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: canonizarFotosItens(JSON.parse(JSON.stringify(itensArr))), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
   reports.unshift(nr);
   editId = nr.id;
 }
@@ -1945,7 +2257,7 @@ function enviarNuvemAuto(id) {
 /* ══ APONTAMENTOS ══════════════════════════════════════════════════ */
 function addApt() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
-  items.push({ id: Date.now(), titulo: '', descricao: '', local: '', criticidade: 'med', categoria: 'Civil', fotos: [] });
+  items.push({ id: Date.now(), titulo: '', descricao: '', local: '', criticidade: 'med', categoria: '', fotos: [] });
   renderApts();
   abrirTab('vistoria', document.querySelectorAll('.tab-btn')[2]);
   setTimeout(function() {
@@ -2082,7 +2394,7 @@ function atualizarFotos(id) {
   if (!c) return;
   var h = '';
   for (var i = 0; i < apt.fotos.length; i++) {
-    h += '<img src="' + apt.fotos[i] + '" class="ph" onclick="ampliarFoto(' + id + ',' + i + ')" title="Toque para ampliar"/>';
+    h += fotoImgHtml(id, i, apt.fotos[i]);
   }
   h += '<div class="edit-only" style="display:flex;flex-direction:column;gap:5px">'
     + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
@@ -2119,11 +2431,10 @@ function renderApts() {
     for (var k in CRITS) {
       if (CRITS.hasOwnProperty(k)) crOptsH += '<option value="' + k + '"' + (k === a.criticidade ? ' selected' : '') + '>' + CRITS[k].l + '</option>';
     }
-    var catOptsH = '';
-    for (var ci = 0; ci < CATS.length; ci++) catOptsH += '<option value="' + CATS[ci] + '"' + (CATS[ci] === a.categoria ? ' selected' : '') + '>' + CATS[ci] + '</option>';
+    var catOptsH = opcoesDisciplina(a.categoria);
 
     var fotosH = '';
-    for (var fi = 0; fi < a.fotos.length; fi++) fotosH += '<img src="' + a.fotos[fi] + '" class="ph" onclick="ampliarFoto(' + a.id + ',' + fi + ')" title="Toque para ampliar"/>';
+    for (var fi = 0; fi < a.fotos.length; fi++) fotosH += fotoImgHtml(a.id, fi, a.fotos[fi]);
 
     html += '<div class="apt" id="apt-' + a.id + '">'
       + '<div class="apt-hdr">'
@@ -2398,20 +2709,22 @@ function gerarPDFById(id) {
   }
   if (!r) return;
 
+  /* Deep copy para não alterar os dados originais — as URLs de exibição das
+     fotos são preenchidas só nesta cópia. */
+  var rCopy = JSON.parse(JSON.stringify(r));
+
   function continuarComPdf() {
-    /* Deep copy para não alterar os dados originais */
-    var rCopy = JSON.parse(JSON.stringify(r));
     toast('Gerando PDF...', 'o', true);
     comprimirFotosRelatorio(rCopy, function(rComprimido) {
       imprimirRelatorio(rComprimido);
     });
   }
 
-  /* Garante que as fotos deste relatório têm URL assinada antes de
+  /* Garante que as fotos têm URL de exibição válida antes de
      comprimir/imprimir — senão a foto sai quebrada no PDF. */
-  if (temFotoNaoResolvida(r)) {
+  if (precisaResolverFotos(rCopy)) {
     toast('Carregando fotos...', 'o');
-    resolverFotosRelatorio(r).then(continuarComPdf);
+    resolverFotosEmObjeto(rCopy).then(continuarComPdf);
   } else {
     continuarComPdf();
   }
@@ -2779,6 +3092,7 @@ function abrirChave() {
     + '<p class="md-txt">A geração de considerações finais e o aprimoramento de descrições técnicas usam Inteligência Artificial processada pelo servidor do app — você não precisa ter uma chave da Anthropic.</p>'
     + '<div class="md-note">ℹ️ Se o administrador configurou um código de acesso, informe-o abaixo. Se não souber, deixe em branco e tente gerar — o app avisa se for necessário.</div>'
     + '<input class="md-inp" type="password" id="modal-key" placeholder="Código de acesso (opcional)" value="' + escH(apiKey) + '"/>'
+    + (sbEnabled() ? '<button class="btn btn-o" style="width:100%;margin-top:10px;justify-content:center" onclick="fecharModal();abrirMeuPerfil()">Meu perfil e senha</button>' : '')
     + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="salvarChave()">Salvar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Fechar</button></div>';
   document.getElementById('modal').style.display = 'flex';
   setTimeout(function() { var k = document.getElementById('modal-key'); if (k) k.focus(); }, 100);
