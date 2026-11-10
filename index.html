@@ -1604,7 +1604,7 @@ function sbSyncDown(forceRender) {
          antes mesmo de ser sincronizado pela primeira vez */
       var restantes = [];
       for (var i = 0; i < reports.length; i++) {
-        if (idsSet[String(reports[i].id)] || reports[i]._pendingSync) restantes.push(reports[i]);
+        if (idsSet[String(reports[i].id)] || reports[i]._pendingSync || listarFotosPendentes(reports[i]).length > 0) restantes.push(reports[i]);
       }
       reports = restantes;
       /* base de comparação para gravar sem sobrescrever outro aparelho: updated_at do servidor dos relatórios em sincronia */
@@ -2569,27 +2569,26 @@ function pdAddFoto(chave) {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   var c = confPorChave(chave);
   if (!c) return;
+  salvarEditorSeMudou();
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*';
+  inp.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
+  document.body.appendChild(inp);
+  function limpar() { if (inp.parentNode) inp.parentNode.removeChild(inp); }
   inp.onchange = function(e) {
     var f = (e.target.files || [])[0];
-    if (!f) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      var bruta = ev.target.result;
-      var pf = perfilFotos();
-      var comprimir = (typeof bruta === 'string' && bruta.length > pf.bytes) ? comprimirImagem : function(u, m, cb) { cb(u); };
-      comprimir(bruta, pf.bytes, function(foto) {
-        var cc = confPorChave(chave);
-        if (!cc) return;
-        if (cc.fotos.length >= 3) { toast('Máximo de 3 fotos por conferência', '⚠'); return; }
-        cc.fotos.push(foto);
-        pdMudou();
-      }, pf.dim);
-    };
-    reader.readAsDataURL(f);
+    if (!f) { limpar(); return; }
+    prepararFotoArquivo(f, function(foto) {
+      var cc = confPorChave(chave);
+      if (cc) {
+        if (cc.fotos.length >= 3) toast('Máximo de 3 fotos por conferência', '⚠');
+        else { cc.fotos.push(foto); pdMudou(); }
+      }
+      setTimeout(limpar, 500);
+    });
   };
   inp.click();
+  setTimeout(limpar, 30 * 60 * 1000);
 }
 function pdRemFoto(chave, i) {
   var c = confPorChave(chave);
@@ -3619,6 +3618,19 @@ function agendarAutoSave() {
 
 /* Executa já um salvamento automático que esteja agendado (antes de trocar
    de tela/relatório ou quando a página vai para segundo plano). */
+/* Assinatura do que está no editor (para saber se há algo novo a guardar) */
+var ultimaAssinaturaEditor = null;
+function assinaturaEditor() {
+  try { return hashStr(JSON.stringify([lerCapaIntro(), items, confs, consid, itensRem])); } catch (e) { return String(Math.random()); }
+}
+/* Guarda o relatório em edição se algo mudou desde o último salvamento (ao abrir a câmera, ao sair do app) */
+function salvarEditorSeMudou() {
+  var pg = document.getElementById('pg-editor');
+  if (!pg || !pg.classList.contains('on') || !podeEditar() || !G('f-obra')) return;
+  if (assinaturaEditor() === ultimaAssinaturaEditor) return;
+  clearTimeout(autoSaveTimer);
+  autoSalvarRelatorio();
+}
 function flushAutoSave() {
   if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSalvarRelatorio(); }
 }
@@ -3632,6 +3644,7 @@ function autoSalvarRelatorio() {
     return;
   }
   gravarRelatorioAtual(lerCapaIntro(), items, confs);
+  ultimaAssinaturaEditor = assinaturaEditor();
   persistLocal();
   atualizarContador();
   enviarNuvemAuto(editId);
@@ -3682,31 +3695,59 @@ function updApt(id, campo, val) {
 function addFotoCamera(id) { criarInputFoto(id, 'environment'); }
 function addFotoGaleria(id) { criarInputFoto(id, null); }
 
+/* Lê a foto escolhida/tirada e a comprime com segurança. Sempre entrega alguma coisa:
+   se a compressão falhar ou demorar demais, entrega a foto original em vez de perdê-la. */
+var FOTO_TIMEOUT_MS = 20000;
+function prepararFotoArquivo(file, cb) {
+  var pf = perfilFotos(), feito = false, bruta = null;
+  function fim(foto) {
+    if (feito) return;
+    feito = true; clearTimeout(t);
+    if (!foto) { toast('Não foi possível processar a foto', '⚠'); return; }
+    cb(foto);
+  }
+  var t = setTimeout(function() { fim(bruta); }, FOTO_TIMEOUT_MS);
+  var reader = new FileReader();
+  reader.onerror = function() { fim(null); };
+  reader.onload = function(ev) {
+    bruta = ev.target.result;
+    try {
+      if (typeof bruta === 'string' && bruta.indexOf('data:image') === 0 && bruta.length > pf.bytes) comprimirImagem(bruta, pf.bytes, fim, pf.dim);
+      else fim(bruta);
+    } catch (e) { fim(bruta); }
+  };
+  try { reader.readAsDataURL(file); } catch (e2) { fim(null); }
+}
+
 function criarInputFoto(id, cap) {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
+  /* Antes de abrir a câmera: guarda o que já foi digitado (o iPhone pode recarregar o app enquanto a câmera está aberta) */
+  salvarEditorSeMudou();
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
   if (cap) inp.capture = cap;
+  /* No iOS, um <input> fora da página pode ser descartado antes de entregar a foto: mantém no DOM, escondido */
+  inp.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
+  document.body.appendChild(inp);
+  function limpar() { if (inp.parentNode) inp.parentNode.removeChild(inp); }
   inp.onchange = function(e) {
     var files = e.target.files || [];
+    if (!files.length) { limpar(); return; }
+    toast('Processando ' + (files.length > 1 ? files.length + ' fotos' : 'a foto') + '…', 'o', true);
+    var restantes = files.length;
     for (var i = 0; i < files.length; i++) {
-      (function(file) {
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-          /* comprime já ao anexar (mantém o relatório leve para salvar/enviar) */
-          var bruta = ev.target.result, pf = perfilFotos();
-          var comprimir = (typeof bruta === 'string' && bruta.length > pf.bytes) ? comprimirImagem : function(u, m, cb) { cb(u); };
-          comprimir(bruta, pf.bytes, function(foto) {
-            for (var j = 0; j < items.length; j++) {
-              if (items[j].id === id) { items[j].fotos.push(foto); atualizarFotos(id); agendarAutoSave(); break; }
-            }
-          }, pf.dim);
-        };
-        reader.readAsDataURL(file);
-      })(files[i]);
+      prepararFotoArquivo(files[i], function(foto) {
+        var achou = false;
+        for (var j = 0; j < items.length; j++) {
+          if (items[j].id === id) { items[j].fotos.push(foto); atualizarFotos(id); agendarAutoSave(); achou = true; break; }
+        }
+        if (!achou) toast('Não foi possível anexar: o apontamento não está mais aberto', '⚠');
+        if (--restantes <= 0) { if (achou) toast('Foto anexada', '✓'); setTimeout(limpar, 500); }
+      });
     }
   };
   inp.click();
+  setTimeout(limpar, 30 * 60 * 1000);   /* se o usuário cancelar, não deixa o input pendurado */
 }
 
 /* ══ VISUALIZAR FOTO AMPLIADA ═══════════════════════════════════ */
@@ -4033,30 +4074,36 @@ function gerarPDF() { salvarRelatorio(); gerarPDFById(editId); }
 function comprimirImagem(dataUrl, maxBytes, callback, maxDim) {
   /* Não é imagem? devolve sem modificar */
   if (!dataUrl || dataUrl.indexOf('data:image') !== 0) { callback(dataUrl); return; }
+  /* Nunca deixa a foto se perder: qualquer falha ao decodificar/redimensionar (foto muito grande,
+     pouca memória no celular, formato que o navegador não abre) devolve a foto original. */
+  var feito = false;
+  function fim(x) { if (feito) return; feito = true; callback(x); }
   var img = new Image();
   img.onload = function() {
-    var canvas = document.createElement('canvas');
-    var MAX_DIM = maxDim || 1920;
-    var w = img.width, h = img.height;
-    if (w > MAX_DIM || h > MAX_DIM) {
-      if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
-      else       { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
-    }
-    canvas.width = w; canvas.height = h;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, w, h);
-    /* Tenta reduzir qualidade até caber em maxBytes */
-    var quality = 0.85;
-    var result = canvas.toDataURL('image/jpeg', quality);
-    var attempts = 0;
-    while (result.length > maxBytes && quality > 0.15 && attempts < 10) {
-      quality -= 0.1;
-      result = canvas.toDataURL('image/jpeg', quality);
-      attempts++;
-    }
-    callback(result);
+    try {
+      var canvas = document.createElement('canvas');
+      var MAX_DIM = maxDim || 1920;
+      var w = img.width, h = img.height;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+        else       { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+      }
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      /* Tenta reduzir qualidade até caber em maxBytes */
+      var quality = 0.85;
+      var result = canvas.toDataURL('image/jpeg', quality);
+      var attempts = 0;
+      while (result.length > maxBytes && quality > 0.15 && attempts < 10) {
+        quality -= 0.1;
+        result = canvas.toDataURL('image/jpeg', quality);
+        attempts++;
+      }
+      fim(result && result.indexOf('data:image') === 0 ? result : dataUrl);
+    } catch (e) { fim(dataUrl); }
   };
-  img.onerror = function() { callback(dataUrl); };
+  img.onerror = function() { fim(dataUrl); };
   img.src = dataUrl;
 }
 
@@ -4602,7 +4649,7 @@ window.onload = function() {
   atualizarStatusOnline();
   window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); retomarEnvios(false); } });
   document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'hidden') flushAutoSave();
+    if (document.visibilityState === 'hidden') { flushAutoSave(); salvarEditorSeMudou(); }   /* câmera aberta / app em segundo plano: nada digitado se perde */
     else retomarEnvios(false);   /* voltou ao app: tenta de novo o que ficou pendente */
   });
   setInterval(function() { if (document.visibilityState === 'visible') retomarEnvios(false); }, 45000);
