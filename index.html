@@ -883,37 +883,649 @@ function loadData() {
      para a referência estável; a URL de exibição é regerada ao abrir. */
   for (var i = 0; i < reports.length; i++) { canonizarFotosItens(reports[i].items || []); canonizarFotosItens(reports[i].conferencias || []); }
   carregarDisciplinas();
-  if (sbEnabled()) sbSyncDown(true);
+  hidratando = hidratarFotosIDB();
+  if (hidratando) hidratando.then(function() { hidratando = null; atualizarPaineisAtivos(); });
+  if (sbEnabled()) { sbSyncDown(true); setTimeout(function() { retomarEnvios(false); }, 2500); }
 }
 
 /* ── GET no Supabase com retry/backoff para falhas transitórias ──
    502/503/504 (gateway/projeto indisponível) e erros de rede são tentados de
    novo (até 2x, com espera crescente) antes de virar erro para o usuário.
    O erro final leva .status e .transient para a mensagem ser clara. ── */
-var SB_RETRY_DELAYS = [800, 2000];
-function sbFetchJsonRetry(url, tentativa) {
-  tentativa = tentativa || 0;
-  function podeRepetir() { return tentativa < SB_RETRY_DELAYS.length; }
-  function repetir() {
-    return new Promise(function(res) { setTimeout(res, SB_RETRY_DELAYS[tentativa]); })
-      .then(function() { return sbFetchJsonRetry(url, tentativa + 1); });
+
+/* ══ ENVIO ROBUSTO — sinal fraco, sem sinal e login vencido ═════════════════
+   1) sbFetch: toda chamada à nuvem tem limite de tempo, renova o login
+      (antes e se o servidor recusar por token vencido) e repete com espera
+      crescente em falhas transitórias (5xx, rede, tempo esgotado).
+   2) Texto primeiro, fotos depois: o relatório (poucos kB) é enviado na hora;
+      as fotos entram numa fila própria (2 em paralelo), cada uma
+      independente — uma foto com problema não trava o relatório nem as outras.
+   3) Foto enviada vira referência (sbfoto:) também no relatório local, então
+      nunca sobe duas vezes e o localStorage encolhe. Fotos ainda pendentes
+      que não cabem no localStorage vão para o IndexedDB.
+   4) Gravação com verificação e proteção contra sobrescrita: PATCH condicional
+      por updated_at; se outro aparelho mudou o relatório, os apontamentos são
+      combinados por id (exclusões locais viram "tombstones").
+   5) Estado sempre visível (aviso no Painel, status no editor, selo no topo) e
+      retomada automática ao voltar o sinal, ao reabrir o app e a cada 45 s. ══ */
+var SB_TIMEOUT_MS = 25000;
+var SB_BACKOFF = [1000, 3000, 8000];
+var ultimoErroEnvio = null;   /* {tipo, texto, msg, quando} */
+
+var TEXTO_ERRO = { offline: 'sem internet', lento: 'sinal fraco', login: 'login expirado', servidor: 'servidor indisponível', outro: 'erro no envio' };
+function tipoErro(e) {
+  if (!e) return 'outro';
+  if (e.offline || (typeof navigator !== 'undefined' && navigator.onLine === false)) return 'offline';
+  if (e.timeout) return 'lento';
+  if (e.status === 401 || e.status === 403 || e.login) return 'login';
+  if (e.transient || (e.status && e.status >= 500)) return 'servidor';
+  return 'outro';
+}
+function registrarErroEnvio(e) {
+  var t = tipoErro(e);
+  ultimoErroEnvio = { tipo: t, texto: TEXTO_ERRO[t], msg: e && e.message, quando: Date.now() };
+  return ultimoErroEnvio;
+}
+function erroRecente() { return ultimoErroEnvio && (Date.now() - ultimoErroEnvio.quando < 10 * 60 * 1000) ? ultimoErroEnvio : null; }
+
+/* fetch com timeout, renovação de login e novas tentativas. `init.headers` pode ser
+   função (reavaliada a cada tentativa, para pegar o token renovado). */
+function sbFetch(url, init, opts) {
+  opts = opts || {};
+  var maxTent = opts.tentativas != null ? opts.tentativas : SB_BACKOFF.length + 1;
+  var timeout = opts.timeout || SB_TIMEOUT_MS;
+  function espera(n) { return new Promise(function(res) { setTimeout(res, SB_BACKOFF[Math.min(n, SB_BACKOFF.length - 1)] + Math.floor(Math.random() * 300)); }); }
+  function uma() {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      var eo = new Error('sem conexão'); eo.offline = true; eo.transient = true; return Promise.reject(eo);
+    }
+    return sbSessaoOk().then(function() {
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function() { ctrl.abort(); }, timeout) : null;
+      var i2 = {};
+      for (var k in init) if (init.hasOwnProperty(k)) i2[k] = init[k];
+      if (typeof init.headers === 'function') i2.headers = init.headers();
+      if (ctrl) i2.signal = ctrl.signal;
+      return fetch(url, i2).then(function(r) { if (timer) clearTimeout(timer); return r; }, function() {
+        if (timer) clearTimeout(timer);
+        var e = new Error(ctrl && ctrl.signal.aborted ? 'tempo esgotado' : 'sem conexão');
+        e.timeout = !!(ctrl && ctrl.signal.aborted); e.transient = true;
+        throw e;
+      });
+    });
   }
-  return fetch(url, { headers: sbHeaders() }).then(function(r) {
+  function tentar(n, renovou) {
+    return uma().then(function(r) {
+      if (r.ok) return r;
+      if ((r.status === 400 || r.status === 401 || r.status === 403) && !renovou) {
+        return r.clone().text().then(function(t) {
+          if (r.status === 401 || /jwt|token|exp/i.test(t || '')) {
+            return sbRefreshSessao().then(function(ok) { return ok ? tentar(n, true) : r; });
+          }
+          return r;
+        });
+      }
+      if ((r.status >= 500 || r.status === 408 || r.status === 429) && n < maxTent - 1) return espera(n).then(function() { return tentar(n + 1, renovou); });
+      return r;
+    }, function(e) {
+      if (e.transient && !e.offline && n < maxTent - 1) return espera(n).then(function() { return tentar(n + 1, renovou); });
+      throw e;
+    });
+  }
+  return tentar(0, false);
+}
+
+/* GET JSON na nuvem (usado no sync): mesma robustez do sbFetch */
+function sbFetchJsonRetry(url) {
+  return sbFetch(url, { headers: function() { return sbHeaders(); } }).then(function(r) {
     if (r.ok) return r.json();
-    var transiente = (r.status === 502 || r.status === 503 || r.status === 504);
-    if (transiente && podeRepetir()) return repetir();
-    return r.json().catch(function(){ return {}; }).then(function(j) {
+    return r.json().catch(function() { return {}; }).then(function(j) {
       var err = new Error((j && (j.message || j.msg)) || ('Erro ' + r.status));
-      err.status = r.status;
-      err.transient = transiente;
+      err.status = r.status; err.transient = r.status >= 500;
       throw err;
     });
-  }, function(netErr) {
-    if (podeRepetir()) return repetir();
-    var err = new Error('sem conexão');
-    err.transient = true;
-    throw err;
   });
+}
+
+/* ── Velocidade de envio e conexão lenta ── */
+var velEnvio = 0; /* bytes/s (média móvel dos últimos uploads) */
+function medirVelocidade(bytes, ms) {
+  if (ms <= 0) return;
+  var v = bytes / (ms / 1000);
+  velEnvio = velEnvio ? (velEnvio * 0.6 + v * 0.4) : v;
+}
+function conexaoLenta() {
+  var c = (typeof navigator !== 'undefined') ? (navigator.connection || navigator.mozConnection || navigator.webkitConnection) : null;
+  if (c && (c.saveData || c.effectiveType === 'slow-2g' || c.effectiveType === '2g')) return true;
+  return velEnvio > 0 && velEnvio < 15000;
+}
+function modoEnvio() { try { return localStorage.getItem('roc_envio_modo') || 'auto'; } catch (e) { return 'auto'; } }
+function definirModoEnvio(v) {
+  try { localStorage.setItem('roc_envio_modo', v); } catch (e) {}
+  toast(v === 'manual' ? 'Fotos só serão enviadas quando você pedir' : (v === 'economico' ? 'Fotos menores para economizar dados' : 'Envio automático de fotos'), '✓');
+  if (v !== 'manual') retomarEnvios(false);
+}
+/* Fotos menores quando o usuário pede economia ou a conexão está lenta */
+function perfilFotos() {
+  return (modoEnvio() === 'economico' || conexaoLenta()) ? { bytes: 204800, dim: 1280 } : { bytes: 409600, dim: 1920 };
+}
+function htmlModoEnvio() {
+  var m = modoEnvio();
+  function op(v, t) { return '<option value="' + v + '"' + (m === v ? ' selected' : '') + '>' + t + '</option>'; }
+  return '<div class="field" style="margin-top:14px"><label>Envio de fotos</label><select onchange="definirModoEnvio(this.value)">'
+    + op('auto', 'Automático') + op('economico', 'Economizar dados (fotos menores)') + op('manual', 'Só quando eu pedir') + '</select></div>';
+}
+
+/* ── Fotos: upload com tempo proporcional ao tamanho ── */
+function sbUploadFoto(dataUrl, path) {
+  var m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl);
+  if (!m) return Promise.reject(new Error('Formato de imagem inválido'));
+  var mime = m[1], bin = atob(m[2]), bytes = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  var blob = new Blob([bytes], { type: mime });
+  var t0 = Date.now();
+  return sbFetch(SB_URL + '/storage/v1/object/' + SB_BUCKET + '/' + path, {
+    method: 'POST',
+    headers: function() { var token = (SB_SESSION && SB_SESSION.access_token) || SB_KEY; return { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': mime, 'x-upsert': 'true' }; },
+    body: blob
+  }, { timeout: Math.min(120000, Math.max(30000, Math.round(blob.size / 1500 * 1000))) }).then(function(r) {
+    if (!r.ok) return r.json().catch(function() { return {}; }).then(function(j) {
+      var e = new Error((j && (j.message || j.error)) || ('Erro ' + r.status)); e.status = r.status; throw e;
+    });
+    medirVelocidade(blob.size, Date.now() - t0);
+    return path;
+  });
+}
+
+/* ══ ARMAZENAMENTO LOCAL: localStorage + IndexedDB para o excedente ══ */
+var idbPromise = null;
+function idbAbrir() {
+  if (!idbPromise) idbPromise = new Promise(function(res, rej) {
+    if (typeof indexedDB === 'undefined') { rej(new Error('IndexedDB indisponível')); return; }
+    var rq = indexedDB.open('rocontec', 1);
+    rq.onupgradeneeded = function() {
+      var db = rq.result;
+      if (!db.objectStoreNames.contains('fotos')) db.createObjectStore('fotos');
+      if (!db.objectStoreNames.contains('versoes')) db.createObjectStore('versoes');
+    };
+    rq.onsuccess = function() { res(rq.result); };
+    rq.onerror = function() { rej(rq.error); };
+  });
+  return idbPromise;
+}
+function idbOp(loja, modo, fn) {
+  return idbAbrir().then(function(db) {
+    return new Promise(function(res, rej) {
+      var tx = db.transaction(loja, modo), rq = fn(tx.objectStore(loja));
+      tx.oncomplete = function() { res(rq ? rq.result : undefined); };
+      tx.onerror = tx.onabort = function() { rej(tx.error); };
+    });
+  });
+}
+function idbPut(loja, k, v) { return idbOp(loja, 'readwrite', function(st) { return st.put(v, k); }); }
+function idbGet(loja, k) { return idbOp(loja, 'readonly', function(st) { return st.get(k); }); }
+function idbDel(loja, k) { return idbOp(loja, 'readwrite', function(st) { return st.delete(k); }); }
+function idbLimpar(loja) { return idbOp(loja, 'readwrite', function(st) { return st.clear(); }); }
+function idbChaves(loja) { return idbOp(loja, 'readonly', function(st) { return st.getAllKeys(); }); }
+function idbTodos(loja) { return idbOp(loja, 'readonly', function(st) { return st.getAll(); }); }
+
+function hashStr(s) {
+  var h = 2166136261;
+  for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h.toString(36);
+}
+var hashFotoCache = new Map();
+function chaveFoto(v) {
+  var c = hashFotoCache.get(v);
+  if (!c) { c = 'f' + hashStr(v) + '_' + v.length; hashFotoCache.set(v, c); }
+  return c;
+}
+var spillEmCurso = false, spillRepetir = false, spillAvisou = false, idbTemFotos = false, hidratando = null;
+
+function persistLocal() {
+  try {
+    localStorage.setItem(SK, JSON.stringify(reports));
+    if (spillEmCurso) spillRepetir = true;   /* um spill em andamento vai regravar o estado atual ao terminar */
+    else if (idbTemFotos) { idbTemFotos = false; idbLimpar('fotos').catch(function() {}); } /* já cabem no localStorage: o excedente no IndexedDB não é mais necessário */
+    return true;
+  } catch (e) {
+    persistirComSpill();
+    return false;
+  }
+}
+/* localStorage cheio (muitas fotos pendentes): guarda as fotos no IndexedDB e deixa só um marcador "idb:" no JSON */
+function persistirComSpill() {
+  if (spillEmCurso) { spillRepetir = true; return; }
+  spillEmCurso = true;
+  var novos = {};
+  var slim = JSON.stringify(reports, function(k, v) {
+    if (typeof v === 'string' && v.indexOf('data:image') === 0) { var ch = chaveFoto(v); novos[ch] = v; return 'idb:' + ch; }
+    return v;
+  });
+  var chs = Object.keys(novos), puts = [];
+  for (var i = 0; i < chs.length; i++) puts.push(idbPut('fotos', chs[i], novos[chs[i]]));
+  Promise.all(puts).then(function() {
+    try {
+      localStorage.setItem(SK, slim);
+      idbTemFotos = true;
+      if (!spillAvisou) { spillAvisou = true; toast('Muitas fotos pendentes: guardadas na área ampliada do aparelho', 'ℹ'); }
+    } catch (e2) {
+      toast('Armazenamento do aparelho cheio. Conecte-se à internet para enviar as fotos ou faça um backup.', '⚠');
+    }
+  }, function() {
+    toast('Não foi possível salvar neste dispositivo (armazenamento cheio). ' + (sbEnabled() ? 'Conecte-se para enviar os dados à nuvem.' : 'Faça backup (Exportar) para não perder os dados.'), '⚠');
+  }).then(function() {
+    spillEmCurso = false;
+    if (spillRepetir) { spillRepetir = false; persistLocal(); }
+  });
+}
+/* Ao abrir o app: devolve às fotos os marcadores "idb:" (em memória; o resto do app não percebe) */
+function hidratarFotosIDB() {
+  var refs = {}, achou = false;
+  for (var i = 0; i < reports.length; i++) {
+    var conts = containersFotos(reports[i]);
+    for (var c = 0; c < conts.length; c++) {
+      var f = conts[c].fotos;
+      for (var j = 0; j < f.length; j++) if (typeof f[j] === 'string' && f[j].indexOf('idb:') === 0) { (refs[f[j].slice(4)] = refs[f[j].slice(4)] || []).push([f, j]); achou = true; }
+    }
+  }
+  if (!achou) return null;
+  idbTemFotos = true;
+  var chs = Object.keys(refs);
+  return Promise.all(chs.map(function(ch) { return idbGet('fotos', ch).catch(function() { return null; }); })).then(function(vals) {
+    var perdidas = 0;
+    for (var k = 0; k < chs.length; k++) {
+      for (var p = 0; p < refs[chs[k]].length; p++) {
+        if (vals[k]) refs[chs[k]][p][0][refs[chs[k]][p][1]] = vals[k]; else perdidas++;
+      }
+    }
+    if (perdidas) toast(pluralPt(perdidas, 'foto local não foi encontrada', 'fotos locais não foram encontradas') + ' no aparelho', '⚠');
+  });
+}
+
+/* ══ FOTOS: mapa de envio, aplicação local das referências e fila ══ */
+var fotoRefPorDataUrl = new Map();   /* data:URL -> caminho no Storage (upload concluído) */
+var fotoPathPorDataUrl = new Map();  /* data:URL -> caminho atribuído (estável entre tentativas) */
+var fotoFalhas = new Map();          /* data:URL -> {n, ate} espera entre rodadas */
+var fotoFila = { rodando: false, total: 0, feitas: 0, falhas: 0, forcar: false, avisarFim: false };
+
+function ehFotoLocal(v) { return typeof v === 'string' && v.indexOf('data:image') === 0; }
+function contFotoId(c) { return c.id !== undefined ? c.id : ('c' + c.origemItem); }
+
+function listarFotosPendentes(soDoRelatorio) {
+  var out = [], rs = soDoRelatorio ? [soDoRelatorio] : reports;
+  for (var i = 0; i < rs.length; i++) {
+    var conts = containersFotos(rs[i]);
+    for (var c = 0; c < conts.length; c++) {
+      var f = conts[c].fotos;
+      for (var j = 0; j < f.length; j++) if (ehFotoLocal(f[j])) out.push({ r: rs[i], c: conts[c], j: j, v: f[j] });
+    }
+  }
+  return out;
+}
+function contarFotosPendentes() { return sbEnabled() ? listarFotosPendentes().length : 0; }
+
+function caminhoDaFoto(it) {
+  var p = fotoPathPorDataUrl.get(it.v);
+  if (!p) { p = 'relatorios/' + it.r.id + '/' + contFotoId(it.c) + '-' + it.j + '-' + Date.now() + '.jpg'; fotoPathPorDataUrl.set(it.v, p); }
+  return p;
+}
+/* troca base64 já enviado por referência estável, nos relatórios locais */
+function aplicarRefsLocais() {
+  var mudou = false;
+  for (var i = 0; i < reports.length; i++) {
+    var conts = containersFotos(reports[i]);
+    for (var c = 0; c < conts.length; c++) {
+      var f = conts[c].fotos;
+      for (var j = 0; j < f.length; j++) if (ehFotoLocal(f[j]) && fotoRefPorDataUrl.has(f[j])) { f[j] = FOTO_PREFIXO + fotoRefPorDataUrl.get(f[j]); mudou = true; }
+    }
+  }
+  return mudou;
+}
+
+function atualizarProgressoFotos() {
+  if (fotoFila.rodando) setAutoSaveStatus('Enviando fotos ' + fotoFila.feitas + '/' + fotoFila.total);
+  atualizarStatusSync();
+}
+
+function fotoWorkerIniciar() {
+  if (fotoFila.rodando || !sbEnabled() || !isOnline) return;
+  if (modoEnvio() === 'manual' && !fotoFila.forcar) return;
+  var agora = Date.now();
+  var lista = listarFotosPendentes().filter(function(it) {
+    var f = fotoFalhas.get(it.v);
+    return fotoFila.forcar || !f || f.ate <= agora;
+  });
+  if (!lista.length) { fotoFila.forcar = false; return; }
+  fotoFila.rodando = true; fotoFila.total = lista.length; fotoFila.feitas = 0; fotoFila.falhas = 0;
+  var tocados = {}, idx = 0, ativos = 0, parar = false;
+  atualizarProgressoFotos();
+
+  function enviarUma(it) {
+    return sbUploadFotoCached(it.v, caminhoDaFoto(it)).then(function(path) {
+      fotoRefPorDataUrl.set(it.v, path);
+      fotoFalhas.delete(it.v);
+      fotoFila.feitas++;
+      tocados[it.r.id] = true;
+      if (aplicarRefsLocais()) persistLocal();
+      atualizarProgressoFotos();
+    }, function(e) {
+      fotoFila.falhas++;
+      var f = fotoFalhas.get(it.v) || { n: 0 };
+      f.n++; f.ate = Date.now() + Math.min(300000, 5000 * Math.pow(2, f.n));
+      fotoFalhas.set(it.v, f);
+      var t = registrarErroEnvio(e).tipo;
+      if (t === 'offline' || t === 'login') parar = true;   /* não adianta insistir nas demais agora */
+      atualizarProgressoFotos();
+    });
+  }
+  function proximo() {
+    while (!parar && ativos < 2 && idx < lista.length) {
+      ativos++;
+      enviarUma(lista[idx++]).then(function() { ativos--; proximo(); });
+    }
+    if ((parar || idx >= lista.length) && ativos === 0) finalizar();
+  }
+  function finalizar() {
+    fotoFila.rodando = false;
+    var ids = Object.keys(tocados), restantes = contarFotosPendentes();
+    var avisar = fotoFila.avisarFim; fotoFila.avisarFim = false; fotoFila.forcar = false;
+    function fim() {
+      atualizarStatusSync();
+      atualizarStatusEditorEnvio();
+      atualizarPaineisAtivos();
+      if (avisar) toast(restantes ? pluralPt(restantes, 'foto continua', 'fotos continuam') + ' pendente' + (restantes > 1 ? 's' : '') + (erroRecente() ? ' (' + erroRecente().texto + ')' : '') : 'Fotos enviadas para a nuvem', restantes ? '⚠' : '✓');
+    }
+    /* fase 2: com as fotos novas já no Storage, grava de novo cada relatório com as referências */
+    var i2 = 0;
+    (function proxRel() {
+      if (i2 >= ids.length) { fim(); return; }
+      sbUpsertOne(isNaN(Number(ids[i2])) ? ids[i2] : Number(ids[i2]), function() { i2++; proxRel(); }, true);
+    })();
+  }
+  proximo();
+}
+
+/* ══ GRAVAÇÃO NA NUVEM: texto primeiro, verificação e proteção contra sobrescrita ══ */
+function achaRelatorio(id) {
+  for (var i = 0; i < reports.length; i++) if (String(reports[i].id) === String(id)) return reports[i];
+  return null;
+}
+/* Corpo enviado ao banco: sem campos de controle e sem base64 (foto ainda não enviada vira "sbpend:") */
+function prepararPayload(r) {
+  var ver = r._ver || 0;
+  var clone = JSON.parse(JSON.stringify(r));
+  delete clone._pendingSync; delete clone._ver; delete clone._srvUpd;
+  var conts = containersFotos(clone), pend = 0;
+  for (var i = 0; i < conts.length; i++) {
+    var f = conts[i].fotos;
+    for (var j = 0; j < f.length; j++) {
+      var v = f[j];
+      if (ehFotoLocal(v)) {
+        if (fotoRefPorDataUrl.has(v)) f[j] = FOTO_PREFIXO + fotoRefPorDataUrl.get(v);
+        else f[j] = 'sbpend:' + (++pend);
+      } else if (typeof v === 'string' && v.indexOf('http') === 0) {
+        var match = /\/object\/(?:sign|public)\/[^/]+\/([^?]+)/.exec(v);
+        if (match) f[j] = FOTO_PREFIXO + decodeURIComponent(match[1]);
+      }
+    }
+  }
+  return { corpo: clone, ver: ver };
+}
+function mesmosIds(a, b) {
+  a = a || []; b = b || [];
+  if (a.length !== b.length) return false;
+  var m = {};
+  for (var i = 0; i < a.length; i++) m[String(a[i].id)] = 1;
+  for (var j = 0; j < b.length; j++) if (!m[String(b[j].id)]) return false;
+  return true;
+}
+function numOuTexto(x) { return isNaN(Number(x)) ? x : Number(x); }
+
+/* Junta o que este aparelho tem com o que outro aparelho gravou antes (por id) */
+function mesclarRelatorio(local, srv) {
+  var tomb = {}, ids = {}, itens = [], adicionados = [], confK = {}, cfs = [];
+  (local.itensRemovidos || []).concat(srv.itensRemovidos || []).forEach(function(id) { tomb[String(id)] = true; });
+  var srvPorId = {};
+  (srv.items || []).forEach(function(it) { srvPorId[String(it.id)] = it; });
+  function temPend(fs) { for (var q = 0; q < (fs || []).length; q++) if (String(fs[q]).indexOf('sbpend:') === 0) return true; return false; }
+  (local.items || []).forEach(function(it) {
+    var si = srvPorId[String(it.id)];
+    /* foto que aqui ainda aparece como "em envio" mas no servidor já tem referência: fica com a do servidor */
+    if (si && temPend(it.fotos) && !temPend(si.fotos) && (si.fotos || []).length >= (it.fotos || []).length) it.fotos = si.fotos.slice();
+    itens.push(it); ids[String(it.id)] = true;
+  });
+  (srv.items || []).forEach(function(it) {
+    if (!ids[String(it.id)] && !tomb[String(it.id)]) { itens.push(it); adicionados.push(it); }
+  });
+  (local.conferencias || []).forEach(function(c) { cfs.push(c); confK[String(c.origemRel) + ':' + String(c.origemItem)] = true; });
+  (srv.conferencias || []).forEach(function(c) { if (!confK[String(c.origemRel) + ':' + String(c.origemItem)]) cfs.push(c); });
+  return { items: itens, adicionados: adicionados, conferencias: cfs, itensRemovidos: Object.keys(tomb).map(numOuTexto) };
+}
+
+function sbGravar(r, tentativa) {
+  var pr = prepararPayload(r), corpo = pr.corpo, base = SB_URL + '/rest/v1/' + SB_TABLE;
+  var selecao = 'select=id,updated_at,items:data->items';
+  function hdr(prefer) { return function() { var h = sbHeaders(); h['Prefer'] = prefer; return h; }; }
+  function lerLinhas(resp) {
+    if (!resp.ok) return resp.json().catch(function() { return {}; }).then(function(j) {
+      var e = new Error((j && (j.message || j.msg)) || ('Erro ' + resp.status)); e.status = resp.status; throw e;
+    });
+    return resp.json().catch(function() { return null; });
+  }
+  function confirmar(linhas) {
+    /* o servidor devolve o que gravou: confere se os apontamentos batem com o enviado */
+    if (!Array.isArray(linhas) || !linhas.length) return { ok: true, updated_at: null, ver: pr.ver };
+    if (!mesmosIds(corpo.items, linhas[0].items)) { var e = new Error('o servidor não confirmou todos os apontamentos'); e.transient = true; throw e; }
+    return { ok: true, updated_at: linhas[0].updated_at, ver: pr.ver };
+  }
+  if (r._srvUpd) {
+    /* relatório que já existe no servidor: só grava se ninguém mudou desde a nossa base */
+    var url = base + '?id=eq.' + encodeURIComponent(String(r.id)) + '&updated_at=eq.' + encodeURIComponent(r._srvUpd) + '&' + selecao;
+    return sbFetch(url, { method: 'PATCH', headers: hdr('return=representation'), body: JSON.stringify({ data: corpo }) }).then(lerLinhas).then(function(linhas) {
+      if (Array.isArray(linhas) && linhas.length === 0) return resolverConflito();
+      return confirmar(linhas);
+    });
+  }
+  return sbFetch(base + '?on_conflict=id&' + selecao, { method: 'POST', headers: hdr('resolution=merge-duplicates,return=representation'), body: JSON.stringify([{ id: String(r.id), data: corpo }]) })
+    .then(lerLinhas).then(confirmar);
+
+  function resolverConflito() {
+    if (tentativa >= 3) { var e = new Error('conflito de edição não resolvido'); e.conflito = true; throw e; }
+    return sbFetch(base + '?id=eq.' + encodeURIComponent(String(r.id)) + '&select=id,data,updated_at', { headers: function() { return sbHeaders(); } }).then(lerLinhas).then(function(rows) {
+      if (!rows || !rows.length) { r._srvUpd = null; return sbGravar(r, tentativa + 1); }   /* apagado no servidor: recria */
+      var m = mesclarRelatorio(r, rows[0].data || {});
+      guardarVersaoLocal(r, 'antes de combinar com outro aparelho');
+      r.items = m.items; r.conferencias = m.conferencias; r.itensRemovidos = m.itensRemovidos;
+      r._ver = (r._ver || 0) + 1; r._srvUpd = rows[0].updated_at;
+      if (m.adicionados.length && String(editId) === String(r.id)) refletirMesclaNoEditor(m);
+      toast('Alterações de outro aparelho foram combinadas com as suas', 'ℹ');
+      return sbGravar(r, tentativa + 1).then(function(res) { res.mesclado = true; return res; });
+    });
+  }
+}
+/* Apontamentos vindos de outro aparelho entram no editor aberto sem apagar o que está sendo digitado */
+function refletirMesclaNoEditor(m) {
+  var novos = [];
+  for (var i = 0; i < m.adicionados.length; i++) {
+    var existe = false;
+    for (var k = 0; k < items.length; k++) if (String(items[k].id) === String(m.adicionados[i].id)) existe = true;
+    if (!existe) novos.push(JSON.parse(JSON.stringify(m.adicionados[i])));
+  }
+  if (!novos.length) return;
+  items = items.concat(novos);
+  var copia = { items: novos };
+  if (precisaResolverFotos(copia)) resolverFotosEmObjeto(copia).then(function() { renderApts(); });
+  renderApts(); atualizarSumStats();
+}
+
+var upsertLock = {};
+/* Grava UM relatório: texto agora (onDone(ok) ao terminar essa parte), fotos depois, em fila própria */
+function sbUpsertOne(reportId, onDone, silent) {
+  var k = String(reportId);
+  if (upsertLock[k]) { upsertLock[k].extra = true; if (onDone) upsertLock[k].cbs.push(onDone); return; }
+  upsertLock[k] = { extra: false, cbs: onDone ? [onDone] : [] };
+  upsertCore(reportId, silent).then(function(ok) {
+    var l = upsertLock[k]; delete upsertLock[k];
+    for (var i = 0; i < l.cbs.length; i++) l.cbs[i](ok);
+    if (l.extra) sbUpsertOne(reportId, null, true);
+  });
+}
+function upsertCore(reportId, silent) {
+  var r = achaRelatorio(reportId);
+  if (!r) return Promise.resolve(false);
+  return sbGravar(r, 0).then(function(res) {
+    if (res.updated_at) r._srvUpd = res.updated_at;
+    if ((r._ver || 0) === res.ver) r._pendingSync = false;
+    persistLocal();
+    if (!listarFotosPendentes().length) ultimoErroEnvio = null;   /* com fotos ainda pendentes o motivo continua visível */
+    atualizarPaineisAtivos();
+    if (listarFotosPendentes(r).length) fotoWorkerIniciar();
+    return true;
+  }).catch(function(e) {
+    var info = registrarErroEnvio(e);
+    if (info.tipo === 'login' && !sbEnabled()) {
+      /* o login não pôde ser renovado: pede para entrar de novo; os relatórios pendentes ficam guardados e saem depois */
+      var gate = document.getElementById('auth-gate');
+      if (gate) gate.style.display = 'flex';
+      toast('Sessão expirada. Entre novamente para enviar os relatórios pendentes.', '⚠');
+    } else if (!silent) toast('Relatório salvo neste dispositivo, mas não foi enviado à nuvem (' + info.texto + '). Vamos tentar de novo automaticamente.', '⚠');
+    atualizarPaineisAtivos();
+    return false;
+  });
+}
+
+/* Estado do envio no editor: uma frase curta */
+function atualizarStatusEditorEnvio() {
+  if (!document.getElementById('autosave-st')) return;
+  var r = editId ? achaRelatorio(editId) : null;
+  if (!r || !sbEnabled()) return;
+  var fp = listarFotosPendentes(r).length, er = erroRecente();
+  if (fotoFila.rodando) { setAutoSaveStatus('Enviando fotos ' + fotoFila.feitas + '/' + fotoFila.total); return; }
+  if (r._pendingSync) setAutoSaveStatus(er ? 'Pendente (' + er.texto + ')' : 'Pendente de envio', true);
+  else if (fp) setAutoSaveStatus(modoEnvio() === 'manual' ? fp + ' fotos aguardando envio' : (er ? fp + ' fotos pendentes (' + er.texto + ')' : fp + ' fotos pendentes'), true);
+  else setAutoSaveStatus('Salvo ' + horaAgora() + ' · confirmado');
+}
+
+/* Envio do relatório em edição (salvamento automático): só a parte de texto bloqueia a fila */
+function enviarNuvemAuto(id) {
+  if (!sbEnabled()) { setAutoSaveStatus('Salvo ' + horaAgora()); return; }
+  if (!isOnline) { setAutoSaveStatus('Pendente (offline)', true); return; }
+  if (autoSaveEmCurso) { autoSaveFila[id] = true; return; }
+  autoSaveEmCurso = true;
+  setAutoSaveStatus('Salvando…');
+  sbUpsertOne(id, function(ok) {
+    autoSaveEmCurso = false;
+    if (ok) {
+      var fp = listarFotosPendentes(achaRelatorio(id) || {}).length;
+      setAutoSaveStatus(fp && !fotoFila.rodando ? (fp + (fp === 1 ? ' foto pendente' : ' fotos pendentes')) : (fotoFila.rodando ? 'Enviando fotos ' + fotoFila.feitas + '/' + fotoFila.total : 'Salvo ' + horaAgora() + ' · confirmado'), fp && !fotoFila.rodando);
+    } else {
+      var er = erroRecente();
+      setAutoSaveStatus(er ? 'Pendente (' + er.texto + ')' : 'Pendente de envio', true);
+    }
+    for (var k in autoSaveFila) {
+      delete autoSaveFila[k];
+      enviarNuvemAuto(isNaN(+k) ? k : +k);
+      break;
+    }
+  }, true);
+}
+
+/* ══ RETOMADA AUTOMÁTICA ══ */
+function pendentesCount() {
+  if (!sbEnabled()) return 0;
+  var n = 0;
+  for (var i = 0; i < reports.length; i++) if (reports[i]._pendingSync) n++;
+  return n;
+}
+function retomarEnvios(forcar) {
+  if (!sbEnabled() || !isOnline) return;
+  if (!pendentesCount() && !contarFotosPendentes()) return;
+  if (forcar) fotoFila.forcar = true;
+  reenviarPendentes(function() { fotoWorkerIniciar(); });
+}
+function bannerPendentes() {
+  if (!sbEnabled()) return '';
+  var n = pendentesCount(), fp = contarFotosPendentes();
+  if (!n && !fp) return '';
+  var er = erroRecente(), manual = modoEnvio() === 'manual';
+  var msg;
+  if (n && fp) msg = '<b>' + pluralPt(n, 'relatório com alterações', 'relatórios com alterações') + ' não enviadas e ' + pluralPt(fp, 'foto', 'fotos') + ' aguardando envio.</b>';
+  else if (n) msg = '<b>' + pluralPt(n, 'relatório com alterações ainda não enviadas', 'relatórios com alterações ainda não enviadas') + ' à nuvem.</b>';
+  else msg = '<b>' + pluralPt(fp, 'foto aguardando', 'fotos aguardando') + ' envio à nuvem.</b> O texto dos relatórios já foi enviado.';
+  var det = ' Estão salvos neste aparelho' + (n ? ', mas os outros usuários ainda não os veem' : '') + '.'
+    + (er ? ' Motivo: ' + er.texto + '.' : '') + (manual && fp ? ' Modo de envio manual.' : '');
+  return '<div class="vz-banner warn" role="status"><div class="vz-bt">' + msg + det + '</div>'
+    + '<button type="button" onclick="enviarPendentesAgora()">' + (manual && fp && !n ? 'Enviar fotos agora' : 'Tentar agora') + '</button></div>';
+}
+function enviarPendentesAgora() {
+  if (!isOnline) { toast('Sem conexão com a internet', '⚠'); return; }
+  toast('Enviando pendências…', 'o', true);
+  fotoFila.forcar = true; fotoFila.avisarFim = true;
+  reenviarPendentes(function() {
+    if (!listarFotosPendentes().length) {
+      fotoFila.avisarFim = false; fotoFila.forcar = false;
+      var falt = pendentesCount();
+      toast(falt ? pluralPt(falt, 'relatório continua', 'relatórios continuam') + ' pendente' + (falt > 1 ? 's' : '') + (erroRecente() ? ' (' + erroRecente().texto + ')' : '') : 'Tudo enviado para a nuvem', falt ? '⚠' : '✓');
+      atualizarPaineisAtivos();
+    } else fotoWorkerIniciar();
+  });
+}
+
+/* ══ VERSÕES LOCAIS: cópia de segurança antes de qualquer troca por outra versão ══ */
+function perdeAlgo(local, srvData) {
+  var ids = {}, i;
+  var si = (srvData && srvData.items) || [];
+  for (i = 0; i < si.length; i++) ids[String(si[i].id)] = true;
+  var li = local.items || [];
+  for (i = 0; i < li.length; i++) if (!ids[String(li[i].id)]) return true;
+  var ck = {}, sc = (srvData && srvData.conferencias) || [];
+  for (i = 0; i < sc.length; i++) ck[String(sc[i].origemRel) + ':' + String(sc[i].origemItem)] = true;
+  var lc = local.conferencias || [];
+  for (i = 0; i < lc.length; i++) if (!ck[String(lc[i].origemRel) + ':' + String(lc[i].origemItem)]) return true;
+  return false;
+}
+function guardarVersaoLocal(r, motivo) {
+  try {
+    var chave = 'v' + Date.now() + '_' + r.id;
+    var reg = { id: r.id, ts: Date.now(), obra: (r.cover && r.cover.obra) || 'Sem título', n: (r.items || []).length, motivo: motivo || '', json: JSON.stringify(r) };
+    idbPut('versoes', chave, reg).then(function() { return idbChaves('versoes'); }).then(function(chs) {
+      chs.sort();
+      var excesso = chs.length - 10;
+      for (var i = 0; i < excesso; i++) idbDel('versoes', chs[i]);
+    }).catch(function() {});
+  } catch (e) {}
+}
+function abrirVersoesLocais() {
+  idbTodos('versoes').then(function(regs) {
+    regs.sort(function(a, b) { return b.ts - a.ts; });
+    var h = '<div class="md-ttl">Versões locais guardadas</div><p class="md-txt">Cópias feitas antes de o app trocar ou combinar um relatório com a versão da nuvem. Restaurar cria um relatório novo — não sobrescreve nada.</p><div style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow:auto">';
+    if (!regs.length) h += '<div class="md-note">Nenhuma versão guardada até agora.</div>';
+    for (var i = 0; i < regs.length; i++) {
+      h += '<div class="vz-vr" style="cursor:default"><div><b>' + escH(regs[i].obra) + '</b><small>' + new Date(regs[i].ts).toLocaleString('pt-BR') + ' · ' + pluralPt(regs[i].n, 'apontamento', 'apontamentos') + (regs[i].motivo ? ' · ' + escH(regs[i].motivo) : '') + '</small></div>'
+        + '<button class="btn btn-o edit-only" onclick="restaurarVersaoLocal(' + i + ')">Restaurar</button></div>';
+    }
+    h += '</div><div class="md-btns"><button class="btn btn-o" style="flex:1;padding:12px" onclick="fecharModal()">Fechar</button></div>';
+    versoesListadas = regs;
+    document.getElementById('modal-body').innerHTML = h;
+    document.getElementById('modal').style.display = 'flex';
+  }).catch(function() { toast('Não foi possível ler as versões locais', '⚠'); });
+}
+var versoesListadas = [];
+function restaurarVersaoLocal(i) {
+  var reg = versoesListadas[i];
+  if (!reg || !podeEditar()) return;
+  var r; try { r = JSON.parse(reg.json); } catch (e) { toast('Versão corrompida', '⚠'); return; }
+  r.id = Date.now();
+  r.cover = r.cover || {}; r.cover.obra = (r.cover.obra || 'Sem título') + ' (recuperado)';
+  delete r._srvUpd; delete r.obraEncerrada;
+  r._pendingSync = true; r._ver = 1;
+  reports.unshift(r);
+  persistLocal(); atualizarContador();
+  if (sbEnabled()) sbUpsertOne(r.id, null, true);
+  fecharModal();
+  toast('Relatório recuperado como novo', '✓');
+  atualizarPaineisAtivos();
 }
 
 /* ── Baixar relatórios do Supabase ── */
@@ -954,7 +1566,7 @@ function sbSyncDown(forceRender) {
         percebe exclusões, porque a linha some da tabela.
      No primeiro sync de um dispositivo (sem cursor salvo ainda) o delta
      vem sem filtro, ou seja, se comporta como o sync completo de antes. */
-  var pIds = sbFetchJsonRetry(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id');
+  var pIds = sbFetchJsonRetry(SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,updated_at');
 
   var deltaUrl = SB_URL + '/rest/v1/' + SB_TABLE + '?select=id,data,updated_at&order=updated_at.asc'
     + (cursor ? '&updated_at=gt.' + encodeURIComponent(cursor) : '');
@@ -965,8 +1577,8 @@ function sbSyncDown(forceRender) {
       var idsRemotos = res[0], delta = res[1];
       if (!Array.isArray(idsRemotos) || !Array.isArray(delta)) return;
 
-      var idsSet = {};
-      for (var i = 0; i < idsRemotos.length; i++) idsSet[String(idsRemotos[i].id)] = true;
+      var idsSet = {}, updPorId = {};
+      for (var i = 0; i < idsRemotos.length; i++) { idsSet[String(idsRemotos[i].id)] = true; updPorId[String(idsRemotos[i].id)] = idsRemotos[i].updated_at; }
 
       /* aplica os relatórios novos/alterados no que já está local */
       var indicePorId = {};
@@ -975,8 +1587,15 @@ function sbSyncDown(forceRender) {
         var row = delta[i];
         var idx = indicePorId[String(row.id)];
         /* não sobrescreve um relatório com alterações locais ainda não enviadas */
-        if (idx !== undefined) { if (!reports[idx]._pendingSync) reports[idx] = row.data; }
-        else { reports.push(row.data); indicePorId[String(row.id)] = reports.length - 1; }
+        if (idx !== undefined) {
+          var loc = reports[idx];
+          /* nunca troca um relatório com alterações ou fotos ainda não enviadas; se a troca fosse
+             perder algo que só existe aqui, guarda antes uma cópia local (recuperável no Backup) */
+          if (!loc._pendingSync && listarFotosPendentes(loc).length === 0) {
+            if (perdeAlgo(loc, row.data)) guardarVersaoLocal(loc, 'antes de sincronizar');
+            reports[idx] = row.data; reports[idx]._srvUpd = row.updated_at;
+          }
+        } else { row.data._srvUpd = row.updated_at; reports.push(row.data); indicePorId[String(row.id)] = reports.length - 1; }
       }
 
       /* remove localmente o que não existe mais no servidor — preserva
@@ -988,6 +1607,10 @@ function sbSyncDown(forceRender) {
         if (idsSet[String(reports[i].id)] || reports[i]._pendingSync) restantes.push(reports[i]);
       }
       reports = restantes;
+      /* base de comparação para gravar sem sobrescrever outro aparelho: updated_at do servidor dos relatórios em sincronia */
+      for (var i = 0; i < reports.length; i++) {
+        if (!reports[i]._pendingSync && updPorId[String(reports[i].id)] && listarFotosPendentes(reports[i]).length === 0) reports[i]._srvUpd = updPorId[String(reports[i].id)];
+      }
       reports.sort(function(a, b) { return b.id - a.id; });
 
       /* avança o cursor até o updated_at mais recente visto neste delta */
@@ -1022,15 +1645,6 @@ function sbSyncDown(forceRender) {
 /* ── Grava localStorage e avisa se falhar (ex.: quota estourada) em vez de
    falhar em silêncio — sem isso o usuário acredita que salvou e perde o dado
    assim que fecha a aba, principalmente em "modo local" sem nuvem. ── */
-function persistLocal() {
-  try {
-    localStorage.setItem(SK, JSON.stringify(reports));
-    return true;
-  } catch (e) {
-    toast('Não foi possível salvar neste dispositivo (armazenamento cheio). ' + (sbEnabled() ? 'Os dados continuam seguros na nuvem.' : 'Faça backup (Exportar) para não perder os dados.'), '⚠');
-    return false;
-  }
-}
 
 /* ── Salvar: localStorage + Supabase ── */
 function saveData(changedId) {
@@ -1040,24 +1654,6 @@ function saveData(changedId) {
 }
 
 /* ── Storage: envia uma foto (data:URL) e devolve o caminho salvo ── */
-function sbUploadFoto(dataUrl, path) {
-  var m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl);
-  if (!m) return Promise.reject(new Error('Formato de imagem inválido'));
-  var mime = m[1], b64 = m[2];
-  var bin = atob(b64);
-  var bytes = new Uint8Array(bin.length);
-  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  var blob = new Blob([bytes], { type: mime });
-  var token = (SB_SESSION && SB_SESSION.access_token) || SB_KEY;
-  return fetch(SB_URL + '/storage/v1/object/' + SB_BUCKET + '/' + path, {
-    method: 'POST',
-    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': mime, 'x-upsert': 'true' },
-    body: blob
-  }).then(function(r) {
-    if (!r.ok) return r.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.error)) || ('Erro ' + r.status)); });
-    return path;
-  });
-}
 
 /* ── Cache de uploads: a mesma foto (mesmo data:URL) só vai ao Storage uma vez
    por sessão, mesmo que o relatório seja salvo várias vezes — essencial para o
@@ -1184,6 +1780,7 @@ function canonizarFotosItens(itens) {
   for (var i = 0; i < itens.length; i++) {
     var fotos = itens[i].fotos || [];
     for (var j = 0; j < fotos.length; j++) {
+      if (ehFotoLocal(fotos[j]) && fotoRefPorDataUrl.has(fotos[j])) { fotos[j] = FOTO_PREFIXO + fotoRefPorDataUrl.get(fotos[j]); continue; }   /* já enviada: guarda só a referência */
       var p = refDeFoto(fotos[j]);
       if (p) fotos[j] = FOTO_PREFIXO + p;
     }
@@ -1244,6 +1841,7 @@ function resolverFotosEmObjeto(obj) {
    dentro da sessão, rede), fotoFalhou() renova uma vez e depois avisa. ── */
 var fotosResolvendo = 0; /* assinaturas em andamento: enquanto > 0, referência sem URL = "carregando" */
 function fotoImgHtml(aptId, idx, src) {
+  if (typeof src === 'string' && src.indexOf('sbpend:') === 0) return '<div class="ph ph-loading" title="Foto ainda sendo enviada por outro aparelho"><span class="spinner"></span></div>';
   if (typeof src === 'string' && src.indexOf(FOTO_PREFIXO) === 0) {
     return fotosResolvendo > 0
       ? '<div class="ph ph-loading" title="Carregando foto…"><span class="spinner"></span></div>'
@@ -1278,30 +1876,6 @@ function fotoFalhou(img) {
 /* ── Upsert de UM relatório no Supabase (fotos vão para o Storage antes) ──
    onDone(ok) é chamado ao final (sucesso ou falha) para permitir uma fila.
    silent: não mostra toast de erro (usado pelo salvamento automático). */
-function sbUpsertOne(reportId, onDone, silent) {
-  var r = null;
-  for (var i = 0; i < reports.length; i++) {
-    if (reports[i].id === reportId) { r = reports[i]; break; }
-  }
-  if (!r) { if (onDone) onDone(false); return; }
-  var verInicio = r._ver || 0; /* versão enviada — se mudar durante o envio, continua pendente */
-  sbPrepararFotosParaEnvio(r).then(function(slim) {
-    return fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
-      method: 'POST',
-      headers: Object.assign({}, sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
-      body: JSON.stringify([{ id: String(slim.id), data: slim }])
-    });
-  }).then(function(r2) {
-    if (!r2.ok) return r2.json().catch(function(){return {};}).then(function(j) { throw new Error((j && (j.message || j.msg)) || ('Erro ' + r2.status)); });
-    if ((r._ver || 0) === verInicio) r._pendingSync = false;
-    persistLocal();
-    if (typeof atualizarPaineisAtivos === 'function') atualizarPaineisAtivos();
-    if (onDone) onDone(true);
-  }).catch(function(e) {
-    if (!silent) toast('Relatório salvo neste dispositivo, mas falhou ao enviar para a nuvem: ' + e.message, '⚠');
-    if (onDone) onDone(false);
-  });
-}
 
 /* ── Apaga as fotos de um relatório no Storage (melhor esforço) ── */
 function sbApagarFotosDoRelatorio(id) {
@@ -1361,6 +1935,7 @@ function abrirConfigSb() {
     + '<div class="md-note">ℹ️ Crie um projeto em <strong style="color:var(--red)">supabase.com</strong> e copie a URL e a chave <strong>anon/public</strong> em Project Settings → API.</div>'
     + '<input class="md-inp" type="text" id="sb-url-inp" placeholder="https://xxxxx.supabase.co" value="' + escH(SB_URL) + '" style="margin-top:10px"/>'
     + '<input class="md-inp" type="password" id="sb-key-inp" placeholder="Chave anon/public" value="' + escH(SB_KEY) + '" style="margin-top:10px"/>'
+    + htmlModoEnvio()
     + '<div class="md-btns"><button class="btn btn-r" style="flex:1;padding:13px;font-size:14px" onclick="salvarConfigSb()">Salvar</button><button class="btn btn-o" style="padding:13px 16px" onclick="fecharModal()">Cancelar</button></div>'
     + (SB_URL && SB_KEY ? (logado
         ? '<div class="md-note" style="margin-top:10px">Conectado como <strong>' + escH(SB_SESSION.email) + '</strong></div>'
@@ -1860,6 +2435,7 @@ var CONFERIR_CRIT = { critical: true, high: true, orient: true };
 var ATENDIMENTO_INICIO = '2026-11-10';
 var CONF_ST = { atendida: ['ok', 'Atendida'], andamento: ['at', 'Em andamento'], nao_atendida: ['cr', 'Não atendida'] };
 var confs = [];              /* conferências do relatório em edição */
+var itensRem = [];           /* ids de apontamentos excluídos neste relatório (tombstones) */
 var pendFotosTentadas = false;
 var aptSitMap = {};
 
@@ -1946,7 +2522,7 @@ function pdChave(chave) {
 
 /* URL de exibição de uma foto (referência do Storage só vale se já foi assinada) */
 function fotoExibicao(val) {
-  if (typeof val !== 'string' || !val) return '';
+  if (typeof val !== 'string' || !val || val.indexOf('sbpend:') === 0) return '';
   var p = refDeFoto(val);
   if (!p) return val;
   if (fotoUrlValida(p, val)) return val;
@@ -2001,14 +2577,15 @@ function pdAddFoto(chave) {
     var reader = new FileReader();
     reader.onload = function(ev) {
       var bruta = ev.target.result;
-      var comprimir = (typeof bruta === 'string' && bruta.length > 409600) ? comprimirImagem : function(u, m, cb) { cb(u); };
-      comprimir(bruta, 409600, function(foto) {
+      var pf = perfilFotos();
+      var comprimir = (typeof bruta === 'string' && bruta.length > pf.bytes) ? comprimirImagem : function(u, m, cb) { cb(u); };
+      comprimir(bruta, pf.bytes, function(foto) {
         var cc = confPorChave(chave);
         if (!cc) return;
         if (cc.fotos.length >= 3) { toast('Máximo de 3 fotos por conferência', '⚠'); return; }
         cc.fotos.push(foto);
         pdMudou();
-      });
+      }, pf.dim);
     };
     reader.readAsDataURL(f);
   };
@@ -2334,27 +2911,6 @@ function kpiCard(cor, rotulo, numHtml, sub, acao, textoAcao) {
 }
 
 /* ── Aviso de relatórios ainda não enviados à nuvem ── */
-function pendentesCount() {
-  if (!sbEnabled()) return 0;
-  var n = 0;
-  for (var i = 0; i < reports.length; i++) if (reports[i]._pendingSync) n++;
-  return n;
-}
-function bannerPendentes() {
-  var n = pendentesCount();
-  if (!n) return '';
-  return '<div class="vz-banner warn" role="status"><div class="vz-bt"><b>' + pluralPt(n, 'relatório', 'relatórios') + ' com alterações ainda não enviadas à nuvem.</b> Estão salvos neste aparelho, mas os outros usuários ainda não os veem.</div>'
-    + '<button type="button" onclick="enviarPendentesAgora()">Enviar agora</button></div>';
-}
-function enviarPendentesAgora() {
-  if (!isOnline) { toast('Sem conexão com a internet', '⚠'); return; }
-  toast('Enviando relatórios pendentes…', 'o', true);
-  reenviarPendentes(function() {
-    var falt = pendentesCount();
-    toast(falt ? pluralPt(falt, 'relatório continua', 'relatórios continuam') + ' pendente' + (falt > 1 ? 's' : '') + ' — tente novamente' : 'Tudo enviado para a nuvem', falt ? '⚠' : '✓');
-    atualizarPaineisAtivos();
-  });
-}
 function atualizarPaineisAtivos() {
   var pg = document.querySelector('.pg.on');
   if (!pg) return;
@@ -2830,6 +3386,7 @@ function novoRelatorio() {
   editId = null;
   items  = [];
   confs  = [];
+  itensRem = [];
   consid = '';
   var fields = ['f-obra','f-cliente','f-data','f-num','f-resp','f-cargo','f-emp','f-hist','f-esc','f-sol','f-intro'];
   for (var i = 0; i < fields.length; i++) V(fields[i], '');
@@ -2844,6 +3401,7 @@ function novoRelatorio() {
 }
 
 function abrirRelatorio(id) {
+  if (hidratando) { hidratando.then(function() { abrirRelatorio(id); }); return; }   /* fotos locais ainda voltando do armazenamento ampliado */
   flushAutoSave();
   setAutoSaveStatus('');
   autoSaveAvisouObra = false;
@@ -2874,6 +3432,7 @@ function abrirRelatorio(id) {
      de todos os outros como acontecia antes a cada sincronização. */
   items = JSON.parse(JSON.stringify(r.items || []));
   confs = JSON.parse(JSON.stringify(r.conferencias || []));
+  itensRem = (r.itensRemovidos || []).slice();
   /* A URL de exibição é preenchida só nesta cópia de trabalho (items); o
      relatório salvo em `reports` continua só com referências estáveis.
      A resolução é disparada ANTES do primeiro desenho para as fotos
@@ -2973,6 +3532,7 @@ function gravarRelatorioAtual(ci, itensArr, confsArr) {
         reports[i].intro   = ci.intro;
         reports[i].items   = canonizarFotosItens(JSON.parse(JSON.stringify(itensArr)));
         reports[i].conferencias = canonizarFotosItens(JSON.parse(JSON.stringify(confsArr || [])));
+        reports[i].itensRemovidos = itensRem.slice();
         reports[i].consid  = consid;
         reports[i].updated = now;
         reports[i]._pendingSync = true; /* ainda não confirmado na nuvem */
@@ -2982,7 +3542,7 @@ function gravarRelatorioAtual(ci, itensArr, confsArr) {
     }
     return; /* relatório em edição não existe mais localmente (ex.: excluído em outro aparelho) — não recria */
   }
-  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: canonizarFotosItens(JSON.parse(JSON.stringify(itensArr))), conferencias: canonizarFotosItens(JSON.parse(JSON.stringify(confsArr || []))), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
+  var nr = { id: Date.now(), cover: ci.cover, intro: ci.intro, items: canonizarFotosItens(JSON.parse(JSON.stringify(itensArr))), conferencias: canonizarFotosItens(JSON.parse(JSON.stringify(confsArr || []))), itensRemovidos: itensRem.slice(), consid: consid, created: now, updated: now, _pendingSync: true, _ver: 1 };
   reports.unshift(nr);
   editId = nr.id;
 }
@@ -3077,23 +3637,6 @@ function autoSalvarRelatorio() {
   enviarNuvemAuto(editId);
 }
 
-function enviarNuvemAuto(id) {
-  if (!sbEnabled()) { setAutoSaveStatus('Salvo ' + horaAgora()); return; }
-  if (!isOnline) { setAutoSaveStatus('Pendente (offline)', true); return; }
-  if (autoSaveEmCurso) { autoSaveFila[id] = true; return; }
-  autoSaveEmCurso = true;
-  setAutoSaveStatus('Salvando…');
-  sbUpsertOne(id, function(ok) {
-    autoSaveEmCurso = false;
-    if (ok) setAutoSaveStatus('Salvo ' + horaAgora());
-    else setAutoSaveStatus('Pendente de envio', true);
-    for (var k in autoSaveFila) {
-      delete autoSaveFila[k];
-      enviarNuvemAuto(isNaN(+k) ? k : +k);
-      break;
-    }
-  }, true);
-}
 
 /* ══ APONTAMENTOS ══════════════════════════════════════════════════ */
 function addApt() {
@@ -3113,6 +3656,8 @@ function remApt(id) {
   var tmp = [];
   for (var i = 0; i < items.length; i++) if (items[i].id !== id) tmp.push(items[i]);
   items = tmp;
+  itensRem.push(id);   /* lembra da exclusão para que a combinação com outro aparelho não a desfaça */
+  agendarAutoSave();
   renderApts();
   atualizarSumStats();
 }
@@ -3149,13 +3694,13 @@ function criarInputFoto(id, cap) {
         var reader = new FileReader();
         reader.onload = function(ev) {
           /* comprime já ao anexar (mantém o relatório leve para salvar/enviar) */
-          var bruta = ev.target.result;
-          var comprimir = (typeof bruta === 'string' && bruta.length > 409600) ? comprimirImagem : function(u, m, cb) { cb(u); };
-          comprimir(bruta, 409600, function(foto) {
+          var bruta = ev.target.result, pf = perfilFotos();
+          var comprimir = (typeof bruta === 'string' && bruta.length > pf.bytes) ? comprimirImagem : function(u, m, cb) { cb(u); };
+          comprimir(bruta, pf.bytes, function(foto) {
             for (var j = 0; j < items.length; j++) {
               if (items[j].id === id) { items[j].fotos.push(foto); atualizarFotos(id); agendarAutoSave(); break; }
             }
-          });
+          }, pf.dim);
         };
         reader.readAsDataURL(file);
       })(files[i]);
@@ -3485,13 +4030,13 @@ function melhorarDescricao(id) {
 function gerarPDF() { salvarRelatorio(); gerarPDFById(editId); }
 
 /* ── Comprime imagem base64 para no máximo maxBytes bytes ── */
-function comprimirImagem(dataUrl, maxBytes, callback) {
+function comprimirImagem(dataUrl, maxBytes, callback, maxDim) {
   /* Não é imagem? devolve sem modificar */
   if (!dataUrl || dataUrl.indexOf('data:image') !== 0) { callback(dataUrl); return; }
   var img = new Image();
   img.onload = function() {
     var canvas = document.createElement('canvas');
-    var MAX_DIM = 1920;
+    var MAX_DIM = maxDim || 1920;
     var w = img.width, h = img.height;
     if (w > MAX_DIM || h > MAX_DIM) {
       if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
@@ -3618,7 +4163,7 @@ function imprimirRelatorio(report) {
     var desc   = a.descricao || 'Sem descricao registrada.';
     // Textos longos reduzem a fonte para sobrar espaço às fotos
     var fs = desc.length > 1500 ? 9 : (desc.length > 900 ? 10 : (desc.length > 500 ? 11 : 12));
-    var fotos  = (a.fotos || []).slice(0, MAX_FOTOS);
+    var fotos  = (a.fotos || []).filter(function(f) { return String(f).indexOf('sbpend:') !== 0; }).slice(0, MAX_FOTOS);
     var fotosH = '';
     if (fotos.length) {
       var cols = colunasFotos(fotos.length);
@@ -3836,6 +4381,10 @@ function atualizarStatusSync() {
       badge.innerHTML = isOnline ? '● Online' + ((sbEnabled() && ultimoSyncOk) ? '<span class="sb-sync-txt"> · sincronizado às ' + fmtHora(ultimoSyncOk) + '</span>' : '') : '● Offline';
     }
   }
+  if (badge && !syncEmAndamento && typeof fotoFila !== 'undefined' && fotoFila.rodando) {
+    badge.style.background = '#e0e7ff'; badge.style.color = '#4338ca'; badge.style.borderColor = 'rgba(67,56,202,.25)';
+    badge.innerHTML = '<span class="spinner" style="width:9px;height:9px;border-width:1.5px;vertical-align:-1px"></span> Enviando fotos ' + fotoFila.feitas + '/' + fotoFila.total;
+  }
   var syncBtn = document.getElementById('sb-sync-btn');
   var syncIco = document.getElementById('sb-sync-ico');
   var syncLbl = document.getElementById('sb-sync-lbl');
@@ -3955,6 +4504,7 @@ function abrirBackup() {
     + '<div style="display:flex;flex-direction:column;gap:10px">'
     + '<button class="btn btn-r" style="padding:14px;font-size:14px;justify-content:center" onclick="exportarBackup();fecharModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar Backup (' + reports.length + ' relatorios)</button>'
     + '<button class="btn btn-o edit-only" style="padding:14px;font-size:14px;justify-content:center" onclick="importarBackup();fecharModal()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar de Arquivo</button>'
+    + '<button class="btn btn-o" style="padding:14px;font-size:14px;justify-content:center" onclick="abrirVersoesLocais()">Versões locais guardadas</button>'
     + '<button class="btn btn-o" style="padding:12px;font-size:13px;justify-content:center" onclick="fecharModal()">Cancelar</button>'
     + '</div>'
     + '<div class="md-note" style="margin-top:12px">A importacao faz merge — nao sobrescreve relatorios existentes.</div>';
@@ -4050,8 +4600,12 @@ window.onload = function() {
 
   // Detectar online/offline
   atualizarStatusOnline();
-  window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); reenviarPendentes(); } });
-  document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'hidden') flushAutoSave(); });
+  window.addEventListener('online', function() { atualizarStatusOnline(); toast('Conexao restaurada', 'o', true); if (sbEnabled()) { lastSyncTime = 0; sbSyncDown(true); retomarEnvios(false); } });
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') flushAutoSave();
+    else retomarEnvios(false);   /* voltou ao app: tenta de novo o que ficou pendente */
+  });
+  setInterval(function() { if (document.visibilityState === 'visible') retomarEnvios(false); }, 45000);
   window.addEventListener('pagehide', flushAutoSave);
   window.addEventListener('offline', function() { atualizarStatusOnline(); toast('Sem internet — modo offline', '⚠'); });
 };
