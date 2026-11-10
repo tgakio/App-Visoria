@@ -277,6 +277,14 @@ body.ui-nao-admin .admin-only{display:none !important}
 .vz-top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
 .vz-link{background:none;border:none;color:var(--red2);font-family:var(--ft);font-size:13.5px;font-weight:700;cursor:pointer;padding:6px 0;text-decoration:underline}
 .vz-chip{display:inline-flex;align-items:center;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap;border:none;font-family:var(--ft)}
+.tp-chip{display:inline-flex;align-items:center;gap:5px;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800;letter-spacing:.03em;white-space:nowrap;font-family:var(--ft);vertical-align:middle}
+.tp-chip.tp-geral{background:#e0e7ef;color:#16324A}.tp-chip.tp-instalacoes{background:#ccfbf1;color:#115e59}
+.tp-seg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tp-opt{display:flex;flex-direction:column;gap:3px;text-align:left;padding:12px 14px;border:2px solid var(--bdr);border-radius:8px;background:var(--white);cursor:pointer;font-family:var(--ft);-webkit-tap-highlight-color:transparent;min-height:64px}
+.tp-opt b{font-size:15px;color:var(--black)}.tp-opt small{font-size:12px;color:var(--gray);line-height:1.35}
+.tp-opt.on.tp-geral{border-color:#16324A;background:#eef2f7}.tp-opt.on.tp-instalacoes{border-color:#0f766e;background:#f0fdfa}
+.tp-opt:disabled{opacity:.6;cursor:default}
+.tp-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px}.tp-bar>span{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.06em}
 .vz-chip.ok{background:#dcfce7;color:#14532d}.vz-chip.at{background:#fef3c7;color:#78350f}.vz-chip.cr{background:#fee2e2;color:#7f1d1d}.vz-chip.nt{background:#ececef;color:#3f3f46}
 button.vz-chip{cursor:pointer;min-height:32px}
 button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
@@ -408,7 +416,7 @@ button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
     <div id="pg-editor" class="pg">
       <div class="hdr">
         <button class="btn btn-g" onclick="voltarLista()" style="padding:7px 10px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg></button>
-        <div style="flex:1;min-width:0"><span class="hdr-ttl" id="ed-ttl" style="display:block">Novo Relatório</span><span class="as-st edit-only" id="autosave-st" role="status" aria-live="polite"></span></div>
+        <div style="flex:1;min-width:0"><span class="hdr-ttl" id="ed-ttl" style="display:inline-block">Novo Relatório</span> <span id="ed-tipo" style="margin-left:6px"></span><span class="as-st edit-only" id="autosave-st" role="status" aria-live="polite"></span></div>
         <div class="hdr-act">
           <button class="btn btn-o" onclick="gerarPDF()" style="padding:8px 10px"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> PDF</button>
           <button class="btn btn-r edit-only" onclick="salvarRelatorio()"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg> Salvar</button>
@@ -423,6 +431,17 @@ button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
       </div>
       <!-- CAPA -->
       <div id="pnl-capa" class="tab-pnl on" style="padding:16px">
+        <div class="card">
+          <div class="card-hdr"><span class="card-ttl">Tipo da vistoria orientativa <span class="req">*</span></span></div>
+          <div class="card-body">
+            <input type="hidden" id="f-tipo"/>
+            <div class="tp-seg" role="radiogroup" aria-label="Tipo da vistoria orientativa">
+              <button type="button" class="tp-opt tp-geral" id="tp-geral" role="radio" onclick="escolherTipo('geral')"><b>Vistoria geral</b><small>Todas as disciplinas da obra</small></button>
+              <button type="button" class="tp-opt tp-instalacoes" id="tp-instalacoes" role="radio" onclick="escolherTipo('instalacoes')"><b>Vistoria de instalações</b><small>Foco nas instalações</small></button>
+            </div>
+            <div style="font-size:12px;color:var(--gray);margin-top:8px;line-height:1.5">As pendências a conferir e o acompanhamento do atendimento são separados por tipo: a vistoria geral só confere pendências de vistorias gerais, e a de instalações só as de instalações.</div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-hdr"><span class="card-ttl">Identificação da Obra</span></div>
           <div class="card-body">
@@ -642,6 +661,8 @@ function aplicarModoEdicaoEditor() {
     var el = document.getElementById(ids[i]);
     if (el) el.readOnly = somenteLeitura;
   }
+  var tb = document.querySelectorAll('.tp-opt');
+  for (var t = 0; t < tb.length; t++) tb[t].disabled = somenteLeitura;
 }
 
 var CRITS = {
@@ -2496,13 +2517,16 @@ function calcPendencias(rels) {
   return lista;
 }
 
-/* Pendências que o relatório em edição deve conferir (obra igual, visitas anteriores, ainda não atendidas) */
+/* Pendências que o relatório em edição deve conferir (obra igual, mesmo tipo de vistoria, visitas anteriores, ainda não atendidas) */
 function pendenciasAConferir() {
   var obra = G('f-obra');
   if (!obra) return [];
+  var tipo = G('f-tipo');
+  if (!tipo) return [];
   var dAtual = meioDia(dataAtualRel());
   var rels = relsDaObra(obra).filter(function(r) {
     if (r.id === editId) return false;
+    if (tipoVist(r) !== tipo) return false;   /* só pendências de vistorias do mesmo tipo */
     var d = dataVisita(r);
     return d && meioDia(d).getTime() <= dAtual.getTime();
   });
@@ -2635,10 +2659,11 @@ function pdCard(o) {
 function renderPendencias() {
   var el = document.getElementById('pnl-pend');
   if (!el) return;
+  if (!G('f-tipo')) { el.innerHTML = '<div class="empty"><div class="empty-ttl">Escolha o tipo da vistoria</div><div class="empty-txt">Selecione na Capa se é uma vistoria geral ou de instalações. As pendências mostradas são só as das vistorias do mesmo tipo.</div></div>'; return; }
   if (!G('f-obra')) { el.innerHTML = '<div class="empty"><div class="empty-ttl">Informe a obra</div><div class="empty-txt">Preencha o nome da obra na Capa para ver as pendências das visitas anteriores.</div></div>'; return; }
   var lista = pendenciasAConferir();
   if (!lista.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-ttl">Nenhuma pendência em aberto</div><div class="empty-txt">As visitas anteriores desta obra não têm apontamentos graves ou orientativos aguardando conferência.</div></div>';
+    el.innerHTML = '<div class="empty"><div class="empty-ttl">Nenhuma pendência em aberto</div><div class="empty-txt">As ' + TIPOS_VIST[G('f-tipo')].plural + ' anteriores desta obra não têm apontamentos graves ou orientativos aguardando conferência.</div></div>';
     return;
   }
   /* fotos da visita original ainda sem URL assinada: pede em lote uma vez e redesenha */
@@ -2662,7 +2687,7 @@ function renderPendencias() {
   }
   grupos.sort(function(a, b) { return (b.data ? b.data.getTime() : 0) - (a.data ? a.data.getTime() : 0); });
   var pct = Math.round(feitas / lista.length * 100);
-  var html = '<div class="card"><div class="card-hdr"><span class="card-ttl">Pendências das visitas anteriores</span><span style="font-size:12px;font-weight:700">' + feitas + ' de ' + lista.length + ' conferidas</span></div>'
+  var html = '<div class="card"><div class="card-hdr"><span class="card-ttl">Pendências das ' + TIPOS_VIST[G('f-tipo')].plural + ' anteriores</span><span style="font-size:12px;font-weight:700">' + feitas + ' de ' + lista.length + ' conferidas</span></div>'
     + '<div class="card-body"><div class="pd-bar"><i style="width:' + pct + '%"></i></div>'
     + '<div style="font-size:13px;color:var(--gray);margin-top:8px;line-height:1.5">Marque o que a obra já resolveu. A conferência fica neste relatório e alimenta o painel de atendimento. Pendências sem marcação continuam abertas.</div></div></div>';
   for (var gi = 0; gi < grupos.length; gi++) {
@@ -2712,13 +2737,20 @@ function pendPdf(r) {
 }
 
 /* ── Painel de atendimento (página Visitas) ── */
-function resumoAtendimento() {
+function resumoAtendimento(filtro) {
+  filtro = filtro || 'todos';
   var res = { total: 0, aberta: 0, andamento: 0, atendida: 0, nao_atendida: 0, legado: 0, dias: [], idade: [0, 0, 0, 0], obras: [], conferencias: 0 };
-  var obras = resumoObras();
+  var obras = resumoObras(filtro);
   for (var i = 0; i < obras.length; i++) {
-    var rels = obras[i].relatorios;
+    var rels = obras[i].relsFiltro;
     for (var r = 0; r < rels.length; r++) res.conferencias += (rels[r].conferencias || []).length;
-    var lst = calcPendencias(rels).filter(function(x) { return x.crit === 'orient'; });
+    /* o acompanhamento é feito dentro de cada tipo de vistoria: geral confere geral, instalações confere instalações */
+    var lst = [];
+    for (var tp = 0; tp < TIPOS_ORDEM.length; tp++) {
+      if (filtro !== 'todos' && filtro !== TIPOS_ORDEM[tp]) continue;
+      var relsT = obras[i].relatorios.filter(function(x) { return tipoVist(x) === this.t; }, { t: TIPOS_ORDEM[tp] });
+      lst = lst.concat(calcPendencias(relsT).filter(function(x) { return x.crit === 'orient'; }));
+    }
     if (!lst.length) continue;
     var ob = { nome: obras[i].nome, emitidas: lst.length, atendidas: 0, abertas: 0, maisAntiga: 0 };
     for (var k = 0; k < lst.length; k++) {
@@ -2745,12 +2777,12 @@ function resumoAtendimento() {
 }
 
 function htmlAtendimento() {
-  var a = resumoAtendimento();
+  var a = resumoAtendimento(vzTipo);
   if (!a.total) return '';
   var base = a.atendida + a.andamento + a.nao_atendida + a.aberta;
   var taxa = base ? Math.round(a.atendida / base * 100) + '<small>%</small>' : '—';
   var med = a.dias.length ? medianaLista(a.dias) : null;
-  var h = '<div class="vz-top" style="margin-top:6px"><div><h2 class="vz-h">Atendimento das orientações</h2><div class="vz-sub">Situação das ' + a.total + ' orientações, conforme a conferência feita na visita seguinte</div></div></div>';
+  var h = '<div class="vz-top" style="margin-top:6px"><div><h2 class="vz-h">Atendimento das orientações</h2><div class="vz-sub">Situação das ' + a.total + ' orientações' + (vzTipo !== 'todos' ? ' (' + TIPOS_VIST[vzTipo].plural + ')' : '') + ', conforme a conferência feita na visita seguinte do mesmo tipo</div></div></div>';
   if (!a.conferencias) {
     h += '<div class="vz-banner warn" role="status"><div class="vz-bt">Ainda não há conferências registradas. As ' + a.legado + ' orientações existentes aparecem como <b>anteriores ao controle</b> (visitas até ' + fmtData(new Date(ATENDIMENTO_INICIO + 'T12:00:00'), true) + ') e passam a contar quando forem conferidas na aba <b>Pendências</b> da próxima visita de cada obra.</div></div>';
   }
@@ -2793,6 +2825,25 @@ var META_CADENCIA_DIAS = 30;
 var LIMITE_SEM_VISITA_DIAS = 60;
 var MESES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 var MESES_NOME = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+/* ══ TIPO DA VISTORIA ORIENTATIVA ══
+   cover.tipo = 'geral' (todas as disciplinas) | 'instalacoes'. Relatórios antigos, sem o campo, contam como 'geral'.
+   O acompanhamento das pendências é separado por tipo. */
+var TIPOS_VIST = {
+  geral:       { nome: 'Geral',       longo: 'Vistoria geral',          plural: 'vistorias gerais',           desc: 'todas as disciplinas' },
+  instalacoes: { nome: 'Instalações', longo: 'Vistoria de instalações', plural: 'vistorias de instalações',  desc: 'instalações' }
+};
+var TIPOS_ORDEM = ['geral', 'instalacoes'];
+function tipoVist(r) { var t = r && r.cover && r.cover.tipo; return TIPOS_VIST[t] ? t : 'geral'; }
+function chipTipo(t) { return '<span class="tp-chip tp-' + t + '">' + TIPOS_VIST[t].nome + '</span>'; }
+var vzTipo = 'todos';        /* filtro do Painel e das Visitas: todos | geral | instalacoes */
+var filterT = 'todos';       /* filtro da lista de relatórios */
+function tipoCombina(r, filtro) { return filtro === 'todos' || tipoVist(r) === filtro; }
+function htmlFiltroTipo() {
+  var opts = [['todos', 'Todos os tipos'], ['geral', 'Geral'], ['instalacoes', 'Instalações']], h = '<div class="tp-bar"><span>Tipo de vistoria</span>';
+  for (var i = 0; i < opts.length; i++) h += '<button type="button" class="vz-chip nt' + (vzTipo === opts[i][0] ? ' on' : '') + '" aria-pressed="' + (vzTipo === opts[i][0]) + '" onclick="vzSetTipo(\'' + opts[i][0] + '\')">' + opts[i][1] + '</button>';
+  return h + '</div>';
+}
+function vzSetTipo(t) { vzTipo = t; vzMostrarTodas = false; atualizarPaineisAtivos(); }
 var vzObras = [];           /* resumo por obra da última renderização (índices usados nos onclick) */
 var vzFiltro = 'todas';
 var vzMostrarTodas = false;
@@ -2827,18 +2878,34 @@ var SIT_INFO = { ok: ['ok', 'Em dia', '#16a34a'], atencao: ['at', 'Atenção', '
 function chipSit(sit) { return '<span class="vz-chip ' + SIT_INFO[sit][0] + '">' + SIT_INFO[sit][1] + '</span>'; }
 
 /* Uma linha por obra: última visita, dias sem visita, situação, orientações… (mais atrasada primeiro) */
-function resumoObras() {
+function resumoObras(filtro) {
+  filtro = filtro || 'todos';
   var grupos = agruparPorObra(), out = [];
   for (var i = 0; i < grupos.length; i++) {
     var g = grupos[i];
-    var rels = g.relatorios.slice();
+    var todosRels = g.relatorios.slice();
+    var rels = todosRels.filter(function(r) { return tipoCombina(r, filtro); });
+    if (!rels.length) continue;   /* a obra não tem visita deste tipo */
+    var ordenar = function(a, b) {
+      var da = dataVisita(a), db = dataVisita(b);
+      var ta = da ? da.getTime() : 0, tb = db ? db.getTime() : 0;
+      return ta !== tb ? ta - tb : Number(a.id) - Number(b.id);
+    };
+    todosRels.sort(ordenar);
     rels.sort(function(a, b) {
       var da = dataVisita(a), db = dataVisita(b);
       var ta = da ? da.getTime() : 0, tb = db ? db.getTime() : 0;
       return ta !== tb ? ta - tb : Number(a.id) - Number(b.id);
     });
-    var ultRel = rels[rels.length - 1];
-    var ult = dataVisita(ultRel);
+    var ultRel = todosRels[todosRels.length - 1];      /* mais recente de qualquer tipo: guarda 'obra encerrada' */
+    var ult = dataVisita(rels[rels.length - 1]);
+    var tipos = {};
+    for (var tt = 0; tt < todosRels.length; tt++) {
+      var tk = tipoVist(todosRels[tt]), dv = dataVisita(todosRels[tt]);
+      if (!tipos[tk]) tipos[tk] = { visitas: 0, ultima: null };
+      tipos[tk].visitas++;
+      if (dv && (!tipos[tk].ultima || dv > tipos[tk].ultima)) tipos[tk].ultima = dv;
+    }
     var orient = 0, apts = 0;
     for (var j = 0; j < rels.length; j++) {
       var it = rels[j].items || [];
@@ -2846,7 +2913,7 @@ function resumoObras() {
       for (var k = 0; k < it.length; k++) if (it[k].criticidade === 'orient') orient++;
     }
     var dias = ult ? diasDesde(ult) : 9999;
-    out.push({ nome: g.nome, cliente: g.cliente, relatorios: rels, visitas: rels.length, ultima: ult, ultimaRel: ultRel,
+    out.push({ nome: g.nome, cliente: g.cliente, relatorios: todosRels, relsFiltro: rels, tipos: tipos, visitas: rels.length, ultima: ult, ultimaRel: ultRel,
       dias: dias, sit: sitDias(dias), orient: orient, apts: apts, encerrada: !!(ultRel && ultRel.obraEncerrada) });
   }
   out.sort(function(a, b) { return b.dias - a.dias; });
@@ -2863,12 +2930,13 @@ function medianaDias(obras) {
 }
 
 /* Visitas e apontamentos graves de um mês (offset 0 = mês atual, -1 = anterior…) */
-function visitasDoMes(offset) {
+function visitasDoMes(offset, filtro) {
+  filtro = filtro || 'todos';
   var hoje = new Date(), alvo = new Date(hoje.getFullYear(), hoje.getMonth() + offset, 1);
   var res = { visitas: 0, graves: 0, obras: {}, mes: alvo.getMonth(), ano: alvo.getFullYear() };
   for (var i = 0; i < reports.length; i++) {
     var d = dataVisita(reports[i]);
-    if (!d || d.getMonth() !== alvo.getMonth() || d.getFullYear() !== alvo.getFullYear()) continue;
+    if (!d || d.getMonth() !== alvo.getMonth() || d.getFullYear() !== alvo.getFullYear() || !tipoCombina(reports[i], filtro)) continue;
     res.visitas++;
     var it = reports[i].items || [];
     for (var k = 0; k < it.length; k++) if (ehGrave(it[k].criticidade)) {
@@ -2886,9 +2954,19 @@ function barraDias(dias, sit) {
     + '<b style="left:' + Math.round(META_CADENCIA_DIAS / esc * 100) + '%"></b><b style="left:' + Math.round(LIMITE_SEM_VISITA_DIAS / esc * 100) + '%"></b></div>';
 }
 
+/* "Geral 12/10 · Instalações 03/11": última visita de cada tipo na obra */
+function tiposDaObra(o) {
+  var h = '';
+  for (var i = 0; i < TIPOS_ORDEM.length; i++) {
+    var t = o.tipos[TIPOS_ORDEM[i]];
+    if (t) h += (h ? ' &nbsp;' : '') + chipTipo(TIPOS_ORDEM[i]) + ' <span style="color:var(--gray)">' + fmtData(t.ultima) + (t.visitas > 1 ? ' · ' + t.visitas + 'x' : '') + '</span>';
+  }
+  return h;
+}
 function linhaObra(o, idx) {
   return '<div class="vz-ob">'
-    + '<div class="vz-on">' + escH(o.nome) + '<small>' + (o.cliente ? escH(o.cliente) + ' · ' : '') + pluralPt(o.visitas, 'visita', 'visitas') + '<span class="vz-m"> · última ' + fmtData(o.ultima) + '</span></small></div>'
+    + '<div class="vz-on">' + escH(o.nome) + '<small>' + (o.cliente ? escH(o.cliente) + ' · ' : '') + pluralPt(o.visitas, 'visita', 'visitas') + '<span class="vz-m"> · última ' + fmtData(o.ultima) + '</span></small>'
+    + '<small>' + tiposDaObra(o) + '</small></div>'
     + '<div class="vz-dt">' + fmtData(o.ultima) + '</div>'
     + '<div class="vz-bw" style="display:flex;align-items:center;gap:8px">' + barraDias(o.dias, o.sit) + '<b style="min-width:30px;text-align:right">' + o.dias + ' d</b></div>'
     + '<div class="vz-cc">' + chipSit(o.sit) + '</div>'
@@ -2918,7 +2996,7 @@ function atualizarPaineisAtivos() {
 }
 
 /* ── Ações por obra ── */
-function vzNovaVisita(i) { var o = vzObras[i]; if (o) novoRelatorioObra(o.nome, o.cliente || ''); }
+function vzNovaVisita(i) { var o = vzObras[i]; if (o) novoRelatorioObra(o.nome, o.cliente || '', vzTipo !== 'todos' ? vzTipo : undefined); }
 function vzEncerrar(i) {
   var o = vzObras[i];
   if (!o) return;
@@ -2954,7 +3032,7 @@ function homeBuscar(q) {
   if (!box) return;
   q = normBusca(q).trim();
   if (!q) { box.innerHTML = ''; vzBuscaObras = []; return; }
-  vzBuscaObras = resumoObras().filter(function(o) { return normBusca(o.nome).indexOf(q) >= 0 || normBusca(o.cliente).indexOf(q) >= 0; }).slice(0, 6);
+  vzBuscaObras = resumoObras('todos').filter(function(o) { return normBusca(o.nome).indexOf(q) >= 0 || normBusca(o.cliente).indexOf(q) >= 0; }).slice(0, 6);
   var rels = [];
   for (var i = 0; i < reports.length; i++) {
     var c = reports[i].cover || {};
@@ -2974,7 +3052,7 @@ function homeBuscar(q) {
     h += '<div class="vz-rt">Relatórios</div>';
     for (var k = 0; k < rels.length; k++) {
       var r = rels[k], n = (r.items || []).length;
-      h += '<div class="vz-vr" onclick="homeAbrirRel(' + r.id + ')"><div><b>' + escH((r.cover && r.cover.obra) || 'Sem título') + '</b><small>' + (r.cover && r.cover.num ? escH(r.cover.num) + ' · ' : '') + fmtData(dataVisita(r), true) + ' · ' + pluralPt(n, 'apontamento', 'apontamentos') + '</small></div></div>';
+      h += '<div class="vz-vr" onclick="homeAbrirRel(' + r.id + ')"><div><b>' + escH((r.cover && r.cover.obra) || 'Sem título') + '</b><small>' + chipTipo(tipoVist(r)) + ' ' + (r.cover && r.cover.num ? escH(r.cover.num) + ' · ' : '') + fmtData(dataVisita(r), true) + ' · ' + pluralPt(n, 'apontamento', 'apontamentos') + '</small></div></div>';
     }
   }
   box.innerHTML = '<div class="vz-res">' + (h || '<div class="vz-rt" style="padding:12px 0">Nada encontrado</div>') + '</div>';
@@ -2987,9 +3065,9 @@ function homeAbrirRel(id) { homeLimparBusca(); abrirRelatorio(id); }
 function renderHome() {
   var el = document.getElementById('home-body');
   if (!el) return;
-  vzObras = resumoObras();
+  vzObras = resumoObras(vzTipo);
   var ativas = ativasDe(vzObras);
-  var html = bannerPendentes();
+  var html = bannerPendentes() + (reports.length ? htmlFiltroTipo() : '');
 
   if (reports.length === 0) {
     if (syncEmAndamento && sbEnabled()) {
@@ -3007,7 +3085,7 @@ function renderHome() {
 
   var emDia = ativas.filter(function(o) { return o.sit === 'ok'; }).length;
   var semVisita = ativas.filter(function(o) { return o.sit === 'atraso'; }).length;
-  var mes = visitasDoMes(0), ant = visitasDoMes(-1);
+  var mes = visitasDoMes(0, vzTipo), ant = visitasDoMes(-1, vzTipo);
   var pct = ativas.length ? Math.round(semVisita / ativas.length * 100) : 0;
 
   html += '<div class="vz-kpis">'
@@ -3028,7 +3106,7 @@ function renderHome() {
   }
 
   /* Últimas vistorias (pela data da visita) */
-  var ult = reports.slice().sort(function(a, b) {
+  var ult = reports.filter(function(x) { return tipoCombina(x, vzTipo); }).sort(function(a, b) {
     var da = dataVisita(a), db = dataVisita(b);
     var ta = da ? da.getTime() : 0, tb = db ? db.getTime() : 0;
     return ta !== tb ? tb - ta : Number(b.id) - Number(a.id);
@@ -3038,7 +3116,7 @@ function renderHome() {
     var r = ult[u], n = (r.items || []).length, g = 0;
     for (var k = 0; k < n; k++) if (ehGrave(r.items[k].criticidade)) g++;
     var chip = sbEnabled() ? (r._pendingSync ? '<span class="vz-chip at">Não enviado</span>' : '<span class="vz-chip ok">Enviado</span>') : '<span class="vz-chip nt">Só neste aparelho</span>';
-    vrH += '<div class="vz-vr" onclick="abrirRelatorio(' + r.id + ')"><div><b>' + escH((r.cover && r.cover.obra) || 'Sem título') + '</b><small>' + fmtData(dataVisita(r)) + ' · ' + pluralPt(n, 'apontamento', 'apontamentos')
+    vrH += '<div class="vz-vr" onclick="abrirRelatorio(' + r.id + ')"><div><b>' + escH((r.cover && r.cover.obra) || 'Sem título') + '</b><small>' + chipTipo(tipoVist(r)) + ' ' + fmtData(dataVisita(r)) + ' · ' + pluralPt(n, 'apontamento', 'apontamentos')
       + (g ? ' · <span style="color:#991b1b;font-weight:700">' + g + (g === 1 ? ' grave' : ' graves') + '</span>' : '') + '</small></div>' + chip + '</div>';
   }
 
@@ -3065,10 +3143,10 @@ function vzToggleTodas() { vzMostrarTodas = !vzMostrarTodas; renderVisitas(); }
 function renderVisitas() {
   var el = document.getElementById('visitas-body');
   if (!el) return;
-  vzObras = resumoObras();
+  vzObras = resumoObras(vzTipo);
   var ativas = ativasDe(vzObras);
   var encerradas = vzObras.filter(function(o) { return o.encerrada; });
-  var html = bannerPendentes();
+  var html = bannerPendentes() + (reports.length ? htmlFiltroTipo() : '');
 
   if (reports.length === 0) {
     el.innerHTML = html + '<div class="vz-card"><div class="empty"><div class="empty-ttl">Nenhuma visita registrada</div><div class="empty-txt">Os painéis aparecem depois do primeiro relatório.</div></div></div>';
@@ -3078,7 +3156,7 @@ function renderVisitas() {
   var emDia = ativas.filter(function(o) { return o.sit === 'ok'; }).length;
   var atencao = ativas.filter(function(o) { return o.sit === 'atencao'; }).length;
   var semVisita = ativas.filter(function(o) { return o.sit === 'atraso'; }).length;
-  var mes = visitasDoMes(0), ant = visitasDoMes(-1);
+  var mes = visitasDoMes(0, vzTipo), ant = visitasDoMes(-1, vzTipo);
   var totApts = 0, totOrient = 0, obrasOrient = 0;
   for (var a = 0; a < vzObras.length; a++) { totApts += vzObras[a].apts; totOrient += vzObras[a].orient; if (vzObras[a].orient > 0) obrasOrient++; }
   var pctOrient = totApts ? Math.round(totOrient / totApts * 100) : 0;
@@ -3107,7 +3185,7 @@ function renderVisitas() {
 
   /* Visitas por mês (6 meses) */
   var meses = [], max = 1, hoje = new Date();
-  for (var m = -5; m <= 0; m++) { var vm = visitasDoMes(m); meses.push(vm); if (vm.visitas > max) max = vm.visitas; }
+  for (var m = -5; m <= 0; m++) { var vm = visitasDoMes(m, vzTipo); meses.push(vm); if (vm.visitas > max) max = vm.visitas; }
   var barras = '', lbls = '';
   for (var b = 0; b < meses.length; b++) {
     var parcial = (b === meses.length - 1) && hoje.getDate() < new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
@@ -3206,12 +3284,14 @@ function renderVisitas() {
 }
 
 /* ══ OBRAS ════════════════════════════════════════════════════════ */
-function novoRelatorioObra(obra, cli) {
+function novoRelatorioObra(obra, cli, tipo) {
   novoRelatorio();
   setTimeout(function() {
-    V('f-obra', obra); V('f-cliente', cli); atualizarPreview();
-    /* Passo 1 da nova visita: conferir o que ficou pendente nas visitas anteriores */
-    if (pendenciasAConferir().length) abrirTab('pend', document.getElementById('tab-pend'));
+    V('f-obra', obra); V('f-cliente', cli);
+    if (TIPOS_VIST[tipo]) { V('f-tipo', tipo); renderTipoEditor(); }
+    atualizarPreview();
+    /* Passo 1 da nova visita: conferir o que ficou pendente nas visitas anteriores do mesmo tipo */
+    if (G('f-tipo') && pendenciasAConferir().length) abrirTab('pend', document.getElementById('tab-pend'));
   }, 150);
 }
 
@@ -3247,7 +3327,7 @@ function renderObras() {
       var critPt = h > 0 ? ' · <span style="color:#dc2626;font-weight:700">' + h + ' 🔴</span>' : '';
       rowsH += '<div class="r-row" onclick="abrirRelatorio(' + r.id + ')" style="padding:10px 14px">'
         + '<div class="r-ico" style="width:32px;height:32px"><svg width="14" height="14" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>'
-        + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">' + escH((r.cover && r.cover.num) ? r.cover.num : '—') + ' <span style="color:var(--gray);font-weight:400">· ' + fmtData(dataVisita(r), true) + '</span></div>'
+        + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">' + chipTipo(tipoVist(r)) + ' ' + escH((r.cover && r.cover.num) ? r.cover.num : '—') + ' <span style="color:var(--gray);font-weight:400">· ' + fmtData(dataVisita(r), true) + '</span></div>'
         + '<div style="font-size:11px;color:var(--gray)">' + respH + n + ' apontamento' + (n !== 1 ? 's' : '') + critPt + '</div></div>'
         + '<div class="r-act" onclick="event.stopPropagation()">'
         + '<button class="btn btn-o" style="padding:5px 8px;font-size:11px" onclick="gerarPDFById(' + r.id + ')">🖨️</button>'
@@ -3263,7 +3343,8 @@ function renderObras() {
       + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black)">' + tApt + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Apts.</div></div>'
       + critH + '</div></div>'
       + '<div><div style="padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--bdr)">'
-      + '<button class="btn btn-r edit-only" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\')">+ Nova Vistoria</button>'
+      + '<button class="btn btn-r edit-only" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\',\'geral\')">+ Vistoria geral</button> '
+      + '<button class="btn btn-o edit-only" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\',\'instalacoes\')">+ Vistoria de instalações</button>'
       + '</div>' + rowsH + '</div></div>';
   }
   el.innerHTML = html;
@@ -3286,7 +3367,7 @@ function relRow(r, showAct) {
     + '<div class="r-ico"><svg width="17" height="17" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>'
     + '<div style="flex:1;min-width:0">'
     + '<div class="r-nm">' + escH((r.cover && r.cover.obra) ? r.cover.obra : 'Sem título') + '</div>'
-    + '<div class="r-mt">' + cliP + '<span class="r-dt">' + fmtData(dataVisita(r), true) + '</span> · ' + n + ' apt' + (n !== 1 ? 's' : '') + critP + '</div>'
+    + '<div class="r-mt">' + chipTipo(tipoVist(r)) + ' ' + cliP + '<span class="r-dt">' + fmtData(dataVisita(r), true) + '</span> · ' + n + ' apt' + (n !== 1 ? 's' : '') + critP + '</div>'
     + '</div>' + actH + '</div>';
 }
 
@@ -3302,7 +3383,9 @@ function renderListFiltros() {
   for (var i = 0; i < chips.length; i++) {
     chipsH += '<button class="fchip' + (filterC === chips[i][0] ? ' on' : '') + '" onclick="filterC=\'' + chips[i][0] + '\';renderListFull()">' + chips[i][1] + '</button>';
   }
-  var clearH = (searchQ || filterC !== 'all') ? '<button class="btn btn-g" style="font-size:11px;padding:4px 8px;margin-left:auto" onclick="searchQ=\'\';filterC=\'all\';renderListFull()">✕ Limpar</button>' : '';
+  var tipos = [['todos','Todos os tipos'],['geral','Geral'],['instalacoes','Instalações']], tiposH = '';
+  for (var ti = 0; ti < tipos.length; ti++) tiposH += '<button class="fchip' + (filterT === tipos[ti][0] ? ' on' : '') + '" onclick="filterT=\'' + tipos[ti][0] + '\';renderListFull()">' + tipos[ti][1] + '</button>';
+  var clearH = (searchQ || filterC !== 'all' || filterT !== 'todos') ? '<button class="btn btn-g" style="font-size:11px;padding:4px 8px;margin-left:auto" onclick="searchQ=\'\';filterC=\'all\';filterT=\'todos\';renderListFull()">✕ Limpar</button>' : '';
 
   el.innerHTML = '<div class="card" style="padding:14px;margin-bottom:14px">'
     + '<div class="fbar">'
@@ -3313,6 +3396,7 @@ function renderListFiltros() {
     + '<option value="name"' + (sortBy === 'name' ? ' selected' : '') + '>Nome A–Z</option>'
     + '<option value="apts"' + (sortBy === 'apts' ? ' selected' : '') + '>Mais apontamentos</option>'
     + '</select></div>'
+    + '<div class="fchips">' + tiposH + '</div>'
     + '<div class="fchips">' + chipsH + clearH + '</div></div>';
 }
 
@@ -3331,6 +3415,7 @@ function renderList() {
     }
     lista = tmp;
   }
+  if (filterT !== 'todos') lista = lista.filter(function(x) { return tipoVist(x) === filterT; });
   if (filterC !== 'all') {
     var tmp2 = [];
     for (var i = 0; i < lista.length; i++) {
@@ -3381,14 +3466,15 @@ function novoRelatorio() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   flushAutoSave();
   setAutoSaveStatus('');
-  autoSaveAvisouObra = false;
+  autoSaveAvisouObra = false; autoSaveAvisouTipo = false;
   editId = null;
   items  = [];
   confs  = [];
   itensRem = [];
   consid = '';
-  var fields = ['f-obra','f-cliente','f-data','f-num','f-resp','f-cargo','f-emp','f-hist','f-esc','f-sol','f-intro'];
+  var fields = ['f-obra','f-cliente','f-data','f-tipo','f-num','f-resp','f-cargo','f-emp','f-hist','f-esc','f-sol','f-intro'];
   for (var i = 0; i < fields.length; i++) V(fields[i], '');
+  renderTipoEditor();
   renderConsid();
   atualizarPreview();
   navegar('editor');
@@ -3403,7 +3489,7 @@ function abrirRelatorio(id) {
   if (hidratando) { hidratando.then(function() { abrirRelatorio(id); }); return; }   /* fotos locais ainda voltando do armazenamento ampliado */
   flushAutoSave();
   setAutoSaveStatus('');
-  autoSaveAvisouObra = false;
+  autoSaveAvisouObra = false; autoSaveAvisouTipo = false;
   var r = null;
   for (var i = 0; i < reports.length; i++) if (reports[i].id === id) { r = reports[i]; break; }
   if (!r) return;
@@ -3412,6 +3498,8 @@ function abrirRelatorio(id) {
   V('f-obra',   r.cover && r.cover.obra      ? r.cover.obra      : '');
   V('f-cliente',r.cover && r.cover.cliente   ? r.cover.cliente   : '');
   V('f-data',   r.cover && r.cover.dataVistoria ? r.cover.dataVistoria : '');
+  V('f-tipo',   tipoVist(r));
+  renderTipoEditor();
   V('f-num',    r.cover && r.cover.num       ? r.cover.num       : '');
   V('f-resp',   r.cover && r.cover.responsavel ? r.cover.responsavel : '');
   V('f-cargo',  r.cover && r.cover.cargo     ? r.cover.cargo     : '');
@@ -3472,6 +3560,7 @@ function atualizarPreview() {
   var pvResp = document.getElementById('pv-resp'); if (pvResp) pvResp.textContent = resp;
   var pvCarg = document.getElementById('pv-cargo');if (pvCarg) pvCarg.textContent = cargo;
   var edTtl  = document.getElementById('ed-ttl'); if (edTtl) edTtl.textContent = G('f-obra') || 'Novo Relatório';
+  renderTipoEditor();
   if (typeof atualizarBadgePend === 'function') atualizarBadgePend();
 }
 
@@ -3513,9 +3602,41 @@ function comprimirFotosItems(itemsArr, callback) {
   next();
 }
 
+/* ── Tipo da vistoria no editor ── */
+function renderTipoEditor() {
+  var t = G('f-tipo');
+  for (var i = 0; i < TIPOS_ORDEM.length; i++) {
+    var b = document.getElementById('tp-' + TIPOS_ORDEM[i]);
+    if (!b) continue;
+    b.classList.toggle('on', t === TIPOS_ORDEM[i]);
+    b.setAttribute('aria-checked', String(t === TIPOS_ORDEM[i]));
+  }
+  var ed = document.getElementById('ed-tipo');
+  if (ed) ed.innerHTML = TIPOS_VIST[t] ? chipTipo(t) : '';
+}
+function escolherTipo(t) {
+  if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
+  if (!TIPOS_VIST[t] || G('f-tipo') === t) return;
+  /* conferências já marcadas se referem a pendências do tipo anterior: ao trocar, saem junto */
+  if (confs.length && G('f-tipo') && !confirm('Trocar para "' + TIPOS_VIST[t].longo + '" remove as ' + confs.length + ' conferências de pendências já marcadas neste relatório (elas são do tipo anterior).\n\nContinuar?')) return;
+  if (G('f-tipo')) confs = [];
+  V('f-tipo', t);
+  renderTipoEditor();
+  atualizarPreview();
+  renderPendencias();
+  atualizarBadgePend();
+  agendarAutoSave();
+}
+/* Sem tipo escolhido o relatório não é gravado: evita misturar o acompanhamento de vistorias gerais e de instalações */
+function exigirTipo() {
+  if (G('f-tipo')) return true;
+  toast('Escolha o tipo da vistoria (geral ou instalações) na Capa', '⚠');
+  return false;
+}
+
 function lerCapaIntro() {
   return {
-    cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') },
+    cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), tipo: G('f-tipo'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') },
     intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }
   };
 }
@@ -3550,6 +3671,7 @@ function salvarRelatorio() {
   if (!podeEditar()) { toast('Seu perfil tem acesso só de visualização', '⚠'); return; }
   var obra = G('f-obra');
   if (!obra) { toast('Informe o nome da obra', '⚠'); return; }
+  if (!exigirTipo()) { abrirTab('capa', document.querySelectorAll('.tab-btn')[0]); return; }
   var ci = lerCapaIntro();
   var snapItems = JSON.parse(JSON.stringify(items));
 
@@ -3610,6 +3732,7 @@ function horaAgora() {
   return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
 }
 
+var autoSaveAvisouTipo = false;
 function agendarAutoSave() {
   if (!podeEditar()) return;
   clearTimeout(autoSaveTimer);
@@ -3626,7 +3749,7 @@ function assinaturaEditor() {
 /* Guarda o relatório em edição se algo mudou desde o último salvamento (ao abrir a câmera, ao sair do app) */
 function salvarEditorSeMudou() {
   var pg = document.getElementById('pg-editor');
-  if (!pg || !pg.classList.contains('on') || !podeEditar() || !G('f-obra')) return;
+  if (!pg || !pg.classList.contains('on') || !podeEditar() || !G('f-obra') || !G('f-tipo')) return;
   if (assinaturaEditor() === ultimaAssinaturaEditor) return;
   clearTimeout(autoSaveTimer);
   autoSalvarRelatorio();
@@ -3641,6 +3764,11 @@ function autoSalvarRelatorio() {
   if (!G('f-obra')) {
     setAutoSaveStatus('Informe a obra', true);
     if (!autoSaveAvisouObra) { autoSaveAvisouObra = true; toast('Informe o nome da obra na Capa para ativar o salvamento automático', '⚠'); }
+    return;
+  }
+  if (!G('f-tipo')) {
+    setAutoSaveStatus('Escolha o tipo da vistoria', true);
+    if (!autoSaveAvisouTipo) { autoSaveAvisouTipo = true; toast('Escolha o tipo da vistoria na Capa para ativar o salvamento automático', '⚠'); }
     return;
   }
   gravarRelatorioAtual(lerCapaIntro(), items, confs);
@@ -4138,7 +4266,7 @@ function comprimirFotosRelatorio(report, callback) {
 function gerarPDFById(id) {
   var r = null;
   if (id === editId && id !== null) {
-    r = { cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') }, intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }, items: JSON.parse(JSON.stringify(items)), conferencias: JSON.parse(JSON.stringify(confs)), id: editId, consid: consid };
+    r = { cover: { obra: G('f-obra'), cliente: G('f-cliente'), dataVistoria: G('f-data'), tipo: G('f-tipo'), num: G('f-num'), responsavel: G('f-resp'), cargo: G('f-cargo'), empresa: G('f-emp') }, intro: { historico: G('f-hist'), escopo: G('f-esc'), solicitacoes: G('f-sol'), livre: G('f-intro') }, items: JSON.parse(JSON.stringify(items)), conferencias: JSON.parse(JSON.stringify(confs)), id: editId, consid: consid };
   } else {
     for (var i = 0; i < reports.length; i++) if (reports[i].id === id) { r = reports[i]; break; }
   }
@@ -4323,6 +4451,7 @@ function imprimirRelatorio(report) {
   html += '</div>';
   // Badge + título da obra
   html += '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(192,47,52,.06);border:1px solid rgba(192,47,52,.2);border-radius:4px;padding:3px 10px;margin-bottom:12px"><div style="width:5px;height:5px;border-radius:50%;background:#C02F34;flex-shrink:0"></div><div style="font-size:8px;font-weight:700;color:#C02F34;text-transform:uppercase;letter-spacing:2px">Relatorio de Vistoria Tecnica</div></div>';
+  html += '<div style="display:inline-flex;align-items:center;margin:0 0 12px 8px;vertical-align:top;background:' + (tipoVist(report) === 'instalacoes' ? '#ccfbf1' : '#e0e7ef') + ';border-radius:4px;padding:4px 10px;font-size:8px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:' + (tipoVist(report) === 'instalacoes' ? '#115e59' : '#16324A') + '">Vistoria orientativa \u00b7 ' + (tipoVist(report) === 'instalacoes' ? 'Instalacoes' : 'Geral') + '</div>';
   html += '<div style="font-size:24px;font-weight:900;color:#000;line-height:1.15;margin-bottom:5px">' + escH(cover.obra || 'Nome da Obra') + '</div>';
   html += '<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.8px">' + escH(cover.empresa || 'ROCONTEC - Gestao de Obras') + '</div>';
   html += '</div>';
