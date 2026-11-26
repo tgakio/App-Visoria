@@ -333,6 +333,354 @@ button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
   .vz-kn small{font-size:17px}
 }
 </style>
+<style id="painel-premium">
+/* ══ PAINEL PREMIUM — direção "caderno técnico" ══
+   Base quente de papel, linhas finas em vez de sombras difusas, tipografia
+   condensada em escala editorial e uma única assinatura visual: a grade de
+   prancha (blueprint) em baixíssimo contraste.
+   Movimento com parcimônia: uma entrada única por sessão, feedback de toque
+   e indicadores de estado. Dados nunca se movem por estilo. */
+:root{
+  --bg:#F3F2EE;--paper:#FBFAF7;--card:#fff;
+  --ink:#141416;--ink2:#56565c;--ink3:#8b8b92;
+  --line:rgba(20,20,22,.08);--line2:rgba(20,20,22,.14);
+  --ok:#1f8a4c;--okb:#e7f4ec;--at:#b86e0a;--atb:#fbf1e0;--cr:#C02F34;--crb:#fbe9e9;--or:#0b7a8f;
+  --ring:0 0 0 1px var(--line);
+  --sh:0 0 0 1px var(--line),0 1px 2px rgba(20,20,22,.04);
+  --sh-up:0 0 0 1px var(--line2),0 8px 24px -8px rgba(20,20,22,.12);
+  --ease-out:cubic-bezier(.23,1,.32,1);--ease-io:cubic-bezier(.77,0,.175,1);
+}
+body{background:var(--bg);color:var(--ink);font-feature-settings:"ss01"}
+#main{background:var(--bg)}
+.btn,.vz-kc,.sk-card,.oc,.hm-cell,.hm-row,.hm-vr{-webkit-tap-highlight-color:transparent}
+.btn{transition:transform 160ms var(--ease-out),background-color 150ms ease,border-color 150ms ease,color 150ms ease}
+.btn:active{opacity:1;transform:scale(.97)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* Sidebar mais silenciosa */
+#sidebar{background:var(--paper);border-right:1px solid var(--line)}
+.sb-top{border-bottom:1px solid var(--line);position:relative}
+.sb-top::after{content:"";position:absolute;left:18px;bottom:-1px;width:28px;height:2px;background:var(--red)}
+.sb-new{border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(192,47,52,.3);transition:transform 160ms var(--ease-out),background-color 150ms ease}
+.sb-new:active{transform:scale(.97)}
+.sb-btn{border-radius:10px;color:var(--ink2);transition:background-color 150ms ease,color 150ms ease}
+.sb-btn.on{background:#fff;color:var(--ink);border-left:none;padding-left:10px;box-shadow:var(--sh)}
+.sb-btn.on svg{color:var(--red)}
+.sb-btn.on .sb-badge{background:var(--bg);color:var(--ink2)}
+.sb-div{background:var(--line)}
+.sb-user{background:transparent;border-top:1px solid var(--line)}
+@media (hover:hover) and (pointer:fine){.sb-btn:hover{background:rgba(20,20,22,.04);color:var(--ink)}}
+
+/* ── Página inicial ── */
+#pg-home{padding:0}
+#pg-home .hdr{background:rgba(243,242,238,.78);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);box-shadow:none;padding:12px 32px}
+#pg-home .hdr-ttl{font-family:var(--ft);font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:0}
+#online-badge{background:transparent!important;border-color:var(--line2)!important;font-variant-numeric:tabular-nums}
+.hm{max-width:1280px;margin:0 auto;padding:0 32px 48px}
+.hm-hero{position:relative;padding:44px 0 28px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:24px 48px;align-items:end}
+.hm-hero::before{content:"";position:absolute;inset:0 -32px;z-index:0;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:32px 32px;background-position:-1px -1px;
+  -webkit-mask-image:radial-gradient(120% 90% at 0% 0%,#000 0%,rgba(0,0,0,.35) 45%,transparent 75%);mask-image:radial-gradient(120% 90% at 0% 0%,#000 0%,rgba(0,0,0,.35) 45%,transparent 75%)}
+.hm-hero>*{position:relative;z-index:1;min-width:0}
+.hm-eye{display:flex;align-items:center;gap:10px;font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.hm-eye i{width:7px;height:7px;background:var(--red);display:block}
+.hm-ttl{font-family:var(--ftt);font-weight:800;font-size:clamp(44px,5.2vw,72px);line-height:.92;letter-spacing:-.015em;color:var(--ink);margin:14px 0 16px}
+.hm-lead{font-size:clamp(16px,1.35vw,19px);line-height:1.5;color:var(--ink2);max-width:46ch;text-wrap:pretty}
+.hm-lead b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.hm-lead b.cr{color:var(--cr)}
+.hm-tools{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+.hm-q{position:relative}
+.hm-q input{width:100%;height:48px;border:none;border-radius:14px;background:#fff;box-shadow:var(--sh);padding:0 52px 0 44px;font:500 15px var(--ft);color:var(--ink);outline:none;-webkit-appearance:none;transition:box-shadow 150ms ease}
+.hm-q input::placeholder{color:var(--ink3)}
+.hm-q input:focus{box-shadow:0 0 0 1px var(--ink),0 0 0 4px rgba(20,20,22,.06)}
+.hm-q svg{position:absolute;left:15px;top:15px;color:var(--ink3);pointer-events:none}
+.hm-q kbd{position:absolute;right:12px;top:12px;height:24px;min-width:24px;padding:0 6px;border-radius:6px;background:var(--bg);box-shadow:var(--ring);font:600 12px var(--ft);color:var(--ink3);display:grid;place-items:center}
+.hm-q input:focus~kbd{opacity:0}
+#home-q-res{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:15}
+#home-q-res .vz-res{margin:0;border-radius:14px;box-shadow:var(--sh-up);transform-origin:top center;animation:hm-pop 180ms var(--ease-out)}
+@keyframes hm-pop{from{opacity:0;transform:scale(.98) translateY(-4px)}}
+.hm-seg{position:relative;display:grid;grid-template-columns:repeat(3,1fr);padding:4px;border-radius:12px;background:rgba(20,20,22,.05);box-shadow:inset 0 0 0 1px var(--line)}
+.hm-seg button{position:relative;z-index:1;height:34px;border:none;background:none;font:600 13px var(--ft);color:var(--ink2);cursor:pointer;border-radius:9px;transition:color 150ms ease}
+.hm-seg button[aria-pressed="true"]{color:var(--ink)}
+.hm-seg-ind{position:absolute;z-index:0;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:9px;background:#fff;box-shadow:0 0 0 1px var(--line),0 1px 3px rgba(20,20,22,.08);transition:transform 240ms var(--ease-io)}
+
+/* Faixa de instrumentos (KPIs) */
+.hm-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-radius:18px;box-shadow:var(--sh);overflow:hidden;margin-bottom:20px}
+.hm-cell{position:relative;display:flex;flex-direction:column;text-align:left;border:none;background:none;padding:20px 22px 18px;font-family:var(--ft);color:var(--ink);cursor:pointer;min-width:0;transition:background-color 150ms ease}
+.hm-cell+.hm-cell{box-shadow:inset 1px 0 0 var(--line)}
+.hm-cell:active{background:rgba(20,20,22,.03)}
+.hm-k{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);display:flex;justify-content:space-between;gap:8px}
+.hm-k .hm-arr{transition:transform 200ms var(--ease-out),color 150ms ease;color:var(--line2)}
+.hm-n{font-family:var(--ftt);font-weight:800;font-size:52px;line-height:1;letter-spacing:-.01em;margin:14px 0 4px;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+.hm-n small{font-family:var(--ft);font-size:14px;font-weight:600;color:var(--ink3);letter-spacing:0}
+.hm-s{font-size:13px;color:var(--ink2);line-height:1.4}
+.hm-viz{margin-top:auto;padding-top:16px;height:44px;display:flex;align-items:flex-end}
+.hm-ticks{display:flex;gap:3px;width:100%;height:22px;align-items:stretch}
+.hm-ticks i{flex:1;border-radius:2px;background:var(--line2)}
+.hm-ticks i.ok{background:var(--ok)}.hm-ticks i.at{background:#e0a44a}.hm-ticks i.cr{background:var(--cr)}
+.hm-spark{display:flex;gap:5px;width:100%;height:28px;align-items:flex-end}
+.hm-spark i{flex:1;border-radius:3px 3px 1px 1px;background:rgba(22,50,74,.16);min-height:3px}
+.hm-spark i:last-child{background:var(--navy)}
+.hm-delta{font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:var(--bg);color:var(--ink2);font-variant-numeric:tabular-nums}
+.hm-delta.up{background:var(--crb);color:var(--cr)}.hm-delta.down{background:var(--okb);color:var(--ok)}
+@media (hover:hover) and (pointer:fine){
+  .hm-cell:hover{background:var(--paper)}
+  .hm-cell:hover .hm-k .hm-arr{transform:translateX(2px);color:var(--ink)}
+}
+
+/* Colunas */
+.hm-cols{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.hm-card{background:#fff;border-radius:18px;box-shadow:var(--sh);min-width:0}
+.hm-ch{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:20px 22px 14px}
+.hm-h{font-family:var(--ftt);font-weight:800;font-size:24px;line-height:1.05;letter-spacing:-.005em;margin:0}
+.hm-sub{font-size:13px;color:var(--ink3);margin-top:4px}
+.hm-link{display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:6px 0;font:600 13px var(--ft);color:var(--ink2);cursor:pointer;white-space:nowrap;transition:color 150ms ease}
+.hm-link span{transition:transform 200ms var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.hm-link:hover{color:var(--ink)}.hm-link:hover span{transform:translateX(2px)}}
+
+/* Régua de dias (cadência) */
+.hm-scale{display:grid;grid-template-columns:minmax(200px,1.15fr) minmax(240px,1.15fr) 184px;gap:20px;padding:0 22px 8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.hm-ruler-lbl{position:relative;height:14px;margin-right:70px}
+.hm-ruler-lbl span{position:absolute;transform:translateX(-50%);letter-spacing:0;font-variant-numeric:tabular-nums}
+.hm-row{display:grid;grid-template-columns:minmax(200px,1.15fr) minmax(240px,1.15fr) 184px;gap:20px;align-items:center;padding:14px 22px;box-shadow:inset 0 1px 0 var(--line);transition:background-color 150ms ease}
+.hm-ob{min-width:0}
+.hm-ob b{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;line-height:1.25;color:var(--ink)}
+.hm-ob b em{flex-shrink:0;width:8px;height:8px;border-radius:50%;background:currentColor}
+.hm-ob b em.ok{color:var(--ok)}.hm-ob b em.at{color:#e0a44a}.hm-ob b em.cr{color:var(--cr)}
+.hm-ob b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-ob small{display:block;margin:3px 0 0 16px;font-size:12.5px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-ob small .tp-chip{font-size:10px;padding:1px 6px}
+.hm-track{display:flex;align-items:center;gap:12px}
+.hm-bar{position:relative;flex:1;height:6px;border-radius:3px;background:rgba(20,20,22,.06)}
+.hm-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.hm-bar i::after{content:"";position:absolute;right:-5px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:inherit;box-shadow:0 0 0 3px #fff}
+.hm-bar b{position:absolute;top:-4px;bottom:-4px;width:1px;background:rgba(20,20,22,.22)}
+.hm-days{min-width:58px;text-align:right;font-family:var(--ftt);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums;line-height:1}
+.hm-days small{font-family:var(--ft);font-size:12px;font-weight:600;color:var(--ink3);margin-left:2px}
+.hm-acts{display:flex;gap:6px;justify-content:flex-end}
+.hm-acts .btn{height:34px;padding:0 12px;font-size:12.5px;font-weight:600;border-radius:10px}
+.hm-btn{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
+.hm-btn:active{background:var(--bg)}
+.hm-ghost{background:transparent;color:var(--ink3)}
+@media (hover:hover) and (pointer:fine){
+  .hm-row:hover{background:var(--paper)}
+  .hm-btn:hover{box-shadow:inset 0 0 0 1px var(--ink)}
+  .hm-ghost:hover{color:var(--ink)}
+}
+.hm-okmsg{padding:18px 22px 22px;box-shadow:inset 0 1px 0 var(--line);font-size:14px;color:var(--ok);font-weight:600}
+
+/* Coluna lateral */
+.hm-side{display:flex;flex-direction:column;gap:20px;min-width:0}
+.hm-vr{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 22px;box-shadow:inset 0 1px 0 var(--line);cursor:pointer;transition:background-color 150ms ease}
+.hm-vr:last-child{border-radius:0 0 18px 18px;padding-bottom:16px}
+.hm-date{text-align:center;line-height:1}
+.hm-date b{display:block;font-family:var(--ftt);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums}
+.hm-date small{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-top:3px}
+.hm-vr-t{min-width:0}
+.hm-vr-t b{display:block;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-vr-t small{display:block;font-size:12.5px;color:var(--ink3);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-vr-t small .g{color:var(--cr);font-weight:700}
+.hm-sync{width:8px;height:8px;border-radius:50%;background:var(--line2)}
+.hm-sync.ok{background:var(--ok)}.hm-sync.at{background:#e0a44a}
+.hm-vr:active{background:var(--bg)}
+@media (hover:hover) and (pointer:fine){.hm-vr:hover{background:var(--paper)}}
+
+/* Cartão escuro de orientações — prancha */
+.hm-dark{position:relative;overflow:hidden;border-radius:18px;padding:22px;color:#fff;background:#122a3f;box-shadow:0 0 0 1px rgba(0,0,0,.2),0 10px 30px -12px rgba(18,42,63,.55);cursor:pointer;text-align:left;border:none;font-family:var(--ft);width:100%;display:block;transition:transform 160ms var(--ease-out)}
+.hm-dark::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:22px 22px;-webkit-mask-image:linear-gradient(200deg,#000,transparent 70%);mask-image:linear-gradient(200deg,#000,transparent 70%)}
+.hm-dark>*{position:relative}
+.hm-dark:active{transform:scale(.985)}
+.hm-dark .hm-k{color:rgba(255,255,255,.55)}
+.hm-dark .hm-n{font-size:64px;margin:12px 0 6px}
+.hm-dark .hm-n small{color:rgba(255,255,255,.55)}
+.hm-dark p{font-size:14px;line-height:1.45;color:rgba(255,255,255,.75);margin:0}
+.hm-dark .hm-go{display:inline-flex;align-items:center;gap:6px;margin-top:18px;font-size:13px;font-weight:600;color:#fff}
+.hm-dark .hm-go span{transition:transform 200ms var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.hm-dark:hover .hm-go span{transform:translateX(3px)}}
+
+/* Entrada única por sessão: uma onda curta, nada de cascata item a item */
+.hm-in .hm-a{animation:hm-rise 520ms var(--ease-out) both;animation-delay:var(--d,0ms)}
+@keyframes hm-rise{from{opacity:0;transform:translateY(10px)}}
+/* Troca de filtro: dissolve curto com desfoque para ligar o estado antigo ao novo */
+.hm-swap .hm-sw{animation:hm-swap 220ms ease both}
+@keyframes hm-swap{from{opacity:.35;filter:blur(2px)}}
+@media (prefers-reduced-motion:reduce){
+  .hm-in .hm-a{animation:hm-fade 200ms ease both;animation-delay:0ms}
+  .hm-seg-ind{transition:none}
+  #home-q-res .vz-res{animation:hm-fade 120ms ease}
+  .btn:active,.hm-dark:active,.sb-new:active{transform:none}
+}
+@keyframes hm-fade{from{opacity:0}}
+
+/* Navegação inferior com ícones de traço */
+.bnav{background:rgba(251,250,247,.86);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid var(--line)}
+.bn-btn{color:var(--ink3);letter-spacing:.02em;text-transform:none;font-size:10.5px;font-weight:600;transition:color 150ms ease}
+.bn-btn .bn-ico{display:grid;place-items:center;width:40px;height:26px;border-radius:99px;transition:background-color 200ms var(--ease-out)}
+.bn-btn.on{color:var(--ink)}
+.bn-btn.on .bn-ico{background:rgba(192,47,52,.1);color:var(--red)}
+.fab{border-radius:18px;box-shadow:0 8px 20px -6px rgba(192,47,52,.55),inset 0 1px 0 rgba(255,255,255,.2);transition:transform 160ms var(--ease-out)}
+.fab:active{transform:scale(.94)}
+
+@media (max-width:1360px){
+  .hm-cols{grid-template-columns:minmax(0,1fr)}
+  .hm-side{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+}
+@media (max-width:900px){
+  .hm-hero{grid-template-columns:minmax(0,1fr);padding-top:28px}
+  .hm-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hm-cell:nth-child(3){box-shadow:inset 0 1px 0 var(--line)}
+  .hm-cell:nth-child(4){box-shadow:inset 1px 0 0 var(--line),inset 0 1px 0 var(--line)}
+}
+@media (max-width:700px){
+  #pg-home .hdr{padding:calc(10px + var(--stop)) 16px 10px}
+  .hm{padding:0 16px 32px}
+  .hm-hero{padding:22px 0 20px;gap:18px}
+  .hm-hero::before{inset:0 -16px;background-size:24px 24px}
+  .hm-ttl{font-size:46px;margin:10px 0 10px}
+  .hm-lead{font-size:15.5px}
+  .hm-q kbd{display:none}
+  .hm-cell{padding:16px 16px 14px}
+  .hm-n{font-size:40px;margin-top:10px}
+  .hm-viz{height:34px;padding-top:12px}
+  .hm-k .hm-arr{display:none}
+  .hm-strip{border-radius:16px;margin-bottom:16px}
+  .hm-cols,.hm-side{gap:16px}
+  .hm-side{grid-template-columns:minmax(0,1fr)}
+  .hm-ch{padding:18px 16px 12px}
+  .hm-scale{display:none}
+  .hm-row{grid-template-columns:minmax(0,1fr);gap:12px;padding:16px}
+  .hm-acts .btn{flex:1;height:40px;justify-content:center}
+  .hm-vr{padding:12px 16px}
+  .hm-dark .hm-n{font-size:52px}
+}
+
+/* ── Visitas orientativas: mesma linguagem do Painel ── */
+#pg-visitas{padding:0}
+#pg-visitas .hdr{background:rgba(243,242,238,.78);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);box-shadow:none;padding:12px 32px}
+#pg-visitas .hdr-ttl{font-family:var(--ft);font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:0}
+.vs-hero{padding-bottom:28px}
+.vs-cta{height:44px;justify-content:center;border-radius:12px;background:var(--crb);color:var(--cr);font-weight:700}
+.vs-cta:active{background:#f6dada}
+@media (hover:hover) and (pointer:fine){.vs-cta:hover{background:#f6dada}.vs-cta:hover .hm-arr{transform:translateX(2px)}}
+.vs-cta .hm-arr{transition:transform 200ms var(--ease-out)}
+.vs-strip{grid-template-columns:repeat(5,minmax(0,1fr))}
+.vs-strip .hm-n{font-size:46px}
+.vs-cols{margin-bottom:8px;scroll-margin-top:72px}
+.vs-ch{flex-wrap:wrap;align-items:flex-start}
+.vs-chips{display:flex;flex-wrap:wrap;gap:6px}
+.vs-chip{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border:none;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2);font:600 13px var(--ft);color:var(--ink2);cursor:pointer;transition:background-color 150ms ease,color 150ms ease,box-shadow 150ms ease,transform 160ms var(--ease-out)}
+.vs-chip:active{transform:scale(.97)}
+.vs-chip em{width:7px;height:7px;border-radius:50%}
+.vs-chip em.ok{background:var(--ok)}.vs-chip em.at{background:#e0a44a}.vs-chip em.cr{background:var(--cr)}
+.vs-chip span{font-variant-numeric:tabular-nums;color:var(--ink3)}
+.vs-chip.on{background:var(--ink);color:#fff;box-shadow:none}
+.vs-chip.on span{color:rgba(255,255,255,.6)}
+@media (hover:hover) and (pointer:fine){.vs-chip:not(.on):hover{box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink)}}
+.vs-more{padding:6px 22px 14px;box-shadow:inset 0 1px 0 var(--line)}
+.vs-chart{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;height:200px;padding:6px 22px 18px;background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 25%;background-origin:content-box;background-clip:content-box}
+.vs-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
+.vs-col i{display:block;width:100%;max-width:34px;border-radius:5px 5px 2px 2px;background:var(--navy)}
+.vs-col i.part{background:repeating-linear-gradient(135deg,var(--navy) 0 4px,#6f8aa3 4px 8px)}
+.vs-v{font-family:var(--ftt);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;line-height:1}
+.vs-m{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-variant-numeric:tabular-nums}
+.vs-note{margin:4px 22px 20px;padding:12px 14px;border-radius:12px;font-size:13.5px;line-height:1.45}
+.vs-note.cr{background:var(--crb);color:#7f1d1d}
+.vs-note.at{background:var(--atb);color:#6b3f06}
+.vs-note-solo{margin:0 0 16px}
+.vs-sec{padding:56px 0 18px;max-width:70ch}
+.vs-h{font-family:var(--ftt);font-weight:800;font-size:clamp(32px,3.4vw,44px);line-height:.98;letter-spacing:-.01em;margin:12px 0 8px;text-wrap:balance}
+.vs-p{margin:0;font-size:15.5px;color:var(--ink2);line-height:1.5}
+.vs-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;align-items:start;scroll-margin-top:72px}
+.vs-grid-b{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);margin-top:20px}
+.vs-pad{padding:4px 22px 20px}
+.vs-hb{display:grid;grid-template-columns:minmax(90px,1.1fr) minmax(0,1.6fr) 32px;gap:14px;align-items:center;padding:8px 0;font-size:14px}
+.vs-hb>span:first-child{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-hb>b{text-align:right;font-variant-numeric:tabular-nums}
+.vs-hb.vs-rest>span:first-child{color:var(--ink3);font-weight:500}
+.hm-bar.vs-thick{height:10px;border-radius:5px}
+.hm-bar.vs-thick i{border-radius:5px}
+.vs-hb .hm-bar i::after,.vs-tr .hm-bar i::after,.vs-strip .hm-cell:nth-child(5) .hm-bar i::after{display:none}
+.vs-leg{display:flex;gap:14px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.vs-leg span{display:inline-flex;align-items:center;gap:6px}
+.vs-leg em{width:10px;height:10px;border-radius:3px}
+.vs-evs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:22px}
+.vs-ev>b{display:block;font-size:14px;font-weight:700;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-pairs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;padding-top:4px;background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 25%}
+.vs-pair{display:flex;flex-direction:column;gap:6px;align-items:center;min-width:0}
+.vs-pb{display:flex;gap:3px;align-items:flex-end;height:84px;width:100%;box-shadow:inset 0 -1px 0 var(--line2)}
+.vs-pb i{flex:1;display:block;border-radius:3px 3px 1px 1px}
+.vs-at{display:grid;grid-template-columns:260px minmax(0,1fr);overflow:hidden}
+.vs-rate{padding:22px;display:flex;flex-direction:column;box-shadow:inset -1px 0 0 var(--line)}
+.vs-rate .hm-n{font-size:64px;margin:12px 0 6px}
+.vs-dist{padding:22px;min-width:0}
+.vs-stack{display:flex;gap:3px;height:14px;border-radius:7px;overflow:hidden;background:rgba(20,20,22,.05)}
+.vs-stack i{display:block;min-width:4px}
+.vs-lgs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-top:20px}
+.vs-lg{display:flex;gap:10px;min-width:0}
+.vs-lg em{flex-shrink:0;width:10px;height:10px;margin-top:9px;border-radius:3px}
+.vs-lg b{display:block;font-family:var(--ftt);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.vs-lg span{display:block;font-size:13px;font-weight:700;margin-top:4px}
+.vs-lg small{display:block;font-size:12px;color:var(--ink3);line-height:1.35;margin-top:2px}
+.vs-tbl{padding:0 22px 14px;overflow-x:auto}
+.vs-tr{display:grid;grid-template-columns:minmax(130px,1.4fr) 64px minmax(120px,1.6fr) 60px 80px;gap:14px;align-items:center;padding:11px 0;box-shadow:inset 0 1px 0 var(--line);font-size:14px;min-width:520px}
+.vs-th{box-shadow:none;padding:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.vs-tn{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-num{text-align:right;font-variant-numeric:tabular-nums}
+.vs-num.cr{color:var(--cr);font-weight:700}
+.vs-pc{display:flex;align-items:center;gap:10px}
+.vs-pc b{min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+.vs-det{margin-top:20px}
+.vs-det summary{display:flex;align-items:center;gap:10px;padding:18px 22px;cursor:pointer;font-family:var(--ftt);font-weight:800;font-size:20px;list-style:none}
+.vs-det summary::-webkit-details-marker{display:none}
+.vs-det summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--ink3);border-bottom:2px solid var(--ink3);transform:rotate(45deg);transition:transform 200ms var(--ease-out)}
+.vs-det[open] summary::after{transform:rotate(-135deg)}
+.vs-n{font-family:var(--ft);font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--bg);color:var(--ink2)}
+.vs-foot{margin:24px 0 0;font-size:12.5px;color:var(--ink3);line-height:1.5;max-width:80ch}
+/* Aviso de envio pendente (Painel e Visitas) na mesma linguagem */
+.vz-banner{border-radius:14px;padding:12px 14px 12px 16px;gap:12px}
+.vz-banner.warn{background:var(--atb);border:none;box-shadow:inset 0 0 0 1px rgba(184,110,10,.22);color:#5c3606}
+.vz-banner.bad{background:var(--crb);border:none;box-shadow:inset 0 0 0 1px rgba(192,47,52,.22);color:#6d1a1d}
+.vz-banner button{border-radius:10px;min-height:40px;font-size:13.5px;transition:transform 160ms var(--ease-out)}
+.vz-banner button:active{transform:scale(.97)}
+.hm>.vz-banner,#visitas-body>.vz-banner,#home-body>.vz-banner{margin-top:20px}
+@media (prefers-reduced-motion:reduce){.vs-chip:active,.vz-banner button:active{transform:none}.vs-det summary::after{transition:none}}
+@media (max-width:1360px){
+  .vs-strip{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .vs-strip .hm-n{font-size:40px}
+  .vs-strip .hm-cell{padding:18px 16px 16px}
+}
+@media (max-width:1100px){
+  .vs-grid,.vs-grid-b{grid-template-columns:minmax(0,1fr)}
+  .vs-at{grid-template-columns:minmax(0,1fr)}
+  .vs-rate{box-shadow:inset 0 -1px 0 var(--line)}
+  .vs-lgs{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .vs-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .vs-strip .hm-cell:nth-child(n+4){box-shadow:inset 1px 0 0 var(--line),inset 0 1px 0 var(--line)}
+  .vs-strip .hm-cell:nth-child(4){box-shadow:inset 0 1px 0 var(--line)}
+}
+@media (max-width:700px){
+  #pg-visitas .hdr{padding:calc(10px + var(--stop)) 16px 10px}
+  .vs-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .vs-strip .hm-cell:nth-child(n){box-shadow:inset 0 1px 0 var(--line)}
+  .vs-strip .hm-cell:nth-child(1){box-shadow:none}
+  .vs-strip .hm-cell:nth-child(2){box-shadow:inset 1px 0 0 var(--line)}
+  .vs-strip .hm-cell:nth-child(4){box-shadow:inset 1px 0 0 var(--line),inset 0 1px 0 var(--line)}
+  .vs-strip .hm-cell:nth-child(5){grid-column:1/-1}
+  .vs-strip .hm-n{font-size:38px}
+  .vs-sec{padding-top:40px}
+  .vs-chips{width:100%}
+  .vs-chart{height:170px;padding:6px 16px 16px;gap:8px}
+  .vs-pad{padding:4px 16px 18px}
+  .vs-tbl{padding:0 16px 12px}
+  .vs-note{margin:4px 16px 18px}
+  .vs-more{padding:6px 16px 14px}
+  .vs-rate,.vs-dist{padding:18px 16px}
+  .vs-lgs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .vs-det summary{padding:16px}
+  .vs-hb{grid-template-columns:minmax(0,1fr) 32px;gap:6px 12px}
+  .vs-hb>span:first-child{grid-column:1/-1}
+}
+</style>
 </head>
 <body class="ui-restrita ui-sem-ia ui-nao-admin">
 <div id="app">
@@ -390,14 +738,22 @@ button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
   <main id="main">
     <!-- HOME -->
     <div id="pg-home" class="pg on">
-      <div class="hdr"><span id="online-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#16a34a;border:1px solid rgba(22,163,74,.25);flex-shrink:0;letter-spacing:.3px">● Online</span><span class="hdr-ttl" style="margin-left:8px">Painel de Controle</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo Relatório</button></div></div>
-      <div class="vz-search"><input id="home-q" type="search" placeholder="Buscar obra ou relatório" aria-label="Buscar obra ou relatório" autocomplete="off" oninput="homeBuscar(this.value)" onkeydown="if(event.key==='Escape'){this.value='';homeBuscar('')}"/><div id="home-q-res"></div></div>
-      <div id="home-body" style="padding:20px"></div>
+      <div class="hdr"><span id="online-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#dcfce7;color:#16a34a;border:1px solid rgba(22,163,74,.25);flex-shrink:0;letter-spacing:.3px">● Online</span><span class="hdr-ttl" style="margin-left:8px">Painel</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo Relatório</button></div></div>
+      <div class="hm">
+        <section class="hm-hero">
+          <div id="home-hero"></div>
+          <div class="hm-tools hm-a" style="--d:100ms">
+            <div class="hm-q"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7.5"/><line x1="20.5" y1="20.5" x2="16.4" y2="16.4"/></svg><input id="home-q" type="search" placeholder="Buscar obra ou relatório" aria-label="Buscar obra ou relatório" autocomplete="off" oninput="homeBuscar(this.value)" onkeydown="if(event.key==='Escape'){this.value='';homeBuscar('');this.blur()}"/><kbd aria-hidden="true">/</kbd><div id="home-q-res"></div></div>
+            <div id="home-seg"></div>
+          </div>
+        </section>
+        <div id="home-body"></div>
+      </div>
     </div>
     <!-- VISITAS ORIENTATIVAS -->
     <div id="pg-visitas" class="pg">
-      <div class="hdr"><span class="hdr-ttl">Visitas Orientativas</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Nova visita</button></div></div>
-      <div id="visitas-body" style="padding:20px"></div>
+      <div class="hdr"><span class="hdr-ttl">Visitas orientativas</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Nova visita</button></div></div>
+      <div class="hm"><div id="visitas-body"></div></div>
     </div>
     <!-- OBRAS -->
     <div id="pg-obras" class="pg">
@@ -537,14 +893,14 @@ button.vz-chip.on{outline:2px solid var(--black);outline-offset:1px}
   </main>
 
   <nav class="bnav">
-    <button class="bn-btn on" id="bn-home" onclick="navegar('home')"><span class="bn-ico">🏠</span>Painel</button>
-    <button class="bn-btn" id="bn-visitas" onclick="navegar('visitas')"><span class="bn-ico">📍</span>Visitas</button>
-    <button class="bn-btn" id="bn-obras" onclick="navegar('obras')"><span class="bn-ico">🏗️</span>Obras</button>
-    <button class="bn-btn" id="bn-list" onclick="navegar('list')"><span class="bn-ico">📂</span>Relatórios</button>
-    <button class="bn-btn" id="bn-config" onclick="abrirChave()"><span class="bn-ico">⚙️</span>Config</button>
-    <button class="bn-btn admin-only" id="bn-admin" onclick="abrirMenuAdmin()"><span class="bn-ico">🛡️</span>Admin</button>
-    <button class="bn-btn" onclick="abrirConfigSb()"><span class="bn-ico">☁️</span>Nuvem</button>
-    <button class="bn-btn" onclick="abrirBackup()"><span class="bn-ico">💾</span>Backup</button>
+    <button class="bn-btn on" id="bn-home" onclick="navegar('home')"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span>Painel</button>
+    <button class="bn-btn" id="bn-visitas" onclick="navegar('visitas')"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/></svg></span>Visitas</button>
+    <button class="bn-btn" id="bn-obras" onclick="navegar('obras')"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>Obras</button>
+    <button class="bn-btn" id="bn-list" onclick="navegar('list')"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span>Relatórios</button>
+    <button class="bn-btn" id="bn-config" onclick="abrirChave()"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>Config</button>
+    <button class="bn-btn admin-only" id="bn-admin" onclick="abrirMenuAdmin()"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>Admin</button>
+    <button class="bn-btn" onclick="abrirConfigSb()"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.3A7 7 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></span>Nuvem</button>
+    <button class="bn-btn" onclick="abrirBackup()"><span class="bn-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></span>Backup</button>
   </nav>
   <button class="fab edit-only" onclick="novoRelatorio()">＋</button>
 </div>
@@ -2780,32 +3136,46 @@ function htmlAtendimento() {
   var a = resumoAtendimento(vzTipo);
   if (!a.total) return '';
   var base = a.atendida + a.andamento + a.nao_atendida + a.aberta;
-  var taxa = base ? Math.round(a.atendida / base * 100) + '<small>%</small>' : '—';
+  var taxaN = base ? Math.round(a.atendida / base * 100) : null;
   var med = a.dias.length ? medianaLista(a.dias) : null;
-  var h = '<div class="vz-top" style="margin-top:6px"><div><h2 class="vz-h">Atendimento das orientações</h2><div class="vz-sub">Situação das ' + a.total + ' orientações' + (vzTipo !== 'todos' ? ' (' + TIPOS_VIST[vzTipo].plural + ')' : '') + ', conforme a conferência feita na visita seguinte do mesmo tipo</div></div></div>';
+  var h = vzCabecalhoSecao('Atendimento', 'O que a obra já resolveu',
+    'Situação das ' + a.total + ' orientações' + (vzTipo !== 'todos' ? ' (' + TIPOS_VIST[vzTipo].plural + ')' : '') + ', conforme a conferência feita na visita seguinte do mesmo tipo.', 0);
   if (!a.conferencias) {
-    h += '<div class="vz-banner warn" role="status"><div class="vz-bt">Ainda não há conferências registradas. As ' + a.legado + ' orientações existentes aparecem como <b>anteriores ao controle</b> (visitas até ' + fmtData(new Date(ATENDIMENTO_INICIO + 'T12:00:00'), true) + ') e passam a contar quando forem conferidas na aba <b>Pendências</b> da próxima visita de cada obra.</div></div>';
+    h += '<div class="vs-note at vs-note-solo">Ainda não há conferências registradas. As ' + a.legado + ' orientações existentes aparecem como <b>anteriores ao controle</b> (visitas até ' + fmtData(new Date(ATENDIMENTO_INICIO + 'T12:00:00'), true) + ') e passam a contar quando forem conferidas na aba <b>Pendências</b> da próxima visita de cada obra.</div>';
   }
-  h += '<div class="vz-kpis">'
-    + kpiCard('#9ca3af', 'Abertas', String(a.aberta), 'sem conferência ainda')
-    + kpiCard('#d97706', 'Em andamento', '<span style="color:#78350f">' + a.andamento + '</span>', 'a obra já iniciou')
-    + kpiCard('#16a34a', 'Atendidas', '<span style="color:#14532d">' + a.atendida + '</span>', med !== null ? 'mediana de ' + med + ' dias até o atendimento' : 'ainda sem atendimentos')
-    + kpiCard('#dc2626', 'Reincidentes', '<span style="color:#991b1b">' + a.nao_atendida + '</span>', 'não atendidas na conferência')
-    + kpiCard('#16324A', 'Taxa de atendimento', taxa, a.legado ? a.legado + ' anteriores ao controle fora da taxa' : 'atendidas sobre as controladas')
-    + '</div>';
+
+  /* Uma barra empilhada com todas as situações, no lugar de cinco cartões soltos */
+  var partes = [['atendida', 'Atendidas', a.atendida, 'var(--ok)', med !== null ? 'mediana de ' + med + ' dias até o atendimento' : 'ainda sem atendimentos'],
+    ['andamento', 'Em andamento', a.andamento, '#e0a44a', 'a obra já iniciou'],
+    ['nao_atendida', 'Reincidentes', a.nao_atendida, 'var(--cr)', 'não atendidas na conferência'],
+    ['aberta', 'Abertas', a.aberta, 'rgba(20,20,22,.28)', 'sem conferência ainda'],
+    ['legado', 'Anteriores ao controle', a.legado, 'rgba(20,20,22,.1)', 'fora da taxa até serem conferidas']];
+  var barra = '', leg = '';
+  for (var i = 0; i < partes.length; i++) {
+    var pp = partes[i];
+    if (pp[2]) barra += '<i style="flex:' + pp[2] + ';background:' + pp[3] + '" title="' + pp[1] + ': ' + pp[2] + '"></i>';
+    leg += '<div class="vs-lg"><em style="background:' + pp[3] + '"></em><div><b>' + pp[2] + '</b><span>' + pp[1] + '</span><small>' + pp[4] + '</small></div></div>';
+  }
+  h += '<section class="hm-card vs-at hm-sw"><div class="vs-rate"><span class="hm-k"><span>Taxa de atendimento</span></span>'
+    + '<span class="hm-n">' + (taxaN === null ? '—' : taxaN + '<small>%</small>') + '</span>'
+    + '<span class="hm-s">' + (a.legado ? 'atendidas sobre as controladas; ' + a.legado + ' anteriores ao controle ficam fora' : 'atendidas sobre as controladas') + '</span></div>'
+    + '<div class="vs-dist"><div class="vs-stack" role="img" aria-label="Distribuição das ' + a.total + ' orientações por situação">' + barra + '</div><div class="vs-lgs">' + leg + '</div></div></section>';
+
   var linhas = '';
-  for (var i = 0; i < Math.min(6, a.obras.length); i++) {
-    var o = a.obras[i], pc = Math.round(o.atendidas / o.emitidas * 100);
-    linhas += '<div class="vz-hb" style="grid-template-columns:minmax(110px,1.3fr) 48px 2fr 54px 86px"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escH(o.nome) + '</span><span>' + o.emitidas + '</span>'
-      + '<div style="display:flex;align-items:center;gap:8px"><div class="vz-tr"><i style="width:' + pc + '%;background:#16a34a"></i></div><b>' + pc + '%</b></div><span>' + o.abertas + '</span>'
-      + '<span style="' + (o.maisAntiga > 60 ? 'color:#991b1b;font-weight:700' : '') + '">' + (o.abertas ? o.maisAntiga + ' dias' : '—') + '</span></div>';
+  for (var j = 0; j < Math.min(6, a.obras.length); j++) {
+    var o = a.obras[j], pc = Math.round(o.atendidas / o.emitidas * 100);
+    linhas += '<div class="vs-tr"><span class="vs-tn">' + escH(o.nome) + '</span><span class="vs-num">' + o.emitidas + '</span>'
+      + '<span class="vs-pc"><span class="hm-bar"><i style="width:' + Math.max(pc, 1.5) + '%;background:var(--ok)"></i></span><b>' + pc + '%</b></span><span class="vs-num">' + o.abertas + '</span>'
+      + '<span class="vs-num' + (o.maisAntiga > LIMITE_SEM_VISITA_DIAS ? ' cr' : '') + '">' + (o.abertas ? o.maisAntiga + ' d' : '—') + '</span></div>';
   }
-  var idade = '', rot = ['até 15 dias', '16 a 30', '31 a 60', 'mais de 60'], cor = ['#16324A', '#16324A', '#d97706', '#dc2626'], maxI = Math.max(1, a.idade[0], a.idade[1], a.idade[2], a.idade[3]);
-  for (var b = 0; b < 4; b++) idade += '<div class="vz-hb" style="grid-template-columns:84px 1fr 28px"><span style="font-weight:600">' + rot[b] + '</span><div class="vz-tr" style="height:16px"><i style="width:' + Math.round(a.idade[b] / maxI * 100) + '%;background:' + cor[b] + '"></i></div><b style="text-align:right">' + a.idade[b] + '</b></div>';
+  var rot = ['até 15 dias', '16 a 30', '31 a 60', 'mais de 60'], cor = ['var(--navy)', 'var(--navy)', '#e0a44a', 'var(--cr)'], maxI = Math.max(1, a.idade[0], a.idade[1], a.idade[2], a.idade[3]);
+  var idade = '';
+  for (var b = 0; b < 4; b++) idade += '<div class="vs-hb"><span>' + rot[b] + '</span><span class="hm-bar vs-thick"><i style="width:' + Math.max(1.5, Math.round(a.idade[b] / maxI * 100)) + '%;background:' + cor[b] + '"></i></span><b>' + a.idade[b] + '</b></div>';
   var abertas = a.idade[0] + a.idade[1] + a.idade[2] + a.idade[3];
-  h += '<div class="vz-cols"><section class="vz-card vz-main"><h2 class="vz-h">Atendimento por obra</h2><div class="vz-sub">Obras com mais orientações em aberto</div>'
-    + '<div style="overflow-x:auto"><div style="min-width:520px"><div class="vz-hb" style="grid-template-columns:minmax(110px,1.3fr) 48px 2fr 54px 86px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray)"><span>Obra</span><span>Emitidas</span><span>Atendidas</span><span>Abertas</span><span>Mais antiga</span></div>' + linhas + '</div></div></section>'
-    + '<section class="vz-card vz-side" style="flex:1 1 300px"><h2 class="vz-h">Idade das pendências em aberto</h2><div class="vz-sub">' + abertas + ' orientações ainda sem atendimento</div>' + idade + '</section></div>';
+  h += '<div class="vs-grid vs-grid-b">'
+    + '<section class="hm-card"><div class="hm-ch"><div><h2 class="hm-h">Atendimento por obra</h2><div class="hm-sub">Obras com mais orientações em aberto</div></div></div>'
+    + '<div class="vs-tbl hm-sw"><div class="vs-tr vs-th"><span>Obra</span><span class="vs-num">Emitidas</span><span>Atendidas</span><span class="vs-num">Abertas</span><span class="vs-num">Mais antiga</span></div>' + linhas + '</div></section>'
+    + '<section class="hm-card"><div class="hm-ch"><div><h2 class="hm-h">Idade das pendências</h2><div class="hm-sub">' + abertas + ' orientações ainda sem atendimento</div></div></div><div class="vs-pad hm-sw">' + idade + '</div></section></div>';
   return h;
 }
 function medianaLista(v) {
@@ -3062,47 +3432,137 @@ function homeAbrirObra(j) { var o = vzBuscaObras[j]; homeLimparBusca(); if (o) f
 function homeAbrirRel(id) { homeLimparBusca(); abrirRelatorio(id); }
 
 /* ══ PAINEL ══ */
+var DIAS_SEMANA = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+var hmEntrou = false;          /* entrada animada só na primeira renderização da sessão */
+var hmTipoAnterior = null;     /* para o indicador do seletor de tipo deslizar da posição anterior */
+var HM_TIPOS = [['todos', 'Todos'], ['geral', 'Geral'], ['instalacoes', 'Instalações']];
+var HM_SETA = '<span class="hm-arr" aria-hidden="true">→</span>';
+
+function hmSeg(sufixo) {
+  var h = '<div class="hm-seg" role="group" aria-label="Tipo de vistoria"><i class="hm-seg-ind" id="hm-seg-ind' + (sufixo || '') + '"></i>';
+  for (var i = 0; i < HM_TIPOS.length; i++) h += '<button type="button" aria-pressed="' + (vzTipo === HM_TIPOS[i][0]) + '" onclick="vzSetTipo(\'' + HM_TIPOS[i][0] + '\')">' + HM_TIPOS[i][1] + '</button>';
+  return h + '</div>';
+}
+function hmIdxTipo(t) { for (var i = 0; i < HM_TIPOS.length; i++) if (HM_TIPOS[i][0] === t) return i; return 0; }
+/* O seletor é redesenhado a cada render: posiciona o indicador no tipo anterior sem transição e só então desliza até o atual */
+function hmMoverIndicador(sufixo) {
+  var ind = document.getElementById('hm-seg-ind' + (sufixo || ''));
+  if (!ind) return;
+  var de = hmTipoAnterior === null ? hmIdxTipo(vzTipo) : hmIdxTipo(hmTipoAnterior), para = hmIdxTipo(vzTipo);
+  ind.style.transition = 'none';
+  ind.style.transform = 'translateX(' + (de * 100) + '%)';
+  if (de !== para) { void ind.offsetWidth; ind.style.transition = ''; ind.style.transform = 'translateX(' + (para * 100) + '%)'; }
+  hmTipoAnterior = vzTipo;
+}
+
+function hmFrase(ativas, emDia, semVisita, atencaoN) {
+  if (!ativas.length) return 'Nenhuma obra ativa neste filtro.';
+  if (!semVisita && !atencaoN) return 'Todas as <b>' + ativas.length + '</b> obras ativas tiveram visita nos últimos ' + META_CADENCIA_DIAS + ' dias.';
+  var s = '';
+  if (semVisita) s += '<b class="cr">' + pluralPt(semVisita, 'obra está', 'obras estão') + '</b> há mais de ' + LIMITE_SEM_VISITA_DIAS + ' dias sem visita';
+  if (atencaoN) s += (s ? ' e ' : '') + '<b>' + atencaoN + '</b> ' + (atencaoN === 1 ? 'passou' : 'passaram') + ' da meta de ' + META_CADENCIA_DIAS + ' dias';
+  return s + '. <b>' + emDia + ' de ' + ativas.length + '</b> seguem em dia.';
+}
+
+function hmCelula(acao, rotulo, numHtml, sub, viz, d) {
+  return '<button type="button" class="hm-cell" onclick="' + acao + '">'
+    + '<span class="hm-k"><span>' + rotulo + '</span>' + HM_SETA + '</span>'
+    + '<span class="hm-n hm-sw">' + numHtml + '</span><span class="hm-s hm-sw">' + sub + '</span>'
+    + '<span class="hm-viz hm-sw">' + viz + '</span></button>';
+}
+
+function hmLinhaObra(o, idx) {
+  var esc = 120, w = Math.max(1.5, Math.min(100, o.dias / esc * 100)), cls = SIT_INFO[o.sit][0];
+  var cor = cls === 'ok' ? 'var(--ok)' : (cls === 'at' ? '#e0a44a' : 'var(--cr)');
+  var tipos = '';
+  for (var i = 0; i < TIPOS_ORDEM.length; i++) if (o.tipos[TIPOS_ORDEM[i]]) tipos += ' · ' + TIPOS_VIST[TIPOS_ORDEM[i]].nome + ' ' + fmtData(o.tipos[TIPOS_ORDEM[i]].ultima);
+  return '<div class="hm-row">'
+    + '<div class="hm-ob"><b><em class="' + cls + '" title="' + SIT_INFO[o.sit][1] + '"></em><span>' + escH(o.nome) + '</span></b>'
+    + '<small>' + (o.cliente ? escH(o.cliente) + ' · ' : '') + pluralPt(o.visitas, 'visita', 'visitas') + tipos + '</small></div>'
+    + '<div class="hm-track"><div class="hm-bar" role="img" aria-label="' + o.dias + ' dias sem visita"><b style="left:' + (META_CADENCIA_DIAS / esc * 100) + '%"></b><b style="left:' + (LIMITE_SEM_VISITA_DIAS / esc * 100) + '%"></b><i style="width:' + w + '%;background:' + cor + '"></i></div>'
+    + '<span class="hm-days">' + o.dias + '<small>d</small></span></div>'
+    + '<div class="hm-acts"><button class="btn hm-btn edit-only" onclick="vzNovaVisita(' + idx + ')">+ Nova visita</button>'
+    + '<button class="btn hm-ghost edit-only" onclick="vzEncerrar(' + idx + ')">Encerrar</button></div>'
+    + '</div>';
+}
+
+function hmRegua() {
+  return '<div class="hm-scale" aria-hidden="true"><span>Obra</span><span class="hm-ruler-lbl"><span style="left:' + (META_CADENCIA_DIAS / 120 * 100) + '%">' + META_CADENCIA_DIAS + 'd</span><span style="left:' + (LIMITE_SEM_VISITA_DIAS / 120 * 100) + '%">' + LIMITE_SEM_VISITA_DIAS + 'd</span></span><span></span></div>';
+}
+/* Entrada (uma vez por sessão e por página) ou dissolve curto quando o tipo de vistoria muda */
+function hmAnimarPagina(pg, animar, trocaTipo) {
+  if (!pg) return;
+  pg.classList.remove('hm-in', 'hm-swap');
+  if (animar) { pg.classList.add('hm-in'); setTimeout(function() { pg.classList.remove('hm-in'); }, 900); }
+  else if (trocaTipo) { void pg.offsetWidth; pg.classList.add('hm-swap'); }
+}
+
 function renderHome() {
   var el = document.getElementById('home-body');
   if (!el) return;
   vzObras = resumoObras(vzTipo);
   var ativas = ativasDe(vzObras);
-  var html = bannerPendentes() + (reports.length ? htmlFiltroTipo() : '');
+  var hoje = new Date();
+  var eye = '<div class="hm-eye hm-a"><i></i>' + DIAS_SEMANA[hoje.getDay()] + ', ' + hoje.getDate() + ' de ' + MESES_NOME[hoje.getMonth()] + '</div>';
+  var heroTxt = document.getElementById('home-hero');
+  var segBox = document.getElementById('home-seg');
+  var animar = !hmEntrou && reports.length > 0;
+  var trocaTipo = hmEntrou && hmTipoAnterior !== null && hmTipoAnterior !== vzTipo;
 
   if (reports.length === 0) {
+    if (heroTxt) heroTxt.innerHTML = eye + '<h1 class="hm-ttl">Painel de obras</h1><p class="hm-lead">' + (syncEmAndamento && sbEnabled() ? 'Buscando os dados salvos na nuvem…' : 'Ainda não há vistorias registradas.') + '</p>';
+    if (segBox) segBox.innerHTML = '';
+    var vazio = '';
     if (syncEmAndamento && sbEnabled()) {
-      /* Ainda não é "vazio" de verdade — só ainda não chegou da nuvem. */
-      html += '<div class="vz-card"><div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div><div class="empty-ttl">Carregando seus relatórios…</div>'
+      vazio = '<div class="hm-card"><div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div><div class="empty-ttl">Carregando seus relatórios…</div>'
         + '<div class="empty-txt">Buscando os dados salvos na nuvem.</div></div></div>';
     } else {
-      html += '<div class="vz-card"><div class="empty"><div class="empty-ttl">Nenhum relatório salvo</div>'
+      vazio = '<div class="hm-card"><div class="empty"><div class="empty-ttl">Nenhum relatório salvo</div>'
         + '<div class="empty-txt">Crie o primeiro relatório de vistoria técnica ROCONTEC.</div>'
         + '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Primeiro Relatório</button></div></div>';
     }
-    el.innerHTML = html;
+    el.innerHTML = bannerPendentes() + vazio;
     return;
   }
 
   var emDia = ativas.filter(function(o) { return o.sit === 'ok'; }).length;
+  var atencaoN = ativas.filter(function(o) { return o.sit === 'atencao'; }).length;
   var semVisita = ativas.filter(function(o) { return o.sit === 'atraso'; }).length;
   var mes = visitasDoMes(0, vzTipo), ant = visitasDoMes(-1, vzTipo);
   var pct = ativas.length ? Math.round(semVisita / ativas.length * 100) : 0;
 
-  html += '<div class="vz-kpis">'
-    + kpiCard('#16a34a', 'Obras em dia', emDia + '<small> de ' + ativas.length + '</small>', 'visita nos últimos ' + META_CADENCIA_DIAS + ' dias', "navegar('visitas')", 'Ver cadência')
-    + kpiCard('#dc2626', 'Sem visita há +' + LIMITE_SEM_VISITA_DIAS + ' dias', '<span style="color:#991b1b">' + semVisita + '</span><small> ' + (semVisita === 1 ? 'obra' : 'obras') + '</small>', pct + '% das obras ativas', "navegar('visitas')", 'Ver obras')
-    + kpiCard('#16324A', 'Visitas em ' + MESES_NOME[mes.mes], String(mes.visitas), 'mês parcial · ' + MESES_NOME[ant.mes] + ': ' + ant.visitas, "navegar('list')", 'Ver relatórios')
-    + kpiCard('#7c3aed', 'Graves em ' + MESES_NOME[mes.mes], '<span style="color:#5b21b6">' + mes.graves + '</span>', 'alta + crítica · em ' + pluralPt(mes.nObras, 'obra', 'obras'), "navegar('list')", 'Ver relatórios')
+  if (heroTxt) heroTxt.innerHTML = eye
+    + '<h1 class="hm-ttl hm-a" style="--d:40ms">Painel de obras</h1>'
+    + '<p class="hm-lead hm-a hm-sw" style="--d:80ms">' + hmFrase(ativas, emDia, semVisita, atencaoN) + '</p>';
+  if (segBox) { segBox.innerHTML = hmSeg(); hmMoverIndicador(); }
+
+  /* Micrográficos: cada obra ativa é um traço (da mais atrasada para a mais recente) */
+  var ticks = '';
+  for (var t = ativas.length - 1; t >= 0; t--) ticks += '<i class="' + SIT_INFO[ativas[t].sit][0] + '"></i>';
+  var serie = [], maxM = 1;
+  for (var m = -5; m <= 0; m++) { var vm = m === 0 ? mes : (m === -1 ? ant : visitasDoMes(m, vzTipo)); serie.push(vm); if (vm.visitas > maxM) maxM = vm.visitas; }
+  var spark = '';
+  for (var s = 0; s < serie.length; s++) spark += '<i title="' + MESES_ABREV[serie[s].mes] + ': ' + serie[s].visitas + '" style="height:' + Math.max(10, Math.round(serie[s].visitas / maxM * 100)) + '%"></i>';
+  var dG = mes.graves - ant.graves;
+  var delta = '<span class="hm-delta ' + (dG > 0 ? 'up' : (dG < 0 ? 'down' : '')) + '">' + (dG > 0 ? '↑ ' + dG : (dG < 0 ? '↓ ' + (-dG) : '=')) + ' vs ' + MESES_ABREV[ant.mes] + '</span>';
+  var pctBar = '<span class="hm-bar" style="width:100%"><i style="width:' + Math.max(pct, 2) + '%;background:var(--cr)"></i></span>';
+
+  var html = bannerPendentes();
+  html += '<div class="hm-strip hm-a" style="--d:130ms">'
+    + hmCelula("navegar('visitas')", 'Obras em dia', emDia + '<small>de ' + ativas.length + '</small>', 'visita nos últimos ' + META_CADENCIA_DIAS + ' dias', '<span class="hm-ticks" title="Cada traço é uma obra ativa">' + ticks + '</span>', 120)
+    + hmCelula("navegar('visitas')", 'Sem visita +' + LIMITE_SEM_VISITA_DIAS + 'd', '<span style="color:var(--cr)">' + semVisita + '</span><small>' + (semVisita === 1 ? 'obra' : 'obras') + '</small>', pct + '% das obras ativas', pctBar, 150)
+    + hmCelula("navegar('list')", 'Visitas · ' + MESES_ABREV[mes.mes], String(mes.visitas) + '<small>mês parcial</small>', MESES_NOME[ant.mes] + ': ' + ant.visitas + ' visitas', '<span class="hm-spark">' + spark + '</span>', 180)
+    + hmCelula("navegar('list')", 'Graves · ' + MESES_ABREV[mes.mes], String(mes.graves) + '<small>itens</small>', 'alta + crítica em ' + pluralPt(mes.nObras, 'obra', 'obras'), delta, 200)
     + '</div>';
 
   /* Obras que precisam de atenção */
   var atencao = ativas.filter(function(o) { return o.sit !== 'ok'; }).slice(0, 6);
   var rowsH = '';
   if (atencao.length === 0) {
-    rowsH = '<div style="padding:14px 0;font-size:14px;color:#14532d;font-weight:600">Todas as obras ativas tiveram visita nos últimos ' + META_CADENCIA_DIAS + ' dias.</div>';
+    rowsH = '<div class="hm-okmsg">Todas as obras ativas tiveram visita nos últimos ' + META_CADENCIA_DIAS + ' dias.</div>';
   } else {
-    rowsH = cabecalhoObras();
-    for (var i = 0; i < atencao.length; i++) rowsH += linhaObra(atencao[i], vzObras.indexOf(atencao[i]));
+    rowsH = hmRegua();
+    for (var i = 0; i < atencao.length; i++) rowsH += hmLinhaObra(atencao[i], vzObras.indexOf(atencao[i]));
   }
 
   /* Últimas vistorias (pela data da visita) */
@@ -3113,32 +3573,52 @@ function renderHome() {
   }).slice(0, 5);
   var vrH = '';
   for (var u = 0; u < ult.length; u++) {
-    var r = ult[u], n = (r.items || []).length, g = 0;
+    var r = ult[u], n = (r.items || []).length, g = 0, dv = dataVisita(r);
     for (var k = 0; k < n; k++) if (ehGrave(r.items[k].criticidade)) g++;
-    var chip = sbEnabled() ? (r._pendingSync ? '<span class="vz-chip at">Não enviado</span>' : '<span class="vz-chip ok">Enviado</span>') : '<span class="vz-chip nt">Só neste aparelho</span>';
-    vrH += '<div class="vz-vr" onclick="abrirRelatorio(' + r.id + ')"><div><b>' + escH((r.cover && r.cover.obra) || 'Sem título') + '</b><small>' + chipTipo(tipoVist(r)) + ' ' + fmtData(dataVisita(r)) + ' · ' + pluralPt(n, 'apontamento', 'apontamentos')
-      + (g ? ' · <span style="color:#991b1b;font-weight:700">' + g + (g === 1 ? ' grave' : ' graves') + '</span>' : '') + '</small></div>' + chip + '</div>';
+    var sync = sbEnabled() ? (r._pendingSync ? ['at', 'Não enviado'] : ['ok', 'Enviado']) : ['', 'Só neste aparelho'];
+    vrH += '<div class="hm-vr" onclick="abrirRelatorio(' + r.id + ')">'
+      + '<div class="hm-date"><b>' + (dv ? ('0' + dv.getDate()).slice(-2) : '—') + '</b><small>' + (dv ? MESES_ABREV[dv.getMonth()] : '') + '</small></div>'
+      + '<div class="hm-vr-t"><b>' + escH((r.cover && r.cover.obra) || 'Sem título') + '</b><small>' + TIPOS_VIST[tipoVist(r)].nome + ' · ' + pluralPt(n, 'apontamento', 'apontamentos')
+      + (g ? ' · <span class="g">' + g + (g === 1 ? ' grave' : ' graves') + '</span>' : '') + '</small></div>'
+      + '<span class="hm-sync ' + sync[0] + '" title="' + sync[1] + '" aria-label="' + sync[1] + '"></span></div>';
   }
 
   var orient = 0, obrasOrient = 0;
   for (var q = 0; q < vzObras.length; q++) { orient += vzObras[q].orient; if (vzObras[q].orient > 0) obrasOrient++; }
 
-  html += '<div class="vz-cols">'
-    + '<section class="vz-card vz-main"><div class="vz-top"><div><h2 class="vz-h">Obras que precisam de atenção</h2><div class="vz-sub">Da visita mais antiga para a mais recente · meta de ' + META_CADENCIA_DIAS + ' dias</div></div>'
-    + '<button class="vz-link" onclick="navegar(\'visitas\')">Ver as ' + ativas.length + ' obras →</button></div><div style="overflow-x:auto">' + rowsH + '</div></section>'
-    + '<div class="vz-side">'
-    + '<section class="vz-card"><div class="vz-top"><h2 class="vz-h">Últimas vistorias</h2><button class="vz-link" onclick="navegar(\'list\')">Ver todas →</button></div><div class="vz-sub">Pela data da visita</div>' + vrH + '</section>'
-    + '<section class="vz-card" style="border-left:5px solid #0891b2"><div class="vz-kl">Visitas orientativas</div>'
-    + '<div style="display:flex;align-items:baseline;gap:10px;margin-top:4px"><span style="font-family:var(--ftt);font-weight:900;font-size:36px;color:#0e7490;line-height:1">' + orient + '</span><span style="font-size:14px">orientações registradas em ' + pluralPt(obrasOrient, 'obra', 'obras') + '</span></div>'
-    + '<button class="vz-link" onclick="navegar(\'visitas\')">Abrir painel de visitas orientativas →</button></section>'
+  html += '<div class="hm-cols">'
+    + '<section class="hm-card hm-a" style="--d:240ms"><div class="hm-ch"><div><h2 class="hm-h">Obras que precisam de atenção</h2><div class="hm-sub">Da visita mais antiga para a mais recente</div></div>'
+    + '<button class="hm-link" onclick="navegar(\'visitas\')">Todas as ' + ativas.length + ' obras ' + HM_SETA + '</button></div><div class="hm-sw">' + rowsH + '</div></section>'
+    + '<div class="hm-side">'
+    + '<section class="hm-card hm-a" style="--d:270ms"><div class="hm-ch"><div><h2 class="hm-h">Últimas vistorias</h2><div class="hm-sub">Pela data da visita</div></div><button class="hm-link" onclick="navegar(\'list\')">Ver todas ' + HM_SETA + '</button></div><div class="hm-sw">' + vrH + '</div></section>'
+    + '<button type="button" class="hm-dark hm-a" style="--d:300ms" onclick="navegar(\'visitas\')"><span class="hm-k"><span>Visitas orientativas</span></span>'
+    + '<span class="hm-n hm-sw">' + orient + '<small>orientações</small></span><p class="hm-sw">registradas em ' + pluralPt(obrasOrient, 'obra', 'obras') + '. Acompanhe o atendimento de cada uma.</p>'
+    + '<span class="hm-go">Abrir painel de visitas ' + HM_SETA + '</span></button>'
     + '</div></div>';
 
   el.innerHTML = html;
+  if (animar) hmEntrou = true;
+  hmAnimarPagina(document.getElementById('pg-home'), animar, trocaTipo);
 }
 
+/* "/" foca a busca do Painel (sem animação: atalho de teclado) */
+document.addEventListener('keydown', function(e) {
+  if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+  var t = e.target, tag = t && t.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+  var pg = document.getElementById('pg-home'), q = document.getElementById('home-q');
+  if (pg && pg.classList.contains('on') && q) { e.preventDefault(); q.focus(); }
+});
+
 /* ══ VISITAS ORIENTATIVAS ══ */
+var vzEntrou = false;          /* entrada animada só na primeira renderização da sessão */
+var vzTipoRender = null;       /* tipo da última renderização desta página (para o dissolve na troca) */
 function vzSetFiltro(f) { vzFiltro = f; renderVisitas(); }
 function vzToggleTodas() { vzMostrarTodas = !vzMostrarTodas; renderVisitas(); }
+
+function vzCabecalhoSecao(rotulo, titulo, sub, d) {
+  return '<header class="vs-sec hm-a" style="--d:' + d + 'ms"><div class="hm-eye"><i></i>' + rotulo + '</div><h2 class="vs-h">' + titulo + '</h2>' + (sub ? '<p class="vs-p">' + sub + '</p>' : '') + '</header>';
+}
 
 function renderVisitas() {
   var el = document.getElementById('visitas-body');
@@ -3146,10 +3626,12 @@ function renderVisitas() {
   vzObras = resumoObras(vzTipo);
   var ativas = ativasDe(vzObras);
   var encerradas = vzObras.filter(function(o) { return o.encerrada; });
-  var html = bannerPendentes() + (reports.length ? htmlFiltroTipo() : '');
+  var animar = !vzEntrou && reports.length > 0;
+  var trocaTipo = vzEntrou && vzTipoRender !== null && vzTipoRender !== vzTipo;
+  vzTipoRender = vzTipo;
 
   if (reports.length === 0) {
-    el.innerHTML = html + '<div class="vz-card"><div class="empty"><div class="empty-ttl">Nenhuma visita registrada</div><div class="empty-txt">Os painéis aparecem depois do primeiro relatório.</div></div></div>';
+    el.innerHTML = bannerPendentes() + '<section class="hm-hero vs-hero"><div><div class="hm-eye"><i></i>Cadência e atendimento</div><h1 class="hm-ttl">Visitas orientativas</h1><p class="hm-lead">Os painéis aparecem depois do primeiro relatório.</p></div></section>';
     return;
   }
 
@@ -3157,40 +3639,56 @@ function renderVisitas() {
   var atencao = ativas.filter(function(o) { return o.sit === 'atencao'; }).length;
   var semVisita = ativas.filter(function(o) { return o.sit === 'atraso'; }).length;
   var mes = visitasDoMes(0, vzTipo), ant = visitasDoMes(-1, vzTipo);
+  var mediana = medianaDias(ativas);
   var totApts = 0, totOrient = 0, obrasOrient = 0;
   for (var a = 0; a < vzObras.length; a++) { totApts += vzObras[a].apts; totOrient += vzObras[a].orient; if (vzObras[a].orient > 0) obrasOrient++; }
   var pctOrient = totApts ? Math.round(totOrient / totApts * 100) : 0;
+  var pctSem = ativas.length ? Math.round(semVisita / ativas.length * 100) : 0;
 
-  if (semVisita > 0) {
-    html += '<div class="vz-banner bad" role="status"><div class="vz-bt"><b>' + semVisita + ' de ' + pluralPt(ativas.length, 'obra ativa', 'obras ativas') + (semVisita === 1 ? ' está' : ' estão') + ' há mais de ' + LIMITE_SEM_VISITA_DIAS + ' dias sem visita.</b> A mediana é de ' + medianaDias(ativas) + ' dias desde a última visita, contra a meta de ' + META_CADENCIA_DIAS + ' dias.</div>'
-      + '<button type="button" onclick="vzSetFiltro(\'atraso\')">Ver obras em atraso</button></div>';
-  }
+  /* Abertura: frase-resumo + seletor de tipo */
+  var frase = hmFrase(ativas, emDia, semVisita, atencao);
+  if (ativas.length) frase += ' A mediana é de <b' + (mediana > META_CADENCIA_DIAS ? ' class="cr"' : '') + '>' + mediana + ' dias</b> desde a última visita.';
+  var html = bannerPendentes()
+    + '<section class="hm-hero vs-hero"><div><div class="hm-eye hm-a"><i></i>Cadência e atendimento</div>'
+    + '<h1 class="hm-ttl hm-a" style="--d:40ms">Visitas orientativas</h1><p class="hm-lead hm-a hm-sw" style="--d:80ms">' + frase + '</p></div>'
+    + '<div class="hm-tools hm-a" style="--d:100ms">' + hmSeg('-vz')
+    + (semVisita ? '<button type="button" class="btn vs-cta" onclick="vzSetFiltro(\'atraso\');document.getElementById(\'vs-cad\').scrollIntoView({behavior:\'smooth\',block:\'start\'})">Ver ' + pluralPt(semVisita, 'obra em atraso', 'obras em atraso') + ' ' + HM_SETA + '</button>' : '')
+    + '</div></section>';
 
-  html += '<div class="vz-kpis">'
-    + kpiCard('#16a34a', 'Obras em dia', emDia + '<small> de ' + ativas.length + '</small>', (ativas.length ? Math.round(emDia / ativas.length * 100) : 0) + '% com visita em ' + META_CADENCIA_DIAS + ' dias')
-    + kpiCard('#dc2626', 'Sem visita há +' + LIMITE_SEM_VISITA_DIAS + ' dias', '<span style="color:#991b1b">' + semVisita + '</span><small> ' + (semVisita === 1 ? 'obra' : 'obras') + '</small>', (ativas.length ? Math.round(semVisita / ativas.length * 100) : 0) + '% das obras ativas')
-    + kpiCard('#16324A', 'Visitas em ' + MESES_NOME[mes.mes], String(mes.visitas), 'mês parcial · ' + MESES_NOME[ant.mes] + ': ' + ant.visitas)
-    + kpiCard('#d97706', 'Mediana sem visita', medianaDias(ativas) + '<small> dias</small>', 'meta de cadência: ' + META_CADENCIA_DIAS + ' dias')
-    + kpiCard('#0891b2', 'Orientações registradas', '<span style="color:#0e7490">' + totOrient + '</span>', 'em ' + pluralPt(obrasOrient, 'obra', 'obras') + ' · ' + pctOrient + '% dos apontamentos')
+  /* Faixa de indicadores */
+  var ticks = '';
+  for (var t = ativas.length - 1; t >= 0; t--) ticks += '<i class="' + SIT_INFO[ativas[t].sit][0] + '"></i>';
+  var serie = [], maxM = 1;
+  for (var m = -5; m <= 0; m++) { var vm = m === 0 ? mes : (m === -1 ? ant : visitasDoMes(m, vzTipo)); serie.push(vm); if (vm.visitas > maxM) maxM = vm.visitas; }
+  var spark = '';
+  for (var s = 0; s < serie.length; s++) spark += '<i title="' + MESES_ABREV[serie[s].mes] + ': ' + serie[s].visitas + '" style="height:' + Math.max(10, Math.round(serie[s].visitas / maxM * 100)) + '%"></i>';
+  var esc = 120, medPos = Math.min(100, mediana / esc * 100);
+  var medViz = '<span class="hm-bar" style="width:100%"><b style="left:' + (META_CADENCIA_DIAS / esc * 100) + '%"></b><b style="left:' + (LIMITE_SEM_VISITA_DIAS / esc * 100) + '%"></b><i style="width:' + Math.max(medPos, 2) + '%;background:' + (mediana <= META_CADENCIA_DIAS ? 'var(--ok)' : (mediana <= LIMITE_SEM_VISITA_DIAS ? '#e0a44a' : 'var(--cr)')) + '"></i></span>';
+  var orViz = '<span class="hm-bar" style="width:100%"><i style="width:' + Math.max(pctOrient, 2) + '%;background:var(--or)"></i></span>';
+  html += '<div class="hm-strip vs-strip hm-a" style="--d:130ms">'
+    + hmCelula("vzSetFiltro('ok')", 'Obras em dia', emDia + '<small>de ' + ativas.length + '</small>', (ativas.length ? Math.round(emDia / ativas.length * 100) : 0) + '% com visita em ' + META_CADENCIA_DIAS + ' dias', '<span class="hm-ticks" title="Cada traço é uma obra ativa">' + ticks + '</span>', 0)
+    + hmCelula("vzSetFiltro('atraso')", 'Sem visita +' + LIMITE_SEM_VISITA_DIAS + 'd', '<span style="color:var(--cr)">' + semVisita + '</span><small>' + (semVisita === 1 ? 'obra' : 'obras') + '</small>', pctSem + '% das obras ativas', '<span class="hm-bar" style="width:100%"><i style="width:' + Math.max(pctSem, 2) + '%;background:var(--cr)"></i></span>', 0)
+    + hmCelula("navegar('list')", 'Visitas · ' + MESES_ABREV[mes.mes], String(mes.visitas) + '<small>mês parcial</small>', MESES_NOME[ant.mes] + ': ' + ant.visitas + ' visitas', '<span class="hm-spark">' + spark + '</span>', 0)
+    + hmCelula("vzSetFiltro('todas')", 'Mediana sem visita', mediana + '<small>dias</small>', 'meta de cadência: ' + META_CADENCIA_DIAS + ' dias', medViz, 0)
+    + hmCelula("document.getElementById('vs-or').scrollIntoView({behavior:'smooth',block:'start'})", 'Orientações', '<span style="color:var(--or)">' + totOrient + '</span><small>registradas</small>', 'em ' + pluralPt(obrasOrient, 'obra', 'obras') + ' · ' + pctOrient + '% dos apontamentos', orViz, 0)
     + '</div>';
 
   /* Cadência por obra */
   var lista = ativas.filter(function(o) { return vzFiltro === 'todas' || o.sit === vzFiltro; });
   var limite = vzMostrarTodas ? lista.length : 12;
-  var rows = cabecalhoObras();
-  for (var i = 0; i < Math.min(limite, lista.length); i++) rows += linhaObra(lista[i], vzObras.indexOf(lista[i]));
-  if (!lista.length) rows += '<div style="padding:14px 0;font-size:14px;color:var(--gray)">Nenhuma obra nesta situação.</div>';
-  var maisBtn = lista.length > 12 ? '<button class="vz-link" onclick="vzToggleTodas()">' + (vzMostrarTodas ? 'Mostrar menos' : 'Mostrar todas as ' + lista.length + ' obras') + '</button>' : '';
-  function chipFiltro(f, rotulo, n, cls) { return '<button type="button" class="vz-chip ' + cls + (vzFiltro === f ? ' on' : '') + '" aria-pressed="' + (vzFiltro === f) + '" onclick="vzSetFiltro(\'' + f + '\')">' + rotulo + ' ' + n + '</button>'; }
+  var rows = lista.length ? hmRegua() : '';
+  for (var i = 0; i < Math.min(limite, lista.length); i++) rows += hmLinhaObra(lista[i], vzObras.indexOf(lista[i]));
+  if (!lista.length) rows += '<div class="hm-okmsg" style="color:var(--ink3)">Nenhuma obra nesta situação.</div>';
+  var maisBtn = lista.length > 12 ? '<div class="vs-more"><button class="hm-link" onclick="vzToggleTodas()">' + (vzMostrarTodas ? 'Mostrar menos' : 'Mostrar todas as ' + lista.length + ' obras') + ' ' + HM_SETA + '</button></div>' : '';
+  function chipFiltro(f, rotulo, n, cls) {
+    return '<button type="button" class="vs-chip' + (vzFiltro === f ? ' on' : '') + '" aria-pressed="' + (vzFiltro === f) + '" onclick="vzSetFiltro(\'' + f + '\')">' + (cls ? '<em class="' + cls + '"></em>' : '') + rotulo + '<span>' + n + '</span></button>';
+  }
 
   /* Visitas por mês (6 meses) */
-  var meses = [], max = 1, hoje = new Date();
-  for (var m = -5; m <= 0; m++) { var vm = visitasDoMes(m, vzTipo); meses.push(vm); if (vm.visitas > max) max = vm.visitas; }
-  var barras = '', lbls = '';
-  for (var b = 0; b < meses.length; b++) {
-    var parcial = (b === meses.length - 1) && hoje.getDate() < new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
-    barras += '<div class="vz-bar"><span>' + meses[b].visitas + '</span><i class="' + (parcial ? 'part' : '') + '" style="height:' + Math.max(3, Math.round(meses[b].visitas / max * 120)) + 'px"></i></div>';
-    lbls += '<span>' + MESES_ABREV[meses[b].mes] + (parcial ? '*' : '') + '</span>';
+  var hoje = new Date(), barras = '';
+  for (var b = 0; b < serie.length; b++) {
+    var parcial = (b === serie.length - 1) && hoje.getDate() < new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+    barras += '<div class="vs-col"><span class="vs-v">' + serie[b].visitas + '</span><i class="' + (parcial ? 'part' : '') + '" style="height:' + Math.max(2, Math.round(serie[b].visitas / maxM * 74)) + '%"></i><span class="vs-m">' + MESES_ABREV[serie[b].mes] + (parcial ? '*' : '') + '</span></div>';
   }
 
   /* Agenda sugerida: última visita + meta, nos próximos 21 dias */
@@ -3205,82 +3703,84 @@ function renderVisitas() {
   agenda.sort(function(x, y) { return x.ate - y.ate; });
   var agH = '';
   for (var ag = 0; ag < Math.min(6, agenda.length); ag++) {
-    agH += '<div class="vz-ag"><b>' + fmtData(agenda[ag].prox) + '</b><span>' + escH(agenda[ag].obra.nome) + '</span><span class="vz-chip ok">' + (agenda[ag].ate === 0 ? 'hoje' : agenda[ag].ate + (agenda[ag].ate === 1 ? ' dia' : ' dias')) + '</span></div>';
+    var pa = agenda[ag];
+    agH += '<div class="hm-vr" style="cursor:default"><div class="hm-date"><b>' + ('0' + pa.prox.getDate()).slice(-2) + '</b><small>' + MESES_ABREV[pa.prox.getMonth()] + '</small></div>'
+      + '<div class="hm-vr-t"><b>' + escH(pa.obra.nome) + '</b><small>' + (pa.ate === 0 ? 'hoje' : 'em ' + pluralPt(pa.ate, 'dia', 'dias')) + ' · última visita ' + fmtData(pa.obra.ultima) + '</small></div><span></span></div>';
   }
-  if (!agH) agH = '<div style="padding:8px 0;font-size:14px;color:var(--gray)">Nenhuma visita prevista para os próximos 21 dias.</div>';
+  if (!agH) agH = '<div class="hm-okmsg" style="color:var(--ink3)">Nenhuma visita prevista para os próximos 21 dias.</div>';
   var vencidas = atencao + semVisita;
 
+  html += '<div class="hm-cols vs-cols" id="vs-cad">'
+    + '<section class="hm-card hm-a" style="--d:240ms"><div class="hm-ch vs-ch"><div><h2 class="hm-h">Cadência por obra</h2><div class="hm-sub">Dias desde a última visita, da mais atrasada para a mais recente</div></div>'
+    + '<div class="vs-chips" role="group" aria-label="Filtrar por situação">' + chipFiltro('todas', 'Todas', ativas.length, '') + chipFiltro('atraso', 'Sem visita', semVisita, 'cr') + chipFiltro('atencao', 'Atenção', atencao, 'at') + chipFiltro('ok', 'Em dia', emDia, 'ok') + '</div></div>'
+    + '<div class="hm-sw">' + rows + '</div>' + maisBtn + '</section>'
+    + '<div class="hm-side">'
+    + '<section class="hm-card hm-a" style="--d:270ms"><div class="hm-ch"><div><h2 class="hm-h">Visitas por mês</h2><div class="hm-sub">Por data da visita · * mês em andamento</div></div></div><div class="vs-chart hm-sw">' + barras + '</div></section>'
+    + '<section class="hm-card hm-a" style="--d:300ms"><div class="hm-ch"><div><h2 class="hm-h">Agenda sugerida</h2><div class="hm-sub">Última visita + ' + META_CADENCIA_DIAS + ' dias, próximos 21 dias</div></div></div><div class="hm-sw">' + agH + '</div>'
+    + (vencidas ? '<div class="vs-note cr"><b>+ ' + pluralPt(vencidas, 'visita já vencida', 'visitas já vencidas') + '</b> aguarda' + (vencidas === 1 ? '' : 'm') + ' reagendamento.</div>' : '') + '</section>'
+    + '</div></div>';
+
   /* Orientações por obra */
-  var comOrient = vzObras.filter(function(o) { return o.orient > 0; }).sort(function(x, y) { return y.orient - x.orient; });
+  var comOrient = vzObras.filter(function(x) { return x.orient > 0; }).sort(function(x, y) { return y.orient - x.orient; });
   var orH = '', maxO = comOrient.length ? comOrient[0].orient : 1;
   for (var c = 0; c < Math.min(6, comOrient.length); c++) {
-    orH += '<div class="vz-hb"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escH(comOrient[c].nome) + '</span><div class="vz-tr"><i style="width:' + Math.round(comOrient[c].orient / maxO * 100) + '%;background:#0891b2"></i></div><b style="text-align:right">' + comOrient[c].orient + '</b></div>';
+    orH += '<div class="vs-hb"><span>' + escH(comOrient[c].nome) + '</span><span class="hm-bar"><i style="width:' + Math.round(comOrient[c].orient / maxO * 100) + '%;background:var(--or)"></i></span><b>' + comOrient[c].orient + '</b></div>';
   }
   if (comOrient.length > 6) {
     var resto = 0;
     for (var rr = 6; rr < comOrient.length; rr++) resto += comOrient[rr].orient;
-    orH += '<div class="vz-hb"><span style="color:var(--gray)">' + (comOrient.length - 6) + ' obras, demais</span><div class="vz-tr"><i style="width:' + Math.round(resto / maxO * 100) + '%;background:#7dc6d6"></i></div><b style="text-align:right">' + resto + '</b></div>';
+    orH += '<div class="vs-hb vs-rest"><span>' + (comOrient.length - 6) + ' obras, demais</span><span class="hm-bar"><i style="width:' + Math.min(100, Math.round(resto / maxO * 100)) + '%;background:var(--or);opacity:.45"></i></span><b>' + resto + '</b></div>';
   }
-  if (!orH) orH = '<div style="padding:8px 0;font-size:14px;color:var(--gray)">Nenhuma orientação registrada ainda.</div>';
+  if (!orH) orH = '<div class="hm-okmsg" style="color:var(--ink3)">Nenhuma orientação registrada ainda.</div>';
 
   /* Evolução entre visitas (obras com 3+ visitas) */
-  var recorrentes = ativas.filter(function(o) { return o.visitas >= 3; }).sort(function(x, y) { return y.visitas - x.visitas; }).slice(0, 3);
+  var recorrentes = ativas.filter(function(x) { return x.visitas >= 3; }).sort(function(x, y) { return y.visitas - x.visitas; }).slice(0, 3);
   var maxV = 1, series = [];
-  for (var s = 0; s < recorrentes.length; s++) {
-    var rels = recorrentes[s].relatorios.slice(-4), pts = [];
-    for (var t = 0; t < rels.length; t++) {
-      var gr = 0, orr = 0, itn = rels[t].items || [];
+  for (var sr = 0; sr < recorrentes.length; sr++) {
+    var relsR = recorrentes[sr].relatorios.slice(-4), pts = [];
+    for (var tr = 0; tr < relsR.length; tr++) {
+      var gr = 0, orr = 0, itn = relsR[tr].items || [];
       for (var w = 0; w < itn.length; w++) { if (ehGrave(itn[w].criticidade)) gr++; if (itn[w].criticidade === 'orient') orr++; }
       if (gr > maxV) maxV = gr;
       if (orr > maxV) maxV = orr;
-      pts.push({ d: dataVisita(rels[t]), g: gr, o: orr });
+      pts.push({ d: dataVisita(relsR[tr]), g: gr, o: orr });
     }
-    series.push({ nome: recorrentes[s].nome, pts: pts });
+    series.push({ nome: recorrentes[sr].nome, pts: pts });
   }
   var evH = '';
   for (var e = 0; e < series.length; e++) {
-    var pairs = '', dl = '', n4 = series[e].pts.length;
-    for (var p = 0; p < n4; p++) {
-      pairs += '<div class="vz-pair"><i style="height:' + Math.round(series[e].pts[p].g / maxV * 70) + 'px;background:#b91c1c" title="' + series[e].pts[p].g + ' graves"></i><i style="height:' + Math.round(series[e].pts[p].o / maxV * 70) + 'px;background:#0891b2" title="' + series[e].pts[p].o + ' orientativas"></i></div>';
-      dl += '<span>' + fmtData(series[e].pts[p].d) + '</span>';
+    var pares = '';
+    for (var p = 0; p < series[e].pts.length; p++) {
+      var pt = series[e].pts[p];
+      pares += '<div class="vs-pair"><div class="vs-pb"><i style="height:' + Math.max(2, Math.round(pt.g / maxV * 100)) + '%;background:var(--cr)" title="' + pt.g + ' graves"></i><i style="height:' + Math.max(2, Math.round(pt.o / maxV * 100)) + '%;background:var(--or)" title="' + pt.o + ' orientações"></i></div><span class="vs-m">' + fmtData(pt.d) + '</span></div>';
     }
-    evH += '<div><div style="font-weight:700;font-size:15px;margin-bottom:8px">' + escH(series[e].nome) + '</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(' + n4 + ',minmax(0,1fr));gap:8px;align-items:end;height:84px;border-bottom:1px solid var(--bdr2)">' + pairs + '</div>'
-      + '<div class="vz-lbls" style="grid-template-columns:repeat(' + n4 + ',minmax(0,1fr));gap:8px">' + dl + '</div></div>';
+    evH += '<div class="vs-ev"><b>' + escH(series[e].nome) + '</b><div class="vs-pairs">' + pares + '</div></div>';
   }
-  if (!evH) evH = '<div style="padding:8px 0;font-size:14px;color:var(--gray)">Ainda não há obras com 3 ou mais visitas.</div>';
+  if (!evH) evH = '<div class="hm-okmsg" style="color:var(--ink3)">Ainda não há obras com 3 ou mais visitas.</div>';
 
-  html += '<div class="vz-cols">'
-    + '<section class="vz-card vz-main"><div class="vz-top"><div><h2 class="vz-h">Cadência por obra</h2><div class="vz-sub">Dias desde a última visita, da mais atrasada para a mais recente</div></div>'
-    + '<div role="group" aria-label="Filtrar por situação" style="display:flex;flex-wrap:wrap;gap:6px">' + chipFiltro('todas', 'Todas', ativas.length, 'nt') + chipFiltro('atraso', 'Sem visita', semVisita, 'cr') + chipFiltro('atencao', 'Atenção', atencao, 'at') + chipFiltro('ok', 'Em dia', emDia, 'ok') + '</div></div>'
-    + '<div style="overflow-x:auto"><div class="vz-wide">' + rows + '</div></div>' + maisBtn + '</section>'
-    + '<div class="vz-side">'
-    + '<section class="vz-card"><h2 class="vz-h">Visitas por mês</h2><div class="vz-sub">Por data da visita</div>'
-    + '<div class="vz-bars" style="grid-template-columns:repeat(6,minmax(0,1fr))">' + barras + '</div><div class="vz-lbls" style="grid-template-columns:repeat(6,minmax(0,1fr))">' + lbls + '</div>'
-    + '<div style="font-size:12.5px;color:var(--gray);margin-top:8px">* mês em andamento</div></section>'
-    + '<section class="vz-card"><h2 class="vz-h">Agenda sugerida</h2><div class="vz-sub">Última visita + ' + META_CADENCIA_DIAS + ' dias, próximos 21 dias</div>' + agH
-    + (vencidas ? '<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:#fee2e2;color:#7f1d1d;font-size:13.5px;line-height:1.4"><b>+ ' + pluralPt(vencidas, 'visita já vencida', 'visitas já vencidas') + '</b> aguarda' + (vencidas === 1 ? '' : 'm') + ' reagendamento.</div>' : '') + '</section>'
-    + '</div></div>';
-
-  html += '<div class="vz-cols">'
-    + '<section class="vz-card" style="flex:1 1 340px"><h2 class="vz-h">Orientações por obra</h2><div class="vz-sub">Apontamentos com criticidade Orientativa · total ' + totOrient + '</div>' + orH + '</section>'
-    + '<section class="vz-card" style="flex:2 1 520px"><div class="vz-top"><div><h2 class="vz-h">Evolução entre visitas</h2><div class="vz-sub">Obras com 3 ou mais visitas · últimas 4 visitas</div></div>'
-    + '<div style="display:flex;gap:14px;font-size:13px;font-weight:600"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#b91c1c"></span>Graves (alta + crítica)</span><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#0891b2"></span>Orientativas</span></div></div>'
-    + '<div class="vz-mini">' + evH + '</div></section></div>';
+  html += vzCabecalhoSecao('Orientações', 'O que foi orientado', totOrient + ' apontamentos com criticidade Orientativa, ' + pctOrient + '% de tudo o que foi registrado.', 0)
+    + '<div class="vs-grid" id="vs-or">'
+    + '<section class="hm-card"><div class="hm-ch"><div><h2 class="hm-h">Orientações por obra</h2><div class="hm-sub">Total ' + totOrient + '</div></div></div><div class="vs-pad hm-sw">' + orH + '</div></section>'
+    + '<section class="hm-card"><div class="hm-ch vs-ch"><div><h2 class="hm-h">Evolução entre visitas</h2><div class="hm-sub">Obras com 3 ou mais visitas · últimas 4 visitas</div></div>'
+    + '<div class="vs-leg"><span><em style="background:var(--cr)"></em>Graves</span><span><em style="background:var(--or)"></em>Orientativas</span></div></div>'
+    + '<div class="vs-pad vs-evs hm-sw">' + evH + '</div></section></div>';
 
   html += htmlAtendimento();
 
   if (encerradas.length) {
-    html += '<details class="vz-card" style="margin-bottom:16px"><summary style="cursor:pointer;font-weight:700;font-size:15px;min-height:32px">Obras encerradas (' + encerradas.length + ')</summary><div style="margin-top:8px">';
+    html += '<details class="hm-card vs-det"><summary><span>Obras encerradas</span><span class="vs-n">' + encerradas.length + '</span></summary><div>';
     for (var z = 0; z < encerradas.length; z++) {
-      html += '<div class="vz-vr" style="cursor:default"><div><b>' + escH(encerradas[z].nome) + '</b><small>Última visita ' + fmtData(encerradas[z].ultima, true) + ' · ' + pluralPt(encerradas[z].visitas, 'visita', 'visitas') + '</small></div>'
-        + '<button class="btn btn-o edit-only" style="min-height:40px" onclick="vzReabrir(' + vzObras.indexOf(encerradas[z]) + ')">Reabrir obra</button></div>';
+      html += '<div class="hm-vr" style="cursor:default;grid-template-columns:minmax(0,1fr) auto"><div class="hm-vr-t"><b>' + escH(encerradas[z].nome) + '</b><small>Última visita ' + fmtData(encerradas[z].ultima, true) + ' · ' + pluralPt(encerradas[z].visitas, 'visita', 'visitas') + '</small></div>'
+        + '<button class="btn hm-btn edit-only" onclick="vzReabrir(' + vzObras.indexOf(encerradas[z]) + ')">Reabrir obra</button></div>';
     }
     html += '</div></details>';
   }
 
-  html += '<p style="margin:0;font-size:12.5px;color:var(--gray);line-height:1.5">Visita = um relatório registrado, pela data da vistoria. Meta de ' + META_CADENCIA_DIAS + ' dias entre visitas; sem visita = mais de ' + LIMITE_SEM_VISITA_DIAS + ' dias. Obras encerradas ficam fora dos alertas.</p>';
+  html += '<p class="vs-foot">Visita = um relatório registrado, pela data da vistoria. Meta de ' + META_CADENCIA_DIAS + ' dias entre visitas; sem visita = mais de ' + LIMITE_SEM_VISITA_DIAS + ' dias. Obras encerradas ficam fora dos alertas.</p>';
   el.innerHTML = html;
+  hmMoverIndicador('-vz');
+  if (animar) vzEntrou = true;
+  hmAnimarPagina(document.getElementById('pg-visitas'), animar, trocaTipo);
 }
 
 /* ══ OBRAS ════════════════════════════════════════════════════════ */
