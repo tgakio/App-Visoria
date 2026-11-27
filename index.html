@@ -782,6 +782,146 @@ body{background:var(--bg);color:var(--ink);font-feature-settings:"ss01"}
 }
 @media (prefers-reduced-motion:reduce){.ob-mais summary::after{transition:none}}
 </style>
+<style id="editor-relatorios">
+/* ── Editor de relatórios: mesma linguagem do Painel ──
+   Coluna de leitura centrada, campos sobre papel com linha fina, abas
+   numeradas (a ordem é a do relatório) e apontamentos como fichas. */
+#pg-editor{padding:0}
+#pg-editor .hdr{background:rgba(243,242,238,.82);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);box-shadow:none;padding:10px 24px;gap:12px}
+#pg-editor .hdr>.btn-g{width:38px;height:38px;padding:0!important;justify-content:center;border-radius:10px;color:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2);background:#fff}
+#ed-ttl{font-family:var(--ftt);font-weight:800;font-size:22px;letter-spacing:-.005em;color:var(--ink);vertical-align:middle;max-width:100%}
+#pg-editor .as-st{font-size:12px;font-weight:600;color:var(--ink3);margin-top:2px}
+#pg-editor .as-st.warn{color:var(--at)}
+#pg-editor .hdr .btn{height:38px;border-radius:10px}
+#pg-editor .hdr .btn-o{border:none;background:#fff;box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink);padding:0 12px!important;font-weight:600}
+#pg-editor .hdr .btn-r{padding:0 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(192,47,52,.3)}
+@media (hover:hover) and (pointer:fine){#pg-editor .hdr .btn-o:hover,#pg-editor .hdr>.btn-g:hover{box-shadow:inset 0 0 0 1px var(--ink)}}
+
+/* Abas numeradas com indicador que desliza */
+#pg-editor .tabs{position:relative;background:transparent;border-bottom:1px solid var(--line);padding:0 24px 0 max(24px,calc((100% - 860px) / 2 + 18px));gap:4px}
+#pg-editor .tab-btn{position:relative;height:48px;padding:0 14px;border:none;margin:0;font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink3);transition:color 150ms ease}
+#pg-editor .tab-btn.on{color:var(--ink)}
+.tb-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:rgba(20,20,22,.06);font:800 12px var(--ftt);color:var(--ink3);font-variant-numeric:tabular-nums;transition:background-color 150ms ease,color 150ms ease}
+#pg-editor .tab-btn.on .tb-n{background:var(--ink);color:#fff}
+#pg-editor .tbg{background:var(--red);font-size:10.5px;padding:1px 6px;font-variant-numeric:tabular-nums}
+.tab-ind{position:absolute;bottom:-1px;left:0;height:2px;border-radius:2px;background:var(--red);transition:transform 220ms var(--ease-io),width 220ms var(--ease-io);pointer-events:none}
+@media (hover:hover) and (pointer:fine){#pg-editor .tab-btn:not(.on):hover{color:var(--ink2)}}
+
+/* Coluna de leitura */
+#pg-editor .tab-pnl{max-width:860px;margin:0 auto;padding:28px 32px 64px!important}
+#pg-editor .tab-pnl.on{animation:ed-in 200ms ease both}
+@keyframes ed-in{from{opacity:.4}}
+
+/* Cartões e campos */
+#pg-editor .card{background:#fff;border-radius:18px;box-shadow:var(--sh);margin-bottom:20px}
+#pg-editor .card-hdr{background:transparent;border-bottom:none;padding:20px 22px 2px;border-radius:18px 18px 0 0;gap:12px;flex-wrap:wrap}
+#pg-editor .card-ttl{display:flex;align-items:center;gap:10px;font-size:11.5px;font-weight:700;letter-spacing:.14em;color:var(--ink3)}
+#pg-editor .card-ttl::before{content:"";width:7px;height:7px;background:var(--red);flex-shrink:0}
+#pg-editor .card-ttl .req{margin-left:-6px}
+#pg-editor .card-body{padding:16px 22px 22px}
+#pg-editor .field{gap:7px;margin-bottom:16px}
+#pg-editor .field:last-child{margin-bottom:0}
+#pg-editor .field label{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink2)}
+#pg-editor .field input,#pg-editor .field textarea,#pg-editor .field select{border:none;border-radius:12px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line2);padding:12px 14px;font-size:16px;color:var(--ink);transition:box-shadow 150ms ease,background-color 150ms ease}
+#pg-editor .field select{background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8b92' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:36px}
+#pg-editor .field input::placeholder,#pg-editor .field textarea::placeholder{color:var(--ink3)}
+#pg-editor .field input:focus,#pg-editor .field textarea:focus,#pg-editor .field select:focus{background-color:#fff;box-shadow:0 0 0 1px var(--ink),0 0 0 4px rgba(20,20,22,.06)}
+#pg-editor .field input[readonly],#pg-editor .field textarea[readonly],#pg-editor .field select:disabled{background-color:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+#pg-editor .field textarea{line-height:1.6}
+#pg-editor .g2{gap:14px;margin-bottom:16px}
+#pg-editor .g2 .field{margin-bottom:0}
+
+/* Tipo da vistoria */
+#pg-editor .tp-opt{border:none;border-radius:14px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line2);padding:14px 16px;min-height:72px;transition:box-shadow 150ms ease,background-color 150ms ease,transform 160ms var(--ease-out)}
+#pg-editor .tp-opt:active{transform:scale(.98)}
+#pg-editor .tp-opt b{font-family:var(--ftt);font-weight:800;font-size:19px;letter-spacing:-.005em}
+#pg-editor .tp-opt.on.tp-geral,#pg-editor .tp-opt.on.tp-instalacoes{background:#fff;box-shadow:inset 0 0 0 2px var(--ink)}
+#pg-editor .tp-opt.on b::after{content:"";display:inline-block;width:7px;height:7px;margin-left:8px;border-radius:50%;background:var(--red);vertical-align:middle}
+@media (hover:hover) and (pointer:fine){#pg-editor .tp-opt:not(.on):not(:disabled):hover{box-shadow:inset 0 0 0 1px var(--ink)}}
+
+/* Pré-visualização da capa: folha de papel */
+#pg-editor .cvr{border-radius:6px;box-shadow:0 0 0 1px var(--line),0 18px 40px -20px rgba(20,20,22,.35);margin-top:4px}
+
+/* Barra da aba Vistoria */
+#pnl-vistoria>div:first-child{margin-bottom:18px!important}
+#apts-cnt{font-size:11.5px!important;letter-spacing:.12em!important;color:var(--ink3)!important;font-variant-numeric:tabular-nums}
+#pg-editor .sort-sel{border:none;border-radius:10px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8b92' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;box-shadow:inset 0 0 0 1px var(--line2);padding:9px 30px 9px 12px!important;height:38px;font-size:13px!important}
+#pnl-vistoria>div:first-child .btn-r{height:38px;border-radius:10px}
+
+/* Apontamentos como fichas */
+#pg-editor .apt{background:#fff;border-radius:18px;box-shadow:var(--sh);margin-bottom:16px;overflow:visible}
+#pg-editor .apt-hdr{background:transparent;border-bottom:1px solid var(--line);padding:14px 14px 14px 20px;gap:12px}
+#pg-editor .apt-num{width:auto;height:auto;min-width:30px;background:none;border-radius:0;color:var(--ink);font-family:var(--ftt);font-weight:800;font-size:26px;line-height:1;font-variant-numeric:tabular-nums;place-items:start}
+#pg-editor .apt-nm{font-size:15px;font-weight:700}
+#pg-editor .cbg{background:var(--paper);box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink2);font-size:11px;letter-spacing:.06em;padding:5px 10px}
+#pg-editor .cbg .cdot{width:7px;height:7px}
+#pg-editor .cbg.c-low .cdot{background:var(--ok)}#pg-editor .cbg.c-med .cdot{background:#e0a44a}#pg-editor .cbg.c-high .cdot{background:var(--cr)}#pg-editor .cbg.c-critical .cdot{background:var(--cc)}#pg-editor .cbg.c-orient .cdot{background:var(--or)}
+.apt-rm{width:34px;height:34px;padding:0;justify-content:center;border-radius:10px;background:transparent;color:var(--ink3)}
+.apt-rm:active{background:var(--crb);color:var(--cr)}
+@media (hover:hover) and (pointer:fine){.apt-rm:hover{background:var(--crb);color:var(--cr)}}
+#pg-editor .apt-body{padding:18px 20px 20px}
+#pg-editor .apt-body .btn-g.ia-only{border-radius:8px;background:var(--crb);color:var(--cr)!important;font-weight:700}
+
+/* Fotos */
+#pg-editor .photos{gap:10px;margin-top:16px}
+#pg-editor .ph{width:96px;height:96px;border-radius:12px;border:none;box-shadow:0 0 0 1px var(--line);transition:transform 160ms var(--ease-out)}
+#pg-editor img.ph:active{transform:scale(.97)}
+.ph-adds{display:flex;flex-direction:column;gap:6px}
+#pg-editor .ph-add{width:96px;border:none;border-radius:12px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink2);flex-direction:row;gap:6px;font-size:12px;font-weight:600;transition:box-shadow 150ms ease,color 150ms ease,transform 160ms var(--ease-out)}
+#pg-editor .ph-add.ph-sm{height:45px}
+#pg-editor .ph-add:active{transform:scale(.97);color:var(--ink)}
+@media (hover:hover) and (pointer:fine){#pg-editor .ph-add:hover{box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink)}}
+.apt-add{width:100%;height:56px;justify-content:center;gap:8px;border-radius:16px;border:none;background:transparent;box-shadow:inset 0 0 0 1.5px var(--line2);color:var(--ink);font-size:14px;font-weight:700;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:16px 16px}
+@media (hover:hover) and (pointer:fine){.apt-add:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}}
+
+/* Pendências */
+#pg-editor .pd-bar{height:6px;border-radius:3px;background:rgba(20,20,22,.06)}
+#pg-editor .pd-bar i{background:var(--ok);border-radius:3px}
+#pg-editor .pd-gh{padding:20px 2px 10px;font-size:14px;color:var(--ink2)}
+#pg-editor .pd-gh b{font-family:var(--ftt);font-weight:800;font-size:20px;color:var(--ink)}
+#pg-editor .pd-gs{font-family:var(--ftt);font-weight:800;font-size:18px}
+#pg-editor .pd-card{border-radius:16px;box-shadow:var(--sh);padding:16px}
+#pg-editor .pd-card.pd-novo{border:none;box-shadow:inset 0 0 0 1.5px rgba(22,50,74,.3),0 1px 2px rgba(20,20,22,.04);padding:16px}
+#pg-editor .pd-th{border-radius:12px}
+#pg-editor .pd-th0{color:var(--ink3);background:var(--paper);box-shadow:inset 0 0 0 1px var(--line)}
+#pg-editor .pd-add{display:inline-flex;align-items:center;gap:6px}
+#pg-editor .pd-sg{border:none;border-radius:12px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink2);font-weight:600;transition:background-color 150ms ease,box-shadow 150ms ease,color 150ms ease,transform 160ms var(--ease-out)}
+#pg-editor .pd-sg:active{transform:scale(.97)}
+#pg-editor .pd-sg.ok{background:var(--okb);box-shadow:inset 0 0 0 2px var(--ok);color:#14532d}
+#pg-editor .pd-sg.at{background:var(--atb);box-shadow:inset 0 0 0 2px #e0a44a;color:#6b3f06}
+#pg-editor .pd-sg.no{background:var(--crb);box-shadow:inset 0 0 0 2px var(--cr);color:#6d1a1d}
+#pg-editor .pd-obs{border:none;border-radius:12px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line2)}
+#pg-editor .pd-obs:focus{outline:none;background:#fff;box-shadow:0 0 0 1px var(--ink),0 0 0 4px rgba(20,20,22,.06)}
+#pg-editor .pd-add{border:none;border-radius:12px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink)}
+#pg-editor .pd-warn{border-radius:12px;background:var(--crb);color:#6d1a1d}
+#pg-editor .pd-sit{margin-bottom:14px}
+
+/* Considerações */
+#f-consid{font-size:16px!important;line-height:1.75!important;min-height:320px!important}
+#ai-status{border-radius:12px!important}
+
+@media (prefers-reduced-motion:reduce){
+  .tab-ind{transition:none}
+  #pg-editor .tab-pnl.on{animation:none}
+  #pg-editor .tp-opt:active,#pg-editor .pd-sg:active,#pg-editor .ph-add:active,#pg-editor img.ph:active{transform:none}
+}
+@media (max-width:700px){
+  #pg-editor .hdr{padding:calc(8px + var(--stop)) 12px 8px;gap:8px}
+  #ed-ttl{font-size:19px}
+  #pg-editor .hdr .btn-r{padding:0 12px}
+  #pg-editor .tabs{padding:0 8px}
+  #pg-editor .tab-btn{padding:0 10px;font-size:13.5px}
+  #pg-editor .tab-pnl{padding:18px 14px 40px!important}
+  #pg-editor .card-hdr{padding:16px 16px 0}
+  #pg-editor .card-body{padding:14px 16px 18px}
+  #pg-editor .tp-seg{grid-template-columns:1fr}
+  #pg-editor .apt-hdr{padding:12px 10px 12px 16px}
+  #pg-editor .apt-body{padding:16px}
+  #pg-editor .ph,#pg-editor .ph-add{width:84px}
+  #pg-editor .ph{height:84px}
+  #pg-editor .ph-add.ph-sm{height:39px}
+}
+</style>
 </head>
 <body class="ui-restrita ui-sem-ia ui-nao-admin">
 <div id="app">
@@ -881,11 +1021,12 @@ body{background:var(--bg);color:var(--ink);font-feature-settings:"ss01"}
         </div>
       </div>
       <div class="tabs">
-        <button class="tab-btn on" onclick="abrirTab('capa',this)">📄 Capa</button>
-        <button class="tab-btn" onclick="abrirTab('intro',this)">📝 Introdução</button>
-        <button class="tab-btn" onclick="abrirTab('pend',this)" id="tab-pend">📋 Pendências</button>
-        <button class="tab-btn" onclick="abrirTab('vistoria',this)" id="tab-vist">🔍 Vistoria</button>
-        <button class="tab-btn" onclick="abrirTab('consid',this)">📝 Considerações</button>
+        <button class="tab-btn on" onclick="abrirTab('capa',this)"><span class="tb-n">1</span>Capa</button>
+        <button class="tab-btn" onclick="abrirTab('intro',this)"><span class="tb-n">2</span>Introdução</button>
+        <button class="tab-btn" onclick="abrirTab('pend',this)" id="tab-pend"><span class="tb-n">3</span>Pendências</button>
+        <button class="tab-btn" onclick="abrirTab('vistoria',this)" id="tab-vist"><span class="tb-n">4</span>Vistoria</button>
+        <button class="tab-btn" onclick="abrirTab('consid',this)"><span class="tb-n">5</span>Considerações</button>
+        <i class="tab-ind" id="tab-ind" aria-hidden="true"></i>
       </div>
       <!-- CAPA -->
       <div id="pnl-capa" class="tab-pnl on" style="padding:16px">
@@ -3017,7 +3158,7 @@ function atualizarBadgePend() {
   if (!tb) return;
   var n = 0, lista = pendenciasAConferir();
   for (var i = 0; i < lista.length; i++) if (!lista[i].sel) n++;
-  tb.innerHTML = '📋 Pendências' + (n > 0 ? ' <span class="tbg">' + n + '</span>' : '');
+  tb.innerHTML = '<span class="tb-n">3</span>Pendências' + (n > 0 ? ' <span class="tbg">' + n + '</span>' : '');
 }
 
 function pdMudou() { renderPendencias(); atualizarBadgePend(); agendarAutoSave(); }
@@ -3082,7 +3223,7 @@ function pdRemFoto(chave, i) {
 function pdCard(o) {
   var sel = o.sel, st = sel ? sel.status : '';
   var antes = fotoExibicao(o.fotos[0]);
-  var thumb = antes ? '<img src="' + antes + '" class="pd-th" alt="Foto da visita original"/>' : '<div class="pd-th pd-th0">📷</div>';
+  var thumb = antes ? '<img src="' + antes + '" class="pd-th" alt="Foto da visita original"/>' : '<div class="pd-th pd-th0">' + IC_CAMERA + '</div>';
   var critInfo = o.crit === 'critical' ? ['#ede9fe', '#4c1d95', 'Crítica'] : (o.crit === 'high' ? ['#fee2e2', '#7f1d1d', 'Alta'] : ['#cffafe', '#155e75', 'Orientativa']);
   var ult = o.confs.length ? o.confs[o.confs.length - 1] : null;
   var ultTxt = ult ? ' · última conferência: ' + CONF_ST[ult.status][1] + ' em ' + fmtData(new Date(ult.data + 'T12:00:00')) : '';
@@ -3104,7 +3245,7 @@ function pdCard(o) {
       fh += u ? '<img src="' + u + '" class="pd-fd" alt="Foto do atendimento" onclick="pdRemFoto(\'' + o.chave + '\',' + i + ')" title="Toque para remover"/>' : '<div class="pd-fd pd-th0">…</div>';
     }
     extra = '<input class="pd-obs" value="' + escH(sel.obs || '') + '" placeholder="Observação (opcional)" aria-label="Observação" onchange="pdObs(\'' + o.chave + '\',this.value)"' + (podeEditar() ? '' : ' readonly') + '/>'
-      + '<div class="pd-fotos">' + fh + (podeEditar() && sel.fotos.length < 3 ? '<button type="button" class="pd-add" onclick="pdAddFoto(\'' + o.chave + '\')">📷 Foto do atendimento</button>' : '') + '</div>';
+      + '<div class="pd-fotos">' + fh + (podeEditar() && sel.fotos.length < 3 ? '<button type="button" class="pd-add" onclick="pdAddFoto(\'' + o.chave + '\')">' + IC_CAMERA + 'Foto do atendimento</button>' : '') + '</div>';
     if (st === 'nao_atendida') extra += '<div class="pd-warn"><b>Reincidente:</b> segue aberta e entra no relatório desta visita.</div>';
   }
   return '<div class="pd-card' + (sel ? '' : ' pd-novo') + '"><div style="display:flex;gap:12px">' + thumb
@@ -4231,7 +4372,20 @@ function abrirTab(nome, btn) {
   var pnl = document.getElementById('pnl-' + nome);
   if (pnl) pnl.classList.add('on');
   if (nome === 'pend') { pendFotosTentadas = false; renderPendencias(); }
+  moverIndicadorAba(btn);
 }
+function moverIndicadorAba(btn) {
+  var ind = document.getElementById('tab-ind');
+  if (!ind || !btn) return;
+  if (!ind.style.width) ind.style.transition = 'none';   /* primeira vez: posiciona sem deslizar */
+  ind.style.width = btn.offsetWidth + 'px';
+  ind.style.transform = 'translateX(' + btn.offsetLeft + 'px)';
+  if (ind.style.transition === 'none') { void ind.offsetWidth; ind.style.transition = ''; }
+  /* no celular as abas rolam: traz a aba ativa para a área visível */
+  var bar = btn.parentNode;
+  if (bar && (btn.offsetLeft < bar.scrollLeft || btn.offsetLeft + btn.offsetWidth > bar.scrollLeft + bar.clientWidth)) bar.scrollLeft = btn.offsetLeft - 16;
+}
+window.addEventListener('resize', function() { moverIndicadorAba(document.querySelector('.tab-btn.on')); });
 
 /* ══ SALVAR ════════════════════════════════════════════════════════ */
 /* ── Comprime fotos de um array de items (usado ao salvar) ── */
@@ -4599,6 +4753,13 @@ function remFoto(aptId, fi) {
   }
 }
 
+var IC_CAMERA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>';
+var IC_GALERIA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>';
+function botoesFoto(id) {
+  return '<div class="ph-adds edit-only">'
+    + '<button type="button" class="ph-add ph-sm" onclick="addFotoCamera(' + id + ')">' + IC_CAMERA + 'Câmera</button>'
+    + '<button type="button" class="ph-add ph-sm" onclick="addFotoGaleria(' + id + ')">' + IC_GALERIA + 'Galeria</button></div>';
+}
 function atualizarFotos(id) {
   var apt = null;
   for (var i = 0; i < items.length; i++) if (items[i].id === id) { apt = items[i]; break; }
@@ -4609,10 +4770,7 @@ function atualizarFotos(id) {
   for (var i = 0; i < apt.fotos.length; i++) {
     h += fotoImgHtml(id, i, apt.fotos[i]);
   }
-  h += '<div class="edit-only" style="display:flex;flex-direction:column;gap:5px">'
-    + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
-    + '<div class="ph-add ph-sm" onclick="addFotoGaleria(' + id + ')">🖼️<span style="font-size:9px;font-weight:700;text-transform:uppercase">Galeria</span></div>'
-    + '</div>';
+  h += botoesFoto(id);
   c.innerHTML = h;
 }
 
@@ -4628,7 +4786,7 @@ function renderApts() {
   if (cntEl) cntEl.textContent = items.length + ' apontamento' + (items.length !== 1 ? 's' : '') + (fc !== 'all' ? ' · ' + vis.length + ' visível' + (vis.length !== 1 ? 'is' : '') : '');
 
   var tb = document.getElementById('tab-vist');
-  if (tb) tb.innerHTML = '🔍 Vistoria' + (items.length > 0 ? ' <span class="tbg">' + items.length + '</span>' : '');
+  if (tb) tb.innerHTML = '<span class="tb-n">4</span>Vistoria' + (items.length > 0 ? ' <span class="tbg">' + items.length + '</span>' : '');
 
   if (items.length === 0) {
     document.getElementById('apts-list').innerHTML = '<div class="empty"><div class="empty-ico"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div><div class="empty-ttl">Nenhum Apontamento</div><div class="empty-txt">Registre não conformidades e itens de atenção da obra.</div><button class="btn btn-r edit-only" style="padding:12px 24px" onclick="addApt()">+ Adicionar</button></div>';
@@ -4652,10 +4810,10 @@ function renderApts() {
 
     html += '<div class="apt" id="apt-' + a.id + '">'
       + '<div class="apt-hdr">'
-      + '<div class="apt-num">' + (idx + 1) + '</div>'
+      + '<div class="apt-num">' + ('0' + (idx + 1)).slice(-2) + '</div>'
       + '<div class="apt-nm" id="apt-nm-' + a.id + '">' + (a.titulo ? escH(a.titulo) : '<span style="color:var(--gray);font-weight:400">Título...</span>') + '</div>'
       + '<div class="cbg ' + cr.cls + '" id="apt-bg-' + a.id + '"><span class="cdot"></span>' + cr.l + '</div>'
-      + '<button class="btn btn-d edit-only" style="padding:4px 7px;font-size:12px" onclick="remApt(' + a.id + ')">✕</button>'
+      + '<button class="btn apt-rm edit-only" title="Remover apontamento" aria-label="Remover apontamento" onclick="remApt(' + a.id + ')">' + IC_LIXO + '</button>'
       + '</div>'
       + '<div class="apt-body">'
       + sitAptHtml(a)
@@ -4676,18 +4834,15 @@ function renderApts() {
       + '</div>'
       + '<div class="photos" id="fotos-' + a.id + '">'
       + fotosH
-      + '<div class="edit-only" style="display:flex;flex-direction:column;gap:5px">'
-      + '<div class="ph-add ph-sm" onclick="addFotoCamera(' + a.id + ')">📷<span style="font-size:9px;font-weight:700;text-transform:uppercase">Câmera</span></div>'
-      + '<div class="ph-add ph-sm" onclick="addFotoGaleria(' + a.id + ')">🖼️<span style="font-size:9px;font-weight:700;text-transform:uppercase">Galeria</span></div>'
-      + '</div>'
+      + botoesFoto(a.id)
       + '</div>'
       + '</div></div>';
   }
   // REV1: Botão adicionar após cada apontamento e ao final
   html += '<div class="edit-only" style="padding:8px 0">'
-    + '<button class="btn btn-r" onclick="addApt()" style="width:100%;padding:14px;font-size:14px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.3px">'
-    + '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-    + '+ Adicionar Apontamento'
+    + '<button class="btn apt-add" onclick="addApt()">'
+    + '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+    + 'Adicionar apontamento'
     + '</button></div>';
   document.getElementById('apts-list').innerHTML = html;
 }
