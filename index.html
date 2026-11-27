@@ -681,6 +681,107 @@ body{background:var(--bg);color:var(--ink);font-feature-settings:"ss01"}
   .vs-hb>span:first-child{grid-column:1/-1}
 }
 </style>
+<style id="obras-relatorios">
+/* ── Obras e Relatórios: mesma linguagem do Painel ── */
+#pg-obras,#pg-list{padding:0}
+#pg-obras .hdr,#pg-list .hdr{background:rgba(243,242,238,.78);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);box-shadow:none;padding:12px 32px}
+#pg-obras .hdr-ttl,#pg-list .hdr-ttl{font-family:var(--ft);font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:0}
+.hm-vr-t .g,.rl-n .g{color:var(--cr);font-weight:700}
+
+/* Barra de composição por criticidade */
+.rl-mix{display:flex;gap:2px;height:5px;width:100%;max-width:220px;margin-top:8px;border-radius:3px;overflow:hidden;background:rgba(20,20,22,.05)}
+.rl-mix i{display:block;min-width:3px}
+
+/* Ações de relatório: ícones discretos */
+.rl-act{display:flex;gap:4px;flex-shrink:0}
+.rl-ic{width:36px;height:36px;padding:0;justify-content:center;border-radius:10px;background:transparent;color:var(--ink3)}
+.rl-ic:active{background:var(--bg)}
+@media (hover:hover) and (pointer:fine){.rl-ic:hover{background:var(--bg);color:var(--ink)}.rl-del:hover{background:var(--crb);color:var(--cr)}}
+
+/* Obras: grade de fichas */
+.ob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:20px;align-items:start}
+.ob-card{display:flex;flex-direction:column;overflow:hidden}
+.ob-card.enc{opacity:.72}
+.ob-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px 12px}
+.ob-nm{min-width:0}
+.ob-nm h2{display:flex;align-items:center;gap:10px;margin:0;font-family:var(--ftt);font-weight:800;font-size:24px;line-height:1.05;letter-spacing:-.005em}
+.ob-nm h2 em{flex-shrink:0;width:9px;height:9px;border-radius:50%}
+.ob-nm small{display:block;margin:5px 0 0 19px;font-size:13px;color:var(--ink3)}
+.ob-nm small b{color:var(--ink2)}
+.ob-dias{text-align:right;flex-shrink:0;line-height:1}
+.ob-dias b{display:block;font-family:var(--ftt);font-weight:800;font-size:28px;font-variant-numeric:tabular-nums}
+.ob-dias b small{font-family:var(--ft);font-size:12px;font-weight:600;color:var(--ink3);margin-left:2px}
+.ob-dias span{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-top:4px}
+.ob-reg{padding:4px 22px 16px}
+.ob-reg .hm-bar{display:block}
+.ob-st{display:grid;grid-template-columns:repeat(3,1fr);box-shadow:inset 0 1px 0 var(--line),inset 0 -1px 0 var(--line)}
+.ob-st>div{padding:12px 22px}
+.ob-st>div+div{box-shadow:inset 1px 0 0 var(--line)}
+.ob-st b{display:block;font-family:var(--ftt);font-weight:800;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.ob-st b.cr{color:var(--cr)}
+.ob-st span{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-top:5px}
+.ob-new{display:flex;gap:8px;padding:14px 22px}
+.ob-new .btn{flex:1;justify-content:center;height:38px;border-radius:10px;font-size:13px;font-weight:600}
+.ob-rels{box-shadow:inset 0 1px 0 var(--line)}
+.ob-rel{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px 12px 22px;box-shadow:inset 0 -1px 0 var(--line);cursor:pointer;transition:background-color 150ms ease}
+.ob-rel:active{background:var(--bg)}
+.ob-tp{font-family:var(--ft);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-left:4px}
+.ob-mais summary{list-style:none;cursor:pointer;padding:12px 22px;font-size:13px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:8px;box-shadow:inset 0 -1px 0 var(--line)}
+.ob-mais summary::-webkit-details-marker{display:none}
+.ob-mais summary::after{content:"";width:6px;height:6px;border-right:2px solid var(--ink3);border-bottom:2px solid var(--ink3);transform:rotate(45deg) translateY(-2px);transition:transform 200ms var(--ease-out)}
+.ob-mais[open] summary::after{transform:rotate(-135deg)}
+.ob-mais[open] summary{color:var(--ink3)}
+.ob-rels>.ob-rel:last-child,.ob-mais:last-child>.ob-rel:last-child,.ob-mais:not([open]) summary{box-shadow:none}
+@media (hover:hover) and (pointer:fine){.ob-rel:hover{background:var(--paper)}.ob-mais summary:hover{color:var(--ink)}}
+
+/* Relatórios */
+.rl-bar{padding:16px;margin-bottom:20px;position:relative;z-index:2}
+.rl-top{display:grid;grid-template-columns:minmax(0,1fr) 300px auto;gap:12px;align-items:center}
+.rl-top .hm-q input{box-shadow:inset 0 0 0 1px var(--line2);background:var(--paper)}
+.rl-top .hm-q input:focus{box-shadow:0 0 0 1px var(--ink),0 0 0 4px rgba(20,20,22,.06);background:#fff}
+.rl-sort{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.rl-sort select{height:42px;border:none;border-radius:12px;padding:0 34px 0 14px;font:600 14px var(--ft);color:var(--ink);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8b92' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;box-shadow:inset 0 0 0 1px var(--line2);-webkit-appearance:none;appearance:none;cursor:pointer;letter-spacing:0;text-transform:none}
+.rl-crit{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:14px;padding-top:14px;box-shadow:inset 0 1px 0 var(--line)}
+.rl-lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.rl-clear{margin-left:auto;height:32px;font-size:13px;font-weight:600}
+.rl-list{overflow:hidden}
+.rl-head,.rl-row{display:grid;grid-template-columns:48px minmax(0,1.4fr) minmax(160px,1fr) 80px;gap:18px;align-items:center;padding:12px 16px 12px 22px}
+.rl-head{padding-top:14px;padding-bottom:10px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.rl-row{box-shadow:inset 0 1px 0 var(--line);cursor:pointer;transition:background-color 150ms ease}
+.rl-row:active{background:var(--bg)}
+.rl-row .hm-vr-t b{font-size:15px}
+.rl-sum{min-width:0}
+.rl-n{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.rl-row .rl-act{justify-content:flex-end}
+@media (hover:hover) and (pointer:fine){.rl-row:hover{background:var(--paper)}}
+@media (max-width:1100px){
+  .rl-top{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .rl-top .hm-q{grid-column:1/-1}
+  .rl-sort{justify-self:end}
+}
+@media (max-width:700px){
+  #pg-obras .hdr,#pg-list .hdr{padding:calc(10px + var(--stop)) 16px 10px}
+  .ob-grid{grid-template-columns:minmax(0,1fr);gap:16px}
+  .ob-hd{padding:18px 16px 10px}
+  .ob-nm h2{font-size:22px}
+  .ob-reg{padding:4px 16px 14px}
+  .ob-st>div{padding:12px 16px}
+  .ob-new{padding:12px 16px}
+  .ob-new .btn{height:42px}
+  .ob-rel{padding:12px 8px 12px 16px;gap:12px}
+  .ob-mais summary{padding:12px 16px}
+  .rl-bar{padding:12px}
+  .rl-top{grid-template-columns:minmax(0,1fr)}
+  .rl-sort{justify-self:stretch}
+  .rl-sort select{flex:1}
+  .rl-lbl{width:100%}
+  .rl-clear{margin-left:0}
+  .rl-head{display:none}
+  .rl-row{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"d t a" "d s a";gap:4px 12px;padding:12px 8px 12px 16px}
+  .rl-row>.hm-date{grid-area:d}.rl-row>.hm-vr-t{grid-area:t}.rl-row>.rl-sum{grid-area:s}.rl-row>.rl-act{grid-area:a;flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){.ob-mais summary::after{transition:none}}
+</style>
 </head>
 <body class="ui-restrita ui-sem-ia ui-nao-admin">
 <div id="app">
@@ -757,15 +858,16 @@ body{background:var(--bg);color:var(--ink);font-feature-settings:"ss01"}
     </div>
     <!-- OBRAS -->
     <div id="pg-obras" class="pg">
-      <div class="hdr"><span class="hdr-ttl">Diretório de Obras</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo</button></div></div>
-      <div id="obras-body" style="padding:20px"></div>
+      <div class="hdr"><span class="hdr-ttl">Obras</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo</button></div></div>
+      <div class="hm"><div id="obras-body"></div></div>
     </div>
     <!-- LIST -->
     <div id="pg-list" class="pg">
       <div class="hdr"><span class="hdr-ttl" id="list-ttl">Relatórios</span><div class="hdr-act"><button class="btn btn-r edit-only" onclick="novoRelatorio()">+ Novo</button></div></div>
-      <div style="padding:20px">
-        <div id="list-filterbar"></div>
-        <div id="list-rows"></div>
+      <div class="hm">
+        <section class="hm-hero vs-hero"><div><div class="hm-eye hm-a"><i></i>Arquivo</div><h1 class="hm-ttl hm-a" style="--d:40ms">Relatórios</h1><p class="hm-lead hm-a" id="list-lead" style="--d:80ms"></p></div></section>
+        <div id="list-filterbar" class="hm-a" style="--d:130ms"></div>
+        <div id="list-rows" class="hm-a" style="--d:200ms"></div>
       </div>
     </div>
     <!-- EDITOR -->
@@ -3795,80 +3897,111 @@ function novoRelatorioObra(obra, cli, tipo) {
   }, 150);
 }
 
+var obEntrou = false;
+var OB_RELS_VISIVEIS = 3;
+var IC_PDF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>';
+var IC_LIXO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+
+/* Contagem por criticidade de um relatório, na ordem em que aparece a barra */
+var CRIT_ORDEM = [['critical', 'Crítica', 'var(--cc)'], ['high', 'Alta', 'var(--cr)'], ['med', 'Média', '#e0a44a'], ['low', 'Baixa', 'var(--ok)'], ['orient', 'Orientativa', 'var(--or)']];
+function contarPorCrit(r) {
+  var c = { critical: 0, high: 0, med: 0, low: 0, orient: 0 }, it = r.items || [];
+  for (var i = 0; i < it.length; i++) if (c.hasOwnProperty(it[i].criticidade)) c[it[i].criticidade]++;
+  return c;
+}
+/* Barra fina com a composição dos apontamentos do relatório */
+function barraCrit(r) {
+  var c = contarPorCrit(r), h = '', tit = [];
+  for (var i = 0; i < CRIT_ORDEM.length; i++) {
+    var k = CRIT_ORDEM[i];
+    if (!c[k[0]]) continue;
+    h += '<i style="flex:' + c[k[0]] + ';background:' + k[2] + '"></i>';
+    tit.push(c[k[0]] + ' ' + k[1].toLowerCase());
+  }
+  return '<span class="rl-mix" role="img" title="' + tit.join(' · ') + '" aria-label="Apontamentos: ' + (tit.join(', ') || 'nenhum') + '">' + h + '</span>';
+}
+function blocoData(d) {
+  return '<div class="hm-date"><b>' + (d ? ('0' + d.getDate()).slice(-2) : '—') + '</b><small>' + (d ? MESES_ABREV[d.getMonth()] + ' ' + String(d.getFullYear()).slice(-2) : '') + '</small></div>';
+}
+function acoesRel(r) {
+  return '<div class="rl-act" onclick="event.stopPropagation()">'
+    + '<button class="btn rl-ic" title="Gerar PDF" aria-label="Gerar PDF" onclick="gerarPDFById(' + r.id + ')">' + IC_PDF + '</button>'
+    + '<button class="btn rl-ic rl-del edit-only" title="Excluir relatório" aria-label="Excluir relatório" onclick="excluirRelatorio(' + r.id + ')">' + IC_LIXO + '</button></div>';
+}
+
+function obLinhaRel(r) {
+  var n = (r.items || []).length, g = 0;
+  for (var k = 0; k < n; k++) if (ehGrave(r.items[k].criticidade)) g++;
+  return '<div class="ob-rel" onclick="abrirRelatorio(' + r.id + ')">' + blocoData(dataVisita(r))
+    + '<div class="hm-vr-t"><b>' + escH((r.cover && r.cover.num) ? r.cover.num : 'Sem número') + ' <span class="ob-tp">' + TIPOS_VIST[tipoVist(r)].nome + '</span></b>'
+    + '<small>' + (r.cover && r.cover.responsavel ? escH(r.cover.responsavel) + ' · ' : '') + pluralPt(n, 'apontamento', 'apontamentos') + (g ? ' · <span class="g">' + g + (g === 1 ? ' grave' : ' graves') + '</span>' : '') + '</small>'
+    + barraCrit(r) + '</div>' + acoesRel(r) + '</div>';
+}
+
 function renderObras() {
   var obras = agruparPorObra();
   var el = document.getElementById('obras-body');
   if (!el) return;
+  var animar = !obEntrou && obras.length > 0;
   if (obras.length === 0) {
-    el.innerHTML = '<div class="card"><div class="empty"><div class="empty-ico"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>'
-      + '<div class="empty-ttl">Nenhuma obra</div>'
-      + '<div class="empty-txt">Crie o primeiro relatório de vistoria para iniciar o diretório de obras.</div>'
+    el.innerHTML = '<section class="hm-hero vs-hero"><div><div class="hm-eye"><i></i>Diretório</div><h1 class="hm-ttl">Obras</h1><p class="hm-lead">Crie o primeiro relatório de vistoria para iniciar o diretório de obras.</p></div></section>'
+      + '<div class="hm-card"><div class="empty"><div class="empty-ttl">Nenhuma obra</div><div class="empty-txt">Cada obra aparece aqui a partir do primeiro relatório.</div>'
       + '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar Relatório</button></div></div>';
     return;
   }
-  var html = '<div style="font-size:13px;color:var(--gray);margin-bottom:14px;font-weight:600">'
-    + obras.length + ' obra' + (obras.length !== 1 ? 's' : '') + ' · ' + reports.length + ' relatório' + (reports.length !== 1 ? 's' : '') + '</div>';
+  /* situação de cadência de cada obra (mesmos critérios do Painel) */
+  var res = resumoObras('todos'), porNome = {}, ativas = 0, atraso = 0;
+  for (var q = 0; q < res.length; q++) { porNome[res[q].nome] = res[q]; if (!res[q].encerrada) { ativas++; if (res[q].sit === 'atraso') atraso++; } }
+
+  var lead = '<b>' + pluralPt(obras.length, 'obra', 'obras') + '</b> e <b>' + pluralPt(reports.length, 'relatório', 'relatórios') + '</b> no diretório, ' + ativas + (ativas === 1 ? ' ativa' : ' ativas') + '.'
+    + (atraso ? ' <b class="cr">' + atraso + (atraso === 1 ? ' está' : ' estão') + '</b> há mais de ' + LIMITE_SEM_VISITA_DIAS + ' dias sem visita.' : '');
+  var html = '<section class="hm-hero vs-hero"><div><div class="hm-eye hm-a"><i></i>Diretório</div><h1 class="hm-ttl hm-a" style="--d:40ms">Obras</h1><p class="hm-lead hm-a" style="--d:80ms">' + lead + '</p></div></section>'
+    + '<div class="ob-grid hm-a" style="--d:130ms">';
 
   for (var i = 0; i < obras.length; i++) {
-    var ob   = obras[i];
+    var ob = obras[i], info = porNome[ob.nome];
     var rels = ob.relatorios.slice().sort(function(a, b) { return b.id - a.id; });
-    var crit = contarCrit(rels);
-    var tApt = contarApts(rels);
-    var cliH = ob.cliente ? '<div style="font-size:11px;color:var(--gray);font-weight:400">' + escH(ob.cliente) + '</div>' : '';
-    var critH = crit > 0 ? '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:#dc2626">' + crit + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Críticos</div></div>' : '';
+    var crit = contarCrit(rels), tApt = contarApts(rels);
+    var sit = info ? SIT_INFO[info.sit][0] : 'nt', enc = info && info.encerrada;
+    var cor = enc ? 'var(--ink3)' : (sit === 'ok' ? 'var(--ok)' : (sit === 'at' ? '#e0a44a' : 'var(--cr)'));
+    var w = info ? Math.max(1.5, Math.min(100, info.dias / 120 * 100)) : 0;
+    var nomeJs = escH(ob.nome), cliJs = escH(ob.cliente || '');
 
-    var rowsH = '';
-    for (var j = 0; j < rels.length; j++) {
-      var r  = rels[j];
-      var n  = r.items ? r.items.length : 0;
-      var h  = 0;
-      if (r.items) { for (var k = 0; k < r.items.length; k++) if (r.items[k].criticidade === 'high' || r.items[k].criticidade === 'critical') h++; }
-      var respH = (r.cover && r.cover.responsavel) ? r.cover.responsavel + ' · ' : '';
-      var critPt = h > 0 ? ' · <span style="color:#dc2626;font-weight:700">' + h + ' 🔴</span>' : '';
-      rowsH += '<div class="r-row" onclick="abrirRelatorio(' + r.id + ')" style="padding:10px 14px">'
-        + '<div class="r-ico" style="width:32px;height:32px"><svg width="14" height="14" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>'
-        + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">' + chipTipo(tipoVist(r)) + ' ' + escH((r.cover && r.cover.num) ? r.cover.num : '—') + ' <span style="color:var(--gray);font-weight:400">· ' + fmtData(dataVisita(r), true) + '</span></div>'
-        + '<div style="font-size:11px;color:var(--gray)">' + respH + n + ' apontamento' + (n !== 1 ? 's' : '') + critPt + '</div></div>'
-        + '<div class="r-act" onclick="event.stopPropagation()">'
-        + '<button class="btn btn-o" style="padding:5px 8px;font-size:11px" onclick="gerarPDFById(' + r.id + ')">🖨️</button>'
-        + '<button class="btn btn-d edit-only" style="padding:5px 8px;font-size:11px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
-        + '</div></div>';
+    var relsH = '';
+    for (var j = 0; j < Math.min(OB_RELS_VISIVEIS, rels.length); j++) relsH += obLinhaRel(rels[j]);
+    if (rels.length > OB_RELS_VISIVEIS) {
+      var resto = '';
+      for (var jj = OB_RELS_VISIVEIS; jj < rels.length; jj++) resto += obLinhaRel(rels[jj]);
+      relsH += '<details class="ob-mais"><summary>Mais ' + pluralPt(rels.length - OB_RELS_VISIVEIS, 'relatório', 'relatórios') + '</summary>' + resto + '</details>';
     }
 
-    html += '<div class="card" style="margin-bottom:16px">'
-      + '<div class="card-hdr">'
-      + '<div style="display:flex;align-items:center;gap:10px"><span style="width:30px;height:30px;border-radius:8px;background:rgba(22,50,74,.08);color:var(--navy);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></span><div><div class="card-ttl" style="font-size:13px;color:var(--black)">' + escH(ob.nome) + '</div>' + cliH + '</div></div>'
-      + '<div style="display:flex;align-items:center;gap:12px">'
-      + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--red)">' + rels.length + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Rel.</div></div>'
-      + '<div style="text-align:center"><div style="font-family:var(--ftt);font-size:20px;font-weight:900;color:var(--black)">' + tApt + '</div><div style="font-size:9px;color:var(--gray);text-transform:uppercase">Apts.</div></div>'
-      + critH + '</div></div>'
-      + '<div><div style="padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--bdr)">'
-      + '<button class="btn btn-r edit-only" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\',\'geral\')">+ Vistoria geral</button> '
-      + '<button class="btn btn-o edit-only" style="font-size:12px;padding:7px 12px" onclick="novoRelatorioObra(\'' + escH(ob.nome) + '\',\'' + escH(ob.cliente || '') + '\',\'instalacoes\')">+ Vistoria de instalações</button>'
-      + '</div>' + rowsH + '</div></div>';
+    html += '<article class="hm-card ob-card' + (enc ? ' enc' : '') + '">'
+      + '<header class="ob-hd"><div class="ob-nm"><h2><em style="background:' + cor + '"></em>' + escH(ob.nome) + '</h2>'
+      + '<small>' + (ob.cliente ? escH(ob.cliente) : 'Incorporadora não informada') + (enc ? ' · <b>Encerrada</b>' : '') + '</small></div>'
+      + (info ? '<div class="ob-dias"><b>' + info.dias + '<small>d</small></b><span>sem visita</span></div>' : '') + '</header>'
+      + (info ? '<div class="ob-reg"><span class="hm-bar"><b style="left:' + (META_CADENCIA_DIAS / 120 * 100) + '%"></b><b style="left:' + (LIMITE_SEM_VISITA_DIAS / 120 * 100) + '%"></b><i style="width:' + w + '%;background:' + cor + '"></i></span></div>' : '')
+      + '<div class="ob-st"><div><b>' + rels.length + '</b><span>' + (rels.length === 1 ? 'relatório' : 'relatórios') + '</span></div><div><b>' + tApt + '</b><span>apontamentos</span></div><div><b class="' + (crit ? 'cr' : '') + '">' + crit + '</b><span>graves</span></div></div>'
+      + '<div class="ob-new edit-only"><button class="btn hm-btn" onclick="novoRelatorioObra(\'' + nomeJs + '\',\'' + cliJs + '\',\'geral\')">+ Vistoria geral</button>'
+      + '<button class="btn hm-btn" onclick="novoRelatorioObra(\'' + nomeJs + '\',\'' + cliJs + '\',\'instalacoes\')">+ Instalações</button></div>'
+      + '<div class="ob-rels">' + relsH + '</div></article>';
   }
-  el.innerHTML = html;
+  el.innerHTML = html + '</div>';
+  if (animar) obEntrou = true;
+  hmAnimarPagina(document.getElementById('pg-obras'), animar, false);
 }
 
 /* ══ LIST ═════════════════════════════════════════════════════════ */
+var rlEntrou = false;
+var rlTipoAnterior = null;
 function relRow(r, showAct) {
-  var n = r.items ? r.items.length : 0;
-  var h = 0;
-  if (r.items) { for (var k = 0; k < r.items.length; k++) if (r.items[k].criticidade === 'high' || r.items[k].criticidade === 'critical') h++; }
-  var cliP = (r.cover && r.cover.cliente) ? escH(r.cover.cliente) + ' · ' : '';
-  var critP = h > 0 ? ' · <span style="color:#dc2626;font-weight:700">' + h + ' 🔴</span>' : '';
-  var actH = showAct
-    ? '<div class="r-act" onclick="event.stopPropagation()">'
-      + '<button class="btn btn-o" style="padding:6px 9px" onclick="gerarPDFById(' + r.id + ')">🖨️</button>'
-      + '<button class="btn btn-d edit-only" style="padding:6px 9px" onclick="excluirRelatorio(' + r.id + ')">🗑</button>'
-      + '</div>'
-    : '';
-  return '<div class="r-row" onclick="abrirRelatorio(' + r.id + ')">'
-    + '<div class="r-ico"><svg width="17" height="17" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>'
-    + '<div style="flex:1;min-width:0">'
-    + '<div class="r-nm">' + escH((r.cover && r.cover.obra) ? r.cover.obra : 'Sem título') + '</div>'
-    + '<div class="r-mt">' + chipTipo(tipoVist(r)) + ' ' + cliP + '<span class="r-dt">' + fmtData(dataVisita(r), true) + '</span> · ' + n + ' apt' + (n !== 1 ? 's' : '') + critP + '</div>'
-    + '</div>' + actH + '</div>';
+  var n = (r.items || []).length, g = 0;
+  for (var k = 0; k < n; k++) if (ehGrave(r.items[k].criticidade)) g++;
+  var c = r.cover || {};
+  return '<div class="rl-row" onclick="abrirRelatorio(' + r.id + ')">' + blocoData(dataVisita(r))
+    + '<div class="hm-vr-t"><b>' + escH(c.obra || 'Sem título') + '</b>'
+    + '<small>' + TIPOS_VIST[tipoVist(r)].nome + (c.cliente ? ' · ' + escH(c.cliente) : '') + (c.num ? ' · ' + escH(c.num) : '') + '</small></div>'
+    + '<div class="rl-sum"><span class="rl-n">' + pluralPt(n, 'apontamento', 'apontamentos') + (g ? ' · <span class="g">' + g + (g === 1 ? ' grave' : ' graves') + '</span>' : '') + '</span>' + barraCrit(r) + '</div>'
+    + (showAct ? acoesRel(r) : '') + '</div>';
 }
 
 /* ── Barra de filtro/busca: renderizada separada da lista de resultados.
@@ -3878,26 +4011,37 @@ function relRow(r, showAct) {
 function renderListFiltros() {
   var el = document.getElementById('list-filterbar');
   if (!el) return;
-  var chips = [['all','Todos'],['critical','Crítica'],['high','Alta'],['med','Média'],['low','Baixa'],['orient','Orient.']];
+  var chips = [['all', 'Todas', ''], ['critical', 'Crítica', 'var(--cc)'], ['high', 'Alta', 'var(--cr)'], ['med', 'Média', '#e0a44a'], ['low', 'Baixa', 'var(--ok)'], ['orient', 'Orientativa', 'var(--or)']];
   var chipsH = '';
   for (var i = 0; i < chips.length; i++) {
-    chipsH += '<button class="fchip' + (filterC === chips[i][0] ? ' on' : '') + '" onclick="filterC=\'' + chips[i][0] + '\';renderListFull()">' + chips[i][1] + '</button>';
+    chipsH += '<button type="button" class="vs-chip' + (filterC === chips[i][0] ? ' on' : '') + '" aria-pressed="' + (filterC === chips[i][0]) + '" onclick="filterC=\'' + chips[i][0] + '\';renderListFull()">'
+      + (chips[i][2] ? '<em style="background:' + chips[i][2] + '"></em>' : '') + chips[i][1] + '</button>';
   }
-  var tipos = [['todos','Todos os tipos'],['geral','Geral'],['instalacoes','Instalações']], tiposH = '';
-  for (var ti = 0; ti < tipos.length; ti++) tiposH += '<button class="fchip' + (filterT === tipos[ti][0] ? ' on' : '') + '" onclick="filterT=\'' + tipos[ti][0] + '\';renderListFull()">' + tipos[ti][1] + '</button>';
-  var clearH = (searchQ || filterC !== 'all' || filterT !== 'todos') ? '<button class="btn btn-g" style="font-size:11px;padding:4px 8px;margin-left:auto" onclick="searchQ=\'\';filterC=\'all\';filterT=\'todos\';renderListFull()">✕ Limpar</button>' : '';
+  var tipos = [['todos', 'Todos'], ['geral', 'Geral'], ['instalacoes', 'Instalações']], tiposH = '';
+  for (var ti = 0; ti < tipos.length; ti++) tiposH += '<button type="button" aria-pressed="' + (filterT === tipos[ti][0]) + '" onclick="filterT=\'' + tipos[ti][0] + '\';renderListFull()">' + tipos[ti][1] + '</button>';
+  var filtrado = searchQ || filterC !== 'all' || filterT !== 'todos';
+  var clearH = filtrado ? '<button type="button" class="btn hm-ghost rl-clear" onclick="searchQ=\'\';filterC=\'all\';filterT=\'todos\';renderListFull()">Limpar filtros</button>' : '';
 
-  el.innerHTML = '<div class="card" style="padding:14px;margin-bottom:14px">'
-    + '<div class="fbar">'
-    + '<div class="srch-wrap"><span class="srch-ico"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>'
-    + '<input class="srch-inp" placeholder="Buscar obra, incorporadora..." value="' + escH(searchQ) + '" oninput="searchQ=this.value;renderList()"/></div>'
-    + '<select class="sort-sel" onchange="sortBy=this.value;renderListFull()">'
+  el.innerHTML = '<div class="rl-bar hm-card">'
+    + '<div class="rl-top"><div class="hm-q"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7.5"/><line x1="20.5" y1="20.5" x2="16.4" y2="16.4"/></svg>'
+    + '<input id="list-q" type="search" placeholder="Buscar obra ou responsável" aria-label="Buscar relatórios" autocomplete="off" value="' + escH(searchQ) + '" oninput="searchQ=this.value;renderList()"/></div>'
+    + '<div class="hm-seg rl-seg" role="group" aria-label="Tipo de vistoria"><i class="hm-seg-ind" id="hm-seg-ind-rl"></i>' + tiposH + '</div>'
+    + '<label class="rl-sort"><span>Ordenar</span><select id="list-sort" onchange="sortBy=this.value;renderListFull()">'
     + '<option value="date"' + (sortBy === 'date' ? ' selected' : '') + '>Recentes</option>'
     + '<option value="name"' + (sortBy === 'name' ? ' selected' : '') + '>Nome A–Z</option>'
     + '<option value="apts"' + (sortBy === 'apts' ? ' selected' : '') + '>Mais apontamentos</option>'
-    + '</select></div>'
-    + '<div class="fchips">' + tiposH + '</div>'
-    + '<div class="fchips">' + chipsH + clearH + '</div></div>';
+    + '</select></label></div>'
+    + '<div class="rl-crit"><span class="rl-lbl">Com apontamento</span><div class="vs-chips" role="group" aria-label="Filtrar por criticidade">' + chipsH + '</div>' + clearH + '</div></div>';
+
+  /* indicador do tipo: desliza do tipo anterior até o atual */
+  var ind = document.getElementById('hm-seg-ind-rl');
+  if (ind) {
+    var idx = { todos: 0, geral: 1, instalacoes: 2 }, de = rlTipoAnterior === null ? idx[filterT] : idx[rlTipoAnterior], para = idx[filterT];
+    ind.style.transition = 'none';
+    ind.style.transform = 'translateX(' + (de * 100) + '%)';
+    if (de !== para) { void ind.offsetWidth; ind.style.transition = ''; ind.style.transform = 'translateX(' + (para * 100) + '%)'; }
+    rlTipoAnterior = filterT;
+  }
 }
 
 /* ── Lista de resultados: única parte re-renderizada a cada tecla da busca ── */
@@ -3926,29 +4070,40 @@ function renderList() {
     }
     lista = tmp2;
   }
-  if (sortBy === 'date') lista.sort(function(a, b) { return b.id - a.id; });
+  /* Recentes = pela data da visita (como no Painel); empate pelo mais novo criado */
+  if (sortBy === 'date') lista.sort(function(a, b) {
+    var da = dataVisita(a), db = dataVisita(b), ta = da ? da.getTime() : 0, tb = db ? db.getTime() : 0;
+    return ta !== tb ? tb - ta : Number(b.id) - Number(a.id);
+  });
   else if (sortBy === 'name') lista.sort(function(a, b) { return ((a.cover && a.cover.obra) ? a.cover.obra : '').localeCompare((b.cover && b.cover.obra) ? b.cover.obra : ''); });
   else lista.sort(function(a, b) { return (b.items ? b.items.length : 0) - (a.items ? a.items.length : 0); });
 
   var lt = document.getElementById('list-ttl');
   if (lt) lt.textContent = 'Relatórios (' + lista.length + '/' + reports.length + ')';
+  var lead = document.getElementById('list-lead');
+  if (lead) {
+    var nObras = {};
+    for (var o = 0; o < reports.length; o++) nObras[(reports[o].cover && reports[o].cover.obra) || '—'] = true;
+    lead.innerHTML = reports.length
+      ? '<b>' + pluralPt(reports.length, 'relatório', 'relatórios') + '</b> de ' + pluralPt(Object.keys(nObras).length, 'obra', 'obras') + '.'
+        + (lista.length !== reports.length ? ' Mostrando <b>' + lista.length + '</b> com os filtros atuais.' : '')
+      : 'Nenhum relatório salvo ainda.';
+  }
 
   var rowsH = '';
   if (lista.length === 0 && reports.length === 0 && syncEmAndamento && sbEnabled()) {
-    rowsH = '<div class="card"><div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div>'
+    rowsH = '<div class="hm-card"><div class="empty"><div class="spinner" style="width:26px;height:26px;border-width:3px;border-top-color:var(--red);margin:0 auto 14px"></div>'
       + '<div class="empty-ttl">Carregando seus relatórios…</div><div class="empty-txt">Buscando os dados salvos na nuvem.</div></div></div>';
   } else if (lista.length === 0) {
-    rowsH = '<div class="card"><div class="empty"><div class="empty-ico">' + (reports.length === 0
-        ? '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>'
-        : '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') + '</div>'
+    rowsH = '<div class="hm-card"><div class="empty">'
       + '<div class="empty-ttl">' + (reports.length === 0 ? 'Nenhum relatório' : 'Sem resultados') + '</div>'
-      + '<div class="empty-txt">' + (reports.length === 0 ? 'Crie o primeiro relatório ROCONTEC.' : 'Ajuste os filtros.') + '</div>'
-      + (reports.length === 0 ? '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar</button>' : '')
+      + '<div class="empty-txt">' + (reports.length === 0 ? 'Crie o primeiro relatório ROCONTEC.' : 'Nenhum relatório combina com a busca e os filtros.') + '</div>'
+      + (reports.length === 0 ? '<button class="btn btn-r edit-only" style="padding:12px 24px" onclick="novoRelatorio()">+ Criar</button>' : '<button class="btn hm-btn" onclick="searchQ=\'\';filterC=\'all\';filterT=\'todos\';renderListFull()">Limpar filtros</button>')
       + '</div></div>';
   } else {
-    var rs = '';
+    var rs = '<div class="rl-head" aria-hidden="true"><span>Data</span><span>Obra</span><span>Apontamentos</span><span></span></div>';
     for (var i = 0; i < lista.length; i++) rs += relRow(lista[i], true);
-    rowsH = '<div class="card">' + rs + '</div>';
+    rowsH = '<div class="hm-card rl-list">' + rs + '</div>';
   }
 
   var rowsEl = document.getElementById('list-rows');
@@ -3957,8 +4112,11 @@ function renderList() {
 
 /* ── Usar ao entrar na tela ou após ação discreta (chip/ordenação/exclusão) ── */
 function renderListFull() {
+  var animar = !rlEntrou && reports.length > 0;
   renderListFiltros();
   renderList();
+  if (animar) rlEntrou = true;
+  hmAnimarPagina(document.getElementById('pg-list'), animar, false);
 }
 
 /* ══ EDITOR ═══════════════════════════════════════════════════════ */
